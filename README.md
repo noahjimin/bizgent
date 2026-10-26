@@ -67,24 +67,23 @@ BizGent는 소상공인이 **매장 정보와 마케팅 목표만 입력**하면
 
 | 산출물 | 내용 | 저장 위치 |
 | --- | --- | --- |
-| 프로젝트 계획서 | 목적·범위·기능·역할·일정 | [`PROJECT.md`](PROJECT.md) |
-| Use Case | 사용자별 기능과 시스템 요구사항 | `docs/usecase/` |
-| 논리·물리 ERD | 데이터 구조 및 관계 | `docs/erd/` (작성 후 추가) |
-| 화면설계 | 화면 흐름 및 UI 설계 자료 | `docs/ui/` |
-| Figma Make | 화면 프로토타입 | [Figma Make 보기](https://www.figma.com/make/4GhTG9Qu7tJNvTDN9tOEaz/Setup-BizGent-Prototype?t=jKL4V6hvI9FnVv29-1&preview-route=%2Flanding)|
+| 프로젝트 계획서 | 목적·범위·기능·역할·일정 | [`01_기획/사계절_PROJECT.md`](01_기획/사계절_PROJECT.md) |
+| Use Case | 사용자별 기능과 시스템 요구사항 (PDF, StarUML 원본) | [`02_요구사항분석/`](02_요구사항분석/) |
+| 화면설계 | 화면 흐름 및 UI 설계 (화면설계서 PDF·PPTX) | [`03_화면설계/`](03_화면설계/) |
+| 논리·물리 ERD | 데이터 구조 및 관계 (Erwin 원본, PDF) | [`04_DB설계/`](04_DB설계/) |
+| Figma Make | 화면 프로토타입 | [Figma Make 보기](https://www.figma.com/make/4GhTG9Qu7tJNvTDN9tOEaz/Setup-BizGent-Prototype?t=jKL4V6hvI9FnVv29-1&preview-route=%2Flanding) |
 
 ## 7. 프로젝트 폴더 구조
 
 ```text
 bizgent/
 ├── README.md
-├── PROJECT.md
 ├── .gitignore
-├── docs/
-│   ├── usecase/
-│   ├── erd/
-│   └── ui/
-└── src/               # 구현 소스코드 (개발 단계에서 구성)
+├── 01_기획/            # PROJECT.md
+├── 02_요구사항분석/     # Use Case 다이어그램
+├── 03_화면설계/         # 화면설계서, Figma Make 링크
+├── 04_DB설계/           # 논리·물리 ERD
+└── src/                # 구현 소스코드 (개발 단계에서 구성)
 ```
 
 > 팀별 산출물과 확정된 기술 스택에 맞춰 수정하며, 실제 파일 업로드 후 문서 링크를 연결합니다.
@@ -96,7 +95,8 @@ bizgent/
 - [x] Figma 화면설계
 - [x] 논리·물리 ERD 작성
 - [ ] 개발·AI 코딩 도구 및 협업 방식 확정
-- [ ] GitHub 문서 구조화 및 팀원별 Clone 확인
+- [x] GitHub 저장소 생성 및 분석·설계 문서 구조화
+- [ ] 팀원별 Clone 확인
 - [ ] 서버·DB 연동 및 필수 기능 구현
 - [ ] 통합 테스트, 배포 및 검증
 
