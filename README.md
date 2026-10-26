@@ -71,7 +71,7 @@ BizGent는 소상공인이 **매장 정보와 마케팅 목표만 입력**하면
 | Use Case | 사용자별 기능과 시스템 요구사항 | `docs/usecase/` |
 | 논리·물리 ERD | 데이터 구조 및 관계 | `docs/erd/` (작성 후 추가) |
 | 화면설계 | 화면 흐름 및 UI 설계 자료 | `docs/ui/` |
-| Figma Make | 화면 프로토타입 | 팀 공유 링크 추가 |
+| Figma Make | 화면 프로토타입 | [Figma Make 보기](https://www.figma.com/make/4GhTG9Qu7tJNvTDN9tOEaz/Setup-BizGent-Prototype?t=jKL4V6hvI9FnVv29-1&preview-route=%2Flanding)|
 
 ## 7. 프로젝트 폴더 구조
 
