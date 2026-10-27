@@ -48,7 +48,7 @@ BizGent는 소상공인이 **매장 정보와 마케팅 목표만 입력**하면
 | Frontend | HTML, CSS, JavaScript, Thymeleaf (계획) |
 | 화면 설계·프로토타입 | Figma Make |
 | Backend | Java, Spring Boot (계획) |
-| Database | Oracle (계획) |
+| Database | Oracle 11g XE |
 | AI / API | LLM API (기획·문구), 이미지 생성 API (광고·대표 이미지) (계획) |
 | 버전 관리 | Git / GitHub |
 | 개발·AI 코딩 도구 | 팀 협의 후 확정 |
