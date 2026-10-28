@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<!-- 성과분석 (SCR-U-010, F09): 요약 카드, 일별 매출 추이(캠페인 기간 표시), 상품별·캠페인별·요일별 표 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/app :: layout('성과분석', 'performance', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<div class="flex w-full flex-col gap-[16px] px-[36px] pt-[24px] pb-[30px]">
+  <div class="flex w-full flex-col gap-[18px]">
+    <div th:replace="~{fragments/app-parts :: pageHeader('성과분석', null)}"></div>
+    <div class="flex w-full flex-wrap items-end justify-between gap-[12px]">
+      <div class="flex flex-col gap-[4px]">
+        <h1 class="f-bold text-[30px] text-[#172033]">성과 분석</h1>
+        <p class="f-regular text-[14px] text-[#667085]">매장 매출을 중심으로 상품과 캠페인의 효과를 한눈에 확인해보세요.</p>
+      </div>
+      <div class="flex items-center gap-[12px]">
+        <form th:if="${view != null}" method="get" th:action="@{/performance}"
+              class="relative flex h-[42px] w-[154px] items-center rounded-[12px] border border-[#e5eaf1] bg-white">
+          <select name="period" aria-label="기간 선택" onchange="this.form.submit()"
+                  class="f-semibold size-full appearance-none bg-transparent pr-[36px] pl-[14px] text-[14px] text-[#172033] outline-none">
+            <option th:each="p : ${ { {'7', '최근 7일'}, {'30', '최근 30일'}, {'all', '전체 기간'} } }" th:value="${p[0]}" th:text="${p[1]}" th:selected="${period == p[0]}"></option>
+          </select>
+          <img alt="" th:src="@{/assets/22c5d.svg}" class="pointer-events-none absolute right-[14px] size-[16px]">
+        </form>
+        <button type="button" data-modal-open="sales-upload-modal"
+                class="flex h-[42px] items-center gap-[8px] rounded-[12px] bg-[#2563eb] px-[16px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">
+          <img alt="" th:src="@{/assets/833eb.svg}" class="size-[20px]">
+          <span class="f-bold text-[14px] whitespace-nowrap text-white">매출 데이터 올리기</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 매출 데이터가 없을 때 -->
+  <div th:if="${view == null}" class="flex w-full flex-col items-center justify-center gap-[16px] rounded-[16px] border border-[#e5eaf1] bg-white px-[24px] py-[96px] text-center shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+    <span class="flex size-[64px] items-center justify-center rounded-[16px] bg-[#eaf2ff]">
+      <img alt="" th:src="@{/assets/ce93d.svg}" class="size-[32px]">
+    </span>
+    <div class="flex flex-col gap-[6px]">
+      <p class="f-bold text-[20px] text-[#172033]">아직 매출 데이터가 없어요</p>
+      <p class="f-regular text-[14px] text-[#667085]">영수증, 엑셀 파일을 올리면 AI가 상품과 캠페인의 효과를 분석해요.</p>
+    </div>
+    <button type="button" data-modal-open="sales-upload-modal" class="flex h-[42px] items-center gap-[8px] rounded-[12px] bg-[#2563eb] px-[16px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">
+      <img alt="" th:src="@{/assets/833eb.svg}" class="size-[20px]">
+      <span class="f-bold text-[14px] whitespace-nowrap text-white">매출 데이터 올리기</span>
+    </button>
+  </div>
+
+  <th:block th:if="${view != null}" th:with="s=${view.summary}">
+    <div class="flex w-full items-center justify-between gap-[12px] rounded-[12px] bg-[#eaf2ff] px-[14px] py-[10px]">
+      <p class="f-semibold min-w-0 truncate text-[13px] text-[#172033]"
+         th:text="|마지막 매출 데이터 업로드: ${@fmt.monthDay(view.lastUpload)} · 영수증, 엑셀 파일을 올리면 AI가 분석해요|"></p>
+      <a th:href="@{/insights}" class="f-bold shrink-0 text-[12px] text-[#2563eb] hover:underline" aria-label="AI 캠페인 개선 방향 자세히 보기">자세히</a>
+    </div>
+
+    <!-- 요약 카드 -->
+    <div class="flex w-full flex-wrap gap-[16px] [&>*]:min-w-[220px]">
+      <div th:replace="~{:: summaryCard('712cd.svg', 'bg-[#eaf2ff]', '총 매출', ${s.revenue}, '원', 'revenue')}"></div>
+      <div th:replace="~{:: summaryCard('c1c35.svg', 'bg-[#ddf8f3]', '판매 건수', ${s.count}, '건', null)}"></div>
+      <div th:replace="~{:: summaryCard('2c577.svg', 'bg-[#ddf8f3]', '객단가', ${s.avg}, '원', null)}"></div>
+      <div th:replace="~{:: summaryCard('d13db.svg', 'bg-[#ddf8f3]', '캠페인 연계 매출', ${s.linked}, '원', 'linked')}"></div>
+    </div>
+
+    <!-- 일별 매출 추이 -->
+    <section class="flex h-[340px] w-full flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-white px-[20px] pt-[18px] pb-[16px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+      <div class="flex w-full items-center justify-between">
+        <div class="flex flex-col gap-[3px]">
+          <h2 class="f-bold text-[20px] text-[#172033]">일별 매출 추이</h2>
+          <p class="f-regular text-[12px] text-[#667085]">캠페인 진행 기간을 함께 표시했어요</p>
+        </div>
+        <div class="flex items-center gap-[18px]">
+          <span class="flex items-center gap-[7px]">
+            <img alt="" th:src="@{/assets/dd7f5.svg}" class="size-[8px]">
+            <span class="f-semibold text-[12px] text-[#667085]">매출</span>
+          </span>
+          <span class="flex items-center gap-[7px]">
+            <span class="size-[8px] rounded-full bg-[#14b8a6] opacity-18"></span>
+            <span class="f-semibold text-[13px] text-[#667085]">캠페인 진행 기간</span>
+          </span>
+        </div>
+      </div>
+      <div class="relative min-h-0 w-full flex-1">
+        <canvas id="sales-chart" aria-label="일별 매출 추이 차트" role="img"></canvas>
+      </div>
+    </section>
+
+    <!-- 상품별 · 캠페인별 · 요일별 -->
+    <section class="flex w-full flex-col overflow-hidden rounded-[16px] border border-[#e5eaf1] bg-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]" data-tabs>
+      <div role="tablist" aria-label="분석 기준" class="flex h-[48px] w-full items-center gap-[8px] px-[20px]">
+        <button th:each="t, ts : ${ { {'menu', '상품별'}, {'campaign', '캠페인별'}, {'weekday', '요일·시간대'} } }" type="button" role="tab"
+                th:attr="data-tab=${t[0]},aria-selected=${ts.first}" th:text="${t[1]}"
+                class="flex h-[36px] items-center rounded-full px-[14px] text-[13px] whitespace-nowrap"
+                th:classappend="${ts.first ? 'f-bold bg-[#2563eb] text-white' : 'f-semibold border border-[#e5eaf1] bg-[#f7f9fc] text-[#667085] hover:bg-[#eef1f5]'}">상품별</button>
+      </div>
+      <div class="w-full overflow-x-auto">
+        <div class="min-w-[1040px]">
+          <div data-tab-panel="menu">
+            <div class="f-semibold flex h-[42px] w-full items-center gap-[14px] border-y border-[#eef1f5] bg-[#f7f9fc] px-[16px] text-[12px] text-[#667085]">
+              <p class="min-w-0 flex-1">상품명</p>
+              <p class="w-[125px] shrink-0">판매 수량</p>
+              <p class="w-[160px] shrink-0">매출</p>
+              <p class="w-[190px] shrink-0 text-right">매출 비중</p>
+              <p class="w-[150px] shrink-0 text-right">전 기간 대비</p>
+              <p class="w-[121px] shrink-0 text-right">판매 상태</p>
+            </div>
+            <div th:each="r : ${view.menuRows}" class="flex h-[48px] w-full items-center gap-[14px] border-b border-[#eef1f5] bg-white px-[16px] last:border-b-0">
+              <p class="f-semibold min-w-0 flex-1 truncate text-[13px] text-[#172033]" th:text="${r.product.productName}"></p>
+              <p class="f-medium w-[125px] shrink-0 truncate text-[13px] text-[#667085]" th:text="|${@fmt.number(r.quantity)}개|"></p>
+              <p class="f-medium w-[160px] shrink-0 truncate text-[13px] text-[#667085]" th:text="${@fmt.won(r.amount)}"></p>
+              <div th:replace="~{:: shareBar(${r.share})}"></div>
+              <p class="w-[150px] shrink-0 text-right"><span th:replace="~{:: change(${r.change})}"></span></p>
+              <div class="flex w-[121px] shrink-0 justify-center"><span th:replace="~{:: statusBadge(${r.status})}"></span></div>
+            </div>
+          </div>
+
+          <div data-tab-panel="campaign" hidden>
+            <div class="f-semibold flex h-[42px] w-full items-center gap-[14px] border-y border-[#eef1f5] bg-[#f7f9fc] px-[16px] text-[12px] text-[#667085]">
+              <p class="min-w-0 flex-1">캠페인명</p>
+              <p class="w-[125px] shrink-0">대상 상품</p>
+              <p class="w-[100px] shrink-0">게시일</p>
+              <p class="w-[140px] shrink-0 text-right">게시 전 7일 매출</p>
+              <p class="w-[140px] shrink-0 text-right">게시 후 7일 매출</p>
+              <p class="w-[100px] shrink-0 text-right">변화율</p>
+              <p class="w-[121px] shrink-0 text-right">결과</p>
+            </div>
+            <p th:if="${view.campaignRows.isEmpty()}" class="f-regular px-[16px] py-[28px] text-center text-[13px] text-[#98a2b3]">선택한 기간에 게시한 캠페인이 없어요.</p>
+            <div th:each="r : ${view.campaignRows}" class="flex h-[48px] w-full items-center gap-[14px] border-b border-[#eef1f5] bg-white px-[16px] last:border-b-0">
+              <p class="f-semibold min-w-0 flex-1 truncate text-[13px] text-[#172033]" th:text="${r.campaign.title}"></p>
+              <p class="f-medium w-[125px] shrink-0 truncate text-[13px] text-[#667085]" th:text="${r.menuNames}"></p>
+              <p class="f-medium w-[100px] shrink-0 truncate text-[13px] text-[#667085]" th:text="${@fmt.monthDay(r.campaign.publishedAt)}"></p>
+              <p class="f-medium w-[140px] shrink-0 truncate text-right text-[13px] text-[#667085]" th:text="${@fmt.won(r.before)}"></p>
+              <p class="f-medium w-[140px] shrink-0 truncate text-right text-[13px] text-[#667085]" th:text="${@fmt.won(r.after)}"></p>
+              <p class="w-[100px] shrink-0 text-right"><span th:replace="~{:: change(${r.change})}"></span></p>
+              <div class="flex w-[121px] shrink-0 justify-center"><span th:replace="~{:: statusBadge(${r.result})}"></span></div>
+            </div>
+          </div>
+
+          <div data-tab-panel="weekday" hidden>
+            <div class="f-semibold flex h-[42px] w-full items-center gap-[14px] border-y border-[#eef1f5] bg-[#f7f9fc] px-[16px] text-[12px] text-[#667085]">
+              <p class="min-w-0 flex-1">요일</p>
+              <p class="w-[125px] shrink-0">판매 수량</p>
+              <p class="w-[160px] shrink-0">매출</p>
+              <p class="w-[190px] shrink-0 text-right">매출 비중</p>
+              <p class="w-[150px] shrink-0 text-right">일평균 매출</p>
+              <p class="w-[121px] shrink-0 text-right">판매 상태</p>
+            </div>
+            <div th:each="r : ${view.weekdayRows}" class="flex h-[48px] w-full items-center gap-[14px] border-b border-[#eef1f5] bg-white px-[16px] last:border-b-0">
+              <p class="f-semibold min-w-0 flex-1 truncate text-[13px] text-[#172033]" th:text="${r.label}"></p>
+              <p class="f-medium w-[125px] shrink-0 truncate text-[13px] text-[#667085]" th:text="|${@fmt.number(r.quantity)}개|"></p>
+              <p class="f-medium w-[160px] shrink-0 truncate text-[13px] text-[#667085]" th:text="${@fmt.won(r.amount)}"></p>
+              <div th:replace="~{:: shareBar(${r.share})}"></div>
+              <p class="f-medium w-[150px] shrink-0 text-right text-[13px] text-[#667085]" th:text="${@fmt.won(r.dailyAvg)}"></p>
+              <div class="flex w-[121px] shrink-0 justify-center"><span th:replace="~{:: statusBadge(${r.top ? '최고 매출' : '보통'})}"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </th:block>
+</div>
+
+<div th:replace="~{fragments/sales-upload :: modal}"></div>
+</th:block>
+
+<!-- 요약 카드. unit: '원' 또는 '건', extra: 'revenue'(증감 배지) / 'linked'(비중 문구) / null -->
+<div th:fragment="summaryCard(icon, iconBg, label, amount, unit, extra)"
+     class="flex h-[112px] min-w-0 flex-1 items-center gap-[14px] rounded-[16px] border border-[#e5eaf1] bg-white p-[18px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+  <span class="flex size-[46px] shrink-0 items-center justify-center rounded-[14px]" th:classappend="${iconBg}">
+    <img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[22px]">
+  </span>
+  <div class="flex min-w-0 flex-1 flex-col gap-[5px]">
+    <p class="f-medium text-[13px] text-[#667085]" th:text="${label}"></p>
+    <div class="flex flex-col items-start">
+      <p class="f-bold truncate text-[24px] text-[#172033]" th:text="${unit == '원' ? @fmt.won(amount) : @fmt.number(amount) + unit}"></p>
+      <span th:if="${extra == 'revenue' and view.summary.revenueChange != null}" class="f-bold rounded-full px-[8px] py-[5px] text-[11px]"
+            th:classappend="${view.summary.revenueChange >= 0 ? 'bg-[#ddf8ed] text-[#0e9f6e]' : 'bg-[#fdecea] text-[#d92d20]'}"
+            th:text="|${view.summary.revenueChange >= 0 ? '▲' : '▼'} ${view.summary.revenueChange >= 0 ? view.summary.revenueChange : -view.summary.revenueChange}%|"></span>
+      <p th:if="${extra == 'linked'}" class="f-bold text-[11px] text-[#667080]" th:text="|전체 매출의 ${view.summary.linkedShare}%|"></p>
+    </div>
+  </div>
+</div>
+
+<span th:fragment="change(value)" th:with="up=${value != null and value >= 0}">
+  <span th:if="${value == null}" class="f-bold text-[13px] text-[#98a2b3]">-</span>
+  <span th:if="${value != null}" class="f-bold text-[13px]" th:classappend="${up ? 'text-[#0e9f6e]' : 'text-[#d92d20]'}"
+        th:text="|${up ? '▲' : '▼'} ${up ? value : -value}%|"></span>
+</span>
+
+<div th:fragment="shareBar(share)" class="flex h-[22px] w-[190px] shrink-0 items-center justify-end gap-[10px]">
+  <p class="f-medium w-[36px] text-right text-[13px] text-[#667085]" th:text="|${share}%|"></p>
+  <div class="relative h-[6px] w-[120px] rounded-[3px] bg-[#ebf0f7]">
+    <div class="absolute top-0 left-0 h-[6px] rounded-[3px] bg-[#2563eb]" th:style="|width:${share > 100 ? 100 : share}%|"></div>
+  </div>
+</div>
+
+<!-- 판매 상태 / 캠페인 결과 배지 -->
+<span th:fragment="statusBadge(label)"
+      th:with="good=${label == '인기' or label == '효과 좋음' or label == '최고 매출'}, bad=${label == '비인기' or label == '효과 미미'}, stock=${label == '재고 많음'}"
+      class="flex min-w-[68px] items-center justify-center gap-[6px] rounded-full px-[9px] py-[5px]"
+      th:classappend="${good ? 'bg-[#ddf8ed]' : bad ? 'bg-[#fff1e8]' : stock ? 'bg-[#eaf2ff]' : 'bg-[#f2f4f7]'}">
+  <span th:if="${stock}" class="size-[6px] rounded-full bg-[#2563eb]"></span>
+  <img th:unless="${stock}" alt="" th:src="@{'/assets/' + ${good ? '89a12.svg' : bad ? '7d469.svg' : 'a7cf6.svg'}}" class="size-[6px]">
+  <span class="f-bold text-[11px] whitespace-nowrap" th:text="${label}"
+        th:classappend="${good ? 'text-[#0e9f6e]' : bad ? 'text-[#f79009]' : stock ? 'text-[#2563eb]' : 'text-[#667085]'}"></span>
+</span>
+
+<th:block th:fragment="scripts">
+<script th:src="@{/js/vendor/chart.umd.min.js}"></script>
+<script th:inline="javascript">
+  const SERIES = /*[[${view?.series}]]*/ [];
+  const BANDS = /*[[${view?.bands}]]*/ [];
+  const OPEN_UPLOAD = /*[[${openUpload}]]*/ false;
+  const PRODUCTS = /*[[${productOptions}]]*/ [];
+</script>
+<script th:src="@{/js/sales-upload.js}"></script>
+<script>
+(() => {
+  // 표 탭 전환
+  const tabs = document.querySelector("[data-tabs]");
+  if (tabs) {
+    const ON = ["f-bold", "bg-[#2563eb]", "text-white"];
+    const OFF = ["f-semibold", "border", "border-[#e5eaf1]", "bg-[#f7f9fc]", "text-[#667085]", "hover:bg-[#eef1f5]"];
+    tabs.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-tab]");
+      if (!btn) return;
+      tabs.querySelectorAll("[data-tab]").forEach((b) => {
+        const on = b === btn;
+        b.setAttribute("aria-selected", String(on));
+        b.classList.remove(...(on ? OFF : ON));
+        b.classList.add(...(on ? ON : OFF));
+      });
+      tabs.querySelectorAll("[data-tab-panel]").forEach((p) => (p.hidden = p.dataset.tabPanel !== btn.dataset.tab));
+    });
+  }
+
+  // 일별 매출 추이 차트
+  const canvas = document.getElementById("sales-chart");
+  if (canvas && SERIES && SERIES.length) {
+    const keys = SERIES.map((p) => p.key);
+    const md = (k) => { const [, m, d] = k.split("-"); return `${Number(m)}월 ${Number(d)}일`; };
+    const tickCount = Math.min(7, keys.length);
+    const tickIdx = new Set(tickCount > 1 ? Array.from({ length: tickCount }, (_, i) => Math.round((i * (keys.length - 1)) / (tickCount - 1))) : [0]);
+    const won = (n) => `${Math.round(n).toLocaleString()}원`;
+
+    // 캠페인 진행 기간을 민트색 띠로 그린다.
+    const bandPlugin = {
+      id: "campaignBands",
+      beforeDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        ctx.save();
+        BANDS.forEach((b, i) => {
+          const x1 = scales.x.getPixelForValue(keys.indexOf(b.x1));
+          const x2 = scales.x.getPixelForValue(keys.indexOf(b.x2));
+          ctx.fillStyle = "rgba(20,184,166,0.08)";
+          ctx.fillRect(x1, chartArea.top, Math.max(2, x2 - x1), chartArea.bottom - chartArea.top);
+          ctx.fillStyle = "#14b8a6";
+          ctx.font = "700 11px Inter, 'Noto Sans KR', sans-serif";
+          ctx.fillText(b.title, x1 + 6, chartArea.top + 14 + (i % 2 ? 20 : 0));
+        });
+        ctx.restore();
+      },
+    };
+
+    const ctx = canvas.getContext("2d");
+    const fill = ctx.createLinearGradient(0, 0, 0, canvas.parentElement.clientHeight);
+    fill.addColorStop(0, "rgba(37,99,235,0.16)");
+    fill.addColorStop(1, "rgba(37,99,235,0)");
+
+    new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: keys,
+        datasets: [{
+          data: SERIES.map((p) => p.amount),
+          borderColor: "#2563eb",
+          borderWidth: 2.5,
+          backgroundColor: fill,
+          fill: true,
+          tension: 0.35,
+          pointRadius: (c) => (c.dataIndex === keys.length - 1 ? 5 : 0),
+          pointHoverRadius: 5,
+          pointBackgroundColor: "white",
+          pointBorderColor: "#2563eb",
+          pointBorderWidth: 2.5,
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "white",
+            borderColor: "#e5eaf1",
+            borderWidth: 1,
+            titleColor: "#98a2b3",
+            titleFont: { size: 11, weight: "400" },
+            bodyColor: "#172033",
+            bodyFont: { size: 13, weight: "700" },
+            displayColors: false,
+            padding: 10,
+            callbacks: { title: (items) => md(keys[items[0].dataIndex]), label: (item) => won(item.parsed.y) },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: "#98a2b3", font: { size: 11 }, autoSkip: false, maxRotation: 0, callback: (v, i) => (tickIdx.has(i) ? md(keys[i]) : "") },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: "#eef1f5" },
+            border: { display: false },
+            ticks: { color: "#98a2b3", font: { size: 11 }, maxTicksLimit: 5, callback: (v) => (v === 0 ? "0" : `${Math.round(v / 10000)}만`) },
+          },
+        },
+      },
+      plugins: [bandPlugin],
+    });
+  }
+
+  if (OPEN_UPLOAD) {
+    BG.openModal("sales-upload-modal");
+    history.replaceState(null, "", location.pathname + location.search.replace(/[?&]upload=open/, "").replace(/^&/, "?"));
+  }
+})();
+</script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!-- 캠페인 생성 5단계: 게시 (F08, F18). 게시 준비 → 게시 진행 → 게시 완료 카드 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/wizard :: layout('게시', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<div class="flex flex-1 flex-col" th:with="note=${draft.content.customChannelNote},
+     selectedDrafts=${draft.published ? draft.publishedDrafts : draft.selectedDrafts}">
+  <div class="flex flex-1 flex-col items-center px-[48px] pt-[22px] pb-[18px]">
+    <div class="flex w-full max-w-[700px] flex-col gap-[18px]">
+      <div class="flex w-full flex-col items-center gap-[7px] text-center">
+        <span class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[6px]">
+          <img alt="" th:src="@{/assets/02c79.svg}" class="size-[14px]">
+          <span class="f-bold whitespace-pre text-[14px] text-[#14b8a6]">5 단계</span>
+        </span>
+        <h1 class="f-bold text-[36px] text-[#172033]">게시 준비가 완료됐어요</h1>
+        <p class="f-regular text-[17px] leading-[1.5] text-[#667085]">실제 채널 연동은 추후 업데이트 예정이며, 지금은 게시 상태로 등록돼요</p>
+      </div>
+
+      <section class="flex w-full flex-col gap-[14px] rounded-[16px] border border-[#e5eaf1] bg-[#f2f4f7] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <div class="flex w-full items-center justify-between">
+          <h2 class="f-bold text-[20px] text-[#172033]">캠페인 요약</h2>
+          <span class="flex items-center gap-[5px] rounded-full bg-[#ddf8f3] px-[10px] py-[5px]">
+            <span class="relative size-[12px]"><span class="absolute inset-[-8.33%_-8.33%_-14.71%_-8.33%]"><img alt="" th:src="@{/assets/6aba5.svg}" class="block size-full max-w-none"></span></span>
+            <span class="f-bold text-[12px] text-[#0e9384]">게시 준비 완료</span>
+          </span>
+        </div>
+        <div class="flex w-full items-center gap-[18px]">
+          <div class="flex min-w-0 flex-1 flex-col gap-[4px]">
+            <p class="f-semibold text-[12px] text-[#667085]">캠페인명</p>
+            <p class="f-bold text-[16px] text-[#172033]" th:text="${draft.title}"></p>
+          </div>
+          <div class="h-[34px] w-px shrink-0 bg-[#d0d7e2]"></div>
+          <div class="flex min-w-0 flex-1 flex-col gap-[4px]">
+            <p class="f-semibold text-[12px] text-[#667085]">목표</p>
+            <p class="f-bold text-[16px] text-[#172033]" th:text="${draft.goal}"></p>
+          </div>
+        </div>
+        <div class="flex w-full flex-wrap items-center gap-[8px]">
+          <p class="f-semibold text-[12px] text-[#667085]">선택된 채널</p>
+          <span th:each="ch, i : ${draft.content.channels}" class="flex items-center gap-[6px] rounded-full border border-[#bcebe4] bg-white px-[12px] py-[7px]">
+            <span class="relative size-[13px] shrink-0"><span class="absolute inset-[-7.69%_-7.69%_-13.58%_-7.69%]">
+              <img alt="" th:src="@{'/assets/' + ${i.first ? '0bc7c.svg' : '11111.svg'}}" class="block size-full max-w-none"></span></span>
+            <span class="f-semibold text-[14px] whitespace-nowrap text-[#0e9384]" th:text="|${@fmt.circled(i.index)} ${@fmt.channelLabel(ch, note, '')}|"></span>
+          </span>
+        </div>
+        <div class="flex w-full items-start gap-[12px]">
+          <div th:each="d : ${selectedDrafts}" class="flex h-[156px] min-w-0 flex-1 flex-col gap-[8px] rounded-[12px] border border-[#e5eaf1] bg-white p-[12px]">
+            <p class="f-bold text-[10px] text-[#0e9384]" th:text="${@fmt.channelLabel(d.channel, note, '용')}"></p>
+            <div class="flex min-h-0 w-full flex-1 items-start gap-[8px]">
+              <div class="relative h-full w-[96px] shrink-0 overflow-hidden rounded-[8px] bg-[#eef1f5]">
+                <img th:unless="${#strings.isEmpty(d.imageUrl)}" alt="" th:src="${d.imageUrl}" class="absolute inset-0 size-full rounded-[8px] object-cover">
+              </div>
+              <div class="flex h-full min-w-0 flex-1 flex-col gap-[6px] overflow-hidden">
+                <p class="f-bold text-[12px] leading-[1.35] text-[#172033]" th:text="${d.headline}"></p>
+                <p th:unless="${#strings.isEmpty(d.body)}" class="f-regular line-clamp-3 text-[9px] leading-[1.45] text-[#667085]" th:text="${d.body}"></p>
+                <div class="flex flex-wrap items-start gap-[4px]">
+                  <span th:each="t, ts : ${d.hashtags}" th:if="${ts.index < 2}" class="f-regular rounded-full bg-[#eaf2ff] px-[6px] py-[3px] text-[8px] text-[#1d4ed8]" th:text="|#${t}|"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 게시 진행 -->
+        <div data-progress hidden class="flex w-full flex-col gap-[10px] rounded-[12px] bg-white p-[14px]" role="status" aria-live="polite">
+          <div th:each="d, i : ${selectedDrafts}" data-progress-row th:attr="data-index=${i.index}" class="flex w-full items-center gap-[12px]">
+            <p class="f-semibold w-[220px] shrink-0 truncate text-[13px] text-[#172033]" th:text="|시안 ${d.key} · ${@fmt.channelLabel(d.channel, note, '')}|"></p>
+            <div class="h-[6px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#eef1f5]">
+              <div data-progress-bar class="h-full w-0 rounded-full bg-[#2563eb] transition-[width]"></div>
+            </div>
+            <p data-progress-label class="f-bold w-[56px] shrink-0 text-right text-[12px] text-[#667085]">게시 중</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[48px]">
+    <div class="flex w-full max-w-[700px] items-center justify-between">
+      <button type="button" data-publish th:disabled="${published != null}"
+              class="flex h-[56px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] shadow-[0px_10px_24px_0px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60">
+        <span data-publish-label class="f-bold text-[16px] whitespace-nowrap text-white" th:text="${published != null ? '게시 완료' : '게시하기'}">게시하기</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- 게시 완료 카드 -->
+  <div th:if="${published != null}" th:with="remindAt=${draft.publishedAt.plusDays(7)}"
+       class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.4)]">
+    <div role="dialog" aria-modal="true" aria-labelledby="publish-done-title"
+         class="flex h-[720px] max-h-[calc(100vh-32px)] w-[1000px] max-w-[calc(100vw-32px)] flex-col gap-[20px] rounded-[24px] border border-[#e5eaf1] bg-white p-[24px] drop-shadow-[0px_18px_20px_rgba(16,24,40,0.1)]">
+      <div class="flex w-full flex-col gap-[6px]">
+        <img alt="" th:src="@{/assets/d20f4.svg}" class="size-[48px]">
+        <h2 id="publish-done-title" class="f-bold text-[28px] text-[#172033]">게시가 완료됐어요</h2>
+        <p class="f-regular text-[15px] leading-[1.5] text-[#667085]" th:text="|${draft.publishedAt.year}년 ${@fmt.monthDayTime(draft.publishedAt)}에 게시됐어요|"></p>
+      </div>
+
+      <div class="flex min-h-0 w-full flex-1 items-start gap-[24px] overflow-y-auto">
+        <div class="flex min-w-0 flex-1 flex-col gap-[16px]">
+          <h3 class="f-bold text-[18px] text-[#172033]">채널별 게시 결과</h3>
+          <div th:each="d, i : ${selectedDrafts}" class="flex w-full flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-white p-[16px]">
+            <div class="flex w-full items-center justify-between">
+              <span class="f-bold rounded-full bg-[#eff5ff] px-[8px] py-[4px] text-[12px] text-[#1d4ed8]" th:text="|${@fmt.circled(i.index)} 시안 ${d.key} · ${@fmt.channelLabel(d.channel, note, '')}|"></span>
+              <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[4px] text-[12px] text-[#14b8a6]">게시 완료</span>
+            </div>
+            <div class="flex w-full items-start gap-[12px]">
+              <div class="relative h-[80px] w-[120px] shrink-0 overflow-hidden rounded-[8px] bg-[#eef1f5]">
+                <img th:unless="${#strings.isEmpty(d.imageUrl)}" alt="" th:src="${d.imageUrl}" class="absolute inset-0 size-full object-cover">
+              </div>
+              <div class="flex min-w-0 flex-1 flex-col gap-[4px]">
+                <p class="f-regular text-[12px] text-[#98a2b3]" th:text="${#temporals.format(draft.publishedAt, 'yyyy.MM.dd HH:mm')}"></p>
+                <p class="f-semibold text-[14px] leading-[1.4] text-[#172033]" th:text="${d.headline}"></p>
+                <div class="flex w-full flex-wrap items-start gap-[6px]">
+                  <span th:each="t, ts : ${d.hashtags}" th:if="${ts.index < 2}" class="f-semibold rounded-full bg-[#eaf2ff] px-[8px] py-[4px] text-[11px] text-[#1d4ed8]" th:text="|#${t}|"></span>
+                </div>
+              </div>
+            </div>
+            <div class="flex w-full items-start gap-[8px]">
+              <button type="button" th:attr="data-copy=${d.copyText}" class="flex items-center gap-[6px] rounded-full border border-[#d0d7e2] px-[12px] py-[8px] hover:bg-[#f7f9fc]">
+                <img alt="" th:src="@{/assets/54f74.svg}" class="size-[14px]">
+                <span data-copy-label class="f-semibold text-[13px] whitespace-nowrap text-[#667085]">문구 복사</span>
+              </button>
+              <button th:unless="${#strings.isEmpty(d.imageUrl)}" type="button" th:attr="data-download=${d.imageUrl},data-filename=|bizgent_시안${d.key}.png|"
+                      class="flex items-center gap-[6px] rounded-full border border-[#d0d7e2] px-[12px] py-[8px] hover:bg-[#f7f9fc]">
+                <img alt="" th:src="@{/assets/14ed2.svg}" class="size-[14px]">
+                <span class="f-semibold text-[13px] whitespace-nowrap text-[#667085]">이미지 다운로드</span>
+              </button>
+            </div>
+          </div>
+          <p class="f-regular text-[12px] leading-[1.5] text-[#98a2b3]">실제 채널 연동은 추후 업데이트 예정이에요. 지금은 게시 상태로 기록되고, 문구와 이미지를 직접 올릴 수도 있어요.</p>
+        </div>
+
+        <div class="flex w-[320px] shrink-0 flex-col gap-[16px]">
+          <h3 class="f-bold text-[18px] text-[#172033]">다음 할 일</h3>
+          <ol class="flex w-full flex-col gap-[12px]">
+            <li class="flex w-full items-center gap-[12px]">
+              <img alt="" th:src="@{/assets/f65d5.svg}" class="size-[24px] shrink-0">
+              <p class="f-bold text-[14px] text-[#172033]">오늘 · 게시 완료</p>
+            </li>
+            <li class="flex w-full items-center gap-[12px]">
+              <span class="f-bold flex size-[24px] shrink-0 items-center justify-center rounded-[12px] border-[1.5px] border-[#2563eb] bg-white text-[12px] text-[#98a2b3]">2</span>
+              <div class="flex min-w-0 flex-1 flex-col gap-[2px]">
+                <p class="f-bold text-[14px] text-[#172033]" th:text="|7일 뒤 (${@fmt.monthDay(remindAt)}) · 성과·매출 정보 입력|"></p>
+                <p class="f-regular text-[12px] leading-[1.4] text-[#667085]">영수증이나 엑셀 파일로 매출 정보를 올리면 돼요.</p>
+              </div>
+            </li>
+            <li class="flex w-full items-center gap-[12px]">
+              <span class="f-bold flex size-[24px] shrink-0 items-center justify-center rounded-[12px] border border-[#d0d7e2] bg-white text-[12px] text-[#98a2b3]">3</span>
+              <div class="flex min-w-0 flex-1 flex-col gap-[2px]">
+                <p class="f-bold text-[14px] text-[#172033]">AI 성과 리포트 확인</p>
+                <p class="f-regular text-[12px] leading-[1.4] text-[#667085]">평균 대비 잘된 점과 아쉬운 점을 분석해드려요.</p>
+              </div>
+            </li>
+          </ol>
+          <button type="button" role="switch" th:attr="aria-checked=${draft.reminderAt != null},data-campaign-id=${draft.campaignId}" data-reminder
+                  class="flex w-full items-center gap-[12px] rounded-[12px] bg-[#f7f9fc] p-[12px] text-left">
+            <span data-switch-track class="relative block h-[24px] w-[40px] shrink-0 rounded-full transition-colors" th:classappend="${draft.reminderAt != null ? 'bg-[#2563eb]' : 'bg-[#d0d7e2]'}">
+              <span data-switch-knob class="absolute top-[2px] size-[20px] rounded-full bg-white transition-all" th:classappend="${draft.reminderAt != null ? 'left-[18px]' : 'left-[2px]'}"></span>
+            </span>
+            <span class="f-bold text-[14px] text-[#172033]">7일 뒤 알림 받기</span>
+          </button>
+          <p class="f-regular text-[12px] text-[#98a2b3]">입력 시기가 되면 알림으로 알려드려요.</p>
+        </div>
+      </div>
+
+      <div class="flex w-full items-center justify-between border-t border-[#e5eaf1] pt-[16px]">
+        <a th:href="@{/}" class="f-semibold text-[14px] text-[#667085] hover:text-[#172033]">홈으로</a>
+        <div class="flex items-center gap-[12px]">
+          <button type="button" data-new-campaign class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">새 캠페인 만들기</button>
+          <a th:href="@{/campaigns(campaign=${draft.campaignId})}"
+             class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8]">캠페인 보관함 바로가기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="~{fragments/app-parts :: newCampaignForm}"></div>
+<div th:replace="~{fragments/app-parts :: upgradeNotice}"></div>
+</th:block>
+
+<th:block th:fragment="scripts">
+<script>
+(() => {
+  // 게시하기: 채널별 진행 막대를 2초 보여준 뒤 게시를 기록하고 완료 카드로 이동한다.
+  const btn = document.querySelector("[data-publish]");
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    document.querySelector("[data-publish-label]").textContent = "게시 중...";
+    const box = document.querySelector("[data-progress]");
+    box.hidden = false;
+    const rows = Array.from(box.querySelectorAll("[data-progress-row]"));
+    const start = performance.now();
+    const request = BG.postJson("/api/wizard/publish");
+    await new Promise((resolve) => {
+      const tick = (now) => {
+        const progress = Math.min(1, (now - start) / 2000);
+        rows.forEach((row) => {
+          const i = Number(row.dataset.index);
+          // 채널마다 조금씩 어긋나게 진행시켜 채널별 게시처럼 보이게 한다.
+          const p = Math.min(1, Math.max(0, progress * (1 + i * 0.15) - i * 0.1));
+          row.querySelector("[data-progress-bar]").style.width = `${p * 100}%`;
+          const label = row.querySelector("[data-progress-label]");
+          label.textContent = p >= 1 ? "게시 완료" : "게시 중";
+          label.classList.toggle("text-[#14b8a6]", p >= 1);
+          label.classList.toggle("text-[#667085]", p < 1);
+        });
+        if (progress < 1) requestAnimationFrame(tick); else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+    try {
+      const { campaignId } = await request;
+      location.href = `/campaigns/new/done?campaign=${campaignId}`;
+    } catch {
+      BG.toast("게시하지 못했어요. 다시 시도해 주세요");
+      btn.disabled = false;
+      document.querySelector("[data-publish-label]").textContent = "게시하기";
+    }
+  });
+
+  // 게시 완료 카드: 문구 복사, 이미지 다운로드, 7일 뒤 알림
+  document.addEventListener("click", async (e) => {
+    const copy = e.target.closest("[data-copy]");
+    if (copy) {
+      await navigator.clipboard?.writeText(copy.dataset.copy);
+      const label = copy.querySelector("[data-copy-label]");
+      label.textContent = "복사됐어요";
+      setTimeout(() => (label.textContent = "문구 복사"), 1500);
+    }
+    const dl = e.target.closest("[data-download]");
+    if (dl) BG.downloadImage(dl.dataset.download, dl.dataset.filename);
+    const reminder = e.target.closest("[data-reminder]");
+    if (reminder) {
+      const on = reminder.getAttribute("aria-checked") !== "true";
+      const res = await BG.postJson(`/api/campaigns/${reminder.dataset.campaignId}/reminder`, { on });
+      reminder.setAttribute("aria-checked", String(res.on));
+      const track = reminder.querySelector("[data-switch-track]");
+      track.classList.toggle("bg-[#2563eb]", res.on);
+      track.classList.toggle("bg-[#d0d7e2]", !res.on);
+      const knob = reminder.querySelector("[data-switch-knob]");
+      knob.classList.toggle("left-[18px]", res.on);
+      knob.classList.toggle("left-[2px]", !res.on);
+    }
+  });
+})();
+</script>
+</th:block>
+</body>
+</html>

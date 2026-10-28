@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!-- AI 캠페인 개선 방향 (SCR-U-011, F19). 데이터가 적으면 분석 중심, 충분하면 Good/Bad 비교 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/app :: layout('AI 캠페인 개선 방향', 'insights', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<div class="flex min-w-0 flex-1 flex-col gap-[20px] px-[36px] pt-[24px] pb-[30px]">
+  <div th:replace="~{fragments/app-parts :: pageHeader('AI 캠페인 개선 방향', null)}"></div>
+  <div class="flex flex-col gap-[4px]">
+    <h1 class="f-bold text-[30px] text-[#172033]">AI 캠페인 개선 방향</h1>
+    <p class="f-regular text-[14px] text-[#667085]">캠페인 성과와 매출 데이터를 바탕으로 다음 캠페인 방향을 제안해요.</p>
+  </div>
+
+  <div data-insights-loading hidden class="flex w-full flex-col items-center gap-[16px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] py-[64px]" role="status">
+    <span class="size-[40px] animate-spin rounded-full border-4 border-[#eaf2ff] border-t-[#2563eb]"></span>
+    <p class="f-bold text-[18px] text-[#172033]">AI가 캠페인과 매출 데이터를 분석하고 있어요</p>
+    <p class="f-regular text-[15px] text-[#667085]">잘된 점과 개선할 점을 정리 중이에요</p>
+  </div>
+
+  <div data-insights-result th:attr="data-signature=${signature}" class="flex w-full flex-col gap-[20px]">
+    <section class="flex w-full items-start gap-[14px] rounded-[18px] bg-[linear-gradient(90deg,#eaf2ff_0%,#ddf8f3_100%)] p-[20px]">
+      <span class="flex size-[40px] shrink-0 items-center justify-center rounded-[12px] bg-white">
+        <img alt="" th:src="@{/assets/c5dac.svg}" class="size-[20px]">
+      </span>
+      <div class="flex min-w-0 flex-col gap-[4px]">
+        <p class="f-bold text-[18px] text-[#172033]" th:text="${result.headline}"></p>
+        <p class="f-regular text-[14px] leading-[1.55] text-[#667085]" th:text="${result.summary}"></p>
+      </div>
+    </section>
+
+    <!-- 데이터가 충분할 때: Good / Bad 비교 -->
+    <section th:if="${result.view == 'enough'}" class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+      <h2 class="f-bold text-[18px] text-[#172033]">Good / Bad 캠페인 비교</h2>
+      <div class="flex w-full gap-[16px]">
+        <div th:replace="~{:: compareCard(${result.good}, true)}"></div>
+        <div th:replace="~{:: compareCard(${result.bad}, false)}"></div>
+      </div>
+    </section>
+
+    <div class="grid w-full grid-cols-2 gap-[20px]">
+      <section th:replace="~{:: panel(${result.view == 'enough' ? '잘된 점에서 배울 것' : '잘된 점'}, ${result.view == 'enough' ? 'Good' : result.strengths.size() + '개'}, 'mint', ${result.strengths}, 'good')}"></section>
+      <section th:replace="~{:: panel(${result.view == 'enough' ? '개선 항목' : '개선이 필요한 점'}, ${result.view == 'enough' ? 'Bad' : result.improvements.size() + '개'}, 'amber', ${result.improvements}, 'bad')}"></section>
+    </div>
+    <div class="grid w-full grid-cols-2 gap-[20px]">
+      <section th:replace="~{:: panel('비인기 메뉴 조언', '매출 기반', 'blue', ${result.slowMenus}, 'neutral')}"></section>
+      <section th:replace="~{:: panel('재고 소진 프로모션 제안', '재고 기반', 'blue', ${result.stockPromotions}, 'neutral')}"></section>
+    </div>
+  </div>
+</div>
+</th:block>
+
+<!-- 제안 묶음. tone: good / bad / neutral -->
+<section th:fragment="panel(title, badge, badgeTone, items, tone)"
+         class="flex w-full min-w-0 flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-[#fbfcfe] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+  <div class="flex items-center gap-[8px]">
+    <h2 class="f-bold text-[18px] text-[#172033]" th:text="${title}"></h2>
+    <span class="f-semibold rounded-full px-[9px] py-[4px] text-[11px]" th:text="${badge}"
+          th:classappend="${badgeTone == 'amber' ? 'bg-[#fff4e5] text-[#b45309]' : badgeTone == 'blue' ? 'bg-[#eaf2ff] text-[#2563eb]' : 'bg-[#ddf8f3] text-[#0f766e]'}"></span>
+  </div>
+  <div th:each="item : ${items}" class="flex w-full flex-col gap-[10px] rounded-[14px] border border-[#e5eaf1] bg-white p-[16px]">
+    <div class="flex items-start gap-[8px]">
+      <span class="mt-[7px] size-[6px] shrink-0 rounded-full" th:classappend="${tone == 'good' ? 'bg-[#14b8a6]' : tone == 'bad' ? 'bg-[#f59e0b]' : 'bg-[#2563eb]'}"></span>
+      <p class="f-bold text-[15px] leading-[1.45] text-[#172033]" th:text="${item.title}"></p>
+    </div>
+    <p class="f-regular pl-[14px] text-[13px] leading-[1.55] text-[#667085]" th:text="${item.desc}"></p>
+    <div class="pl-[14px]">
+      <!-- 제안의 목표·메뉴를 미리 선택한 채로 캠페인 생성 1단계로 이동 -->
+      <button type="button" data-new-campaign data-source="insight" th:attr="data-goal=${item.goal},data-product-id=${item.productId}"
+              class="f-semibold flex h-[32px] w-fit shrink-0 items-center rounded-full border border-[#2563eb] bg-white px-[12px] text-[13px] whitespace-nowrap text-[#2563eb] hover:bg-[#eff5ff]">캠페인으로 만들기</button>
+    </div>
+  </div>
+</section>
+
+<div th:fragment="compareCard(data, good)" class="flex min-w-0 flex-1 flex-col gap-[14px] rounded-[18px] border p-[20px]"
+     th:classappend="${good ? 'border-[#cdefe9] bg-[#eefbf8]' : 'border-[#fde7c7] bg-[#fffaf2]'}">
+  <span class="f-bold w-fit rounded-full px-[10px] py-[4px] text-[12px] text-white" th:classappend="${good ? 'bg-[#14b8a6]' : 'bg-[#f59e0b]'}"
+        th:text="${good ? 'Good · 잘된 캠페인' : 'Bad · 아쉬운 캠페인'}"></span>
+  <th:block th:if="${data != null}">
+    <div class="flex flex-col gap-[4px]">
+      <p class="f-bold text-[18px] text-[#172033]" th:text="${data.title}"></p>
+      <p class="f-regular text-[13px] text-[#667085]" th:text="${data.channel}"></p>
+    </div>
+    <div class="grid grid-cols-4 gap-[8px]">
+      <div th:each="kv : ${ { {'조회', data.views}, {'클릭', data.clicks}, {'방문 전환', data.conversions} } }" class="flex flex-col gap-[2px] rounded-[12px] bg-white px-[12px] py-[10px]">
+        <p class="f-regular text-[11px] text-[#98a2b3]" th:text="${kv[0]}"></p>
+        <p class="f-bold text-[16px] text-[#172033]" th:text="${@fmt.number(kv[1])}"></p>
+      </div>
+      <div class="flex flex-col gap-[2px] rounded-[12px] bg-white px-[12px] py-[10px]">
+        <p class="f-regular text-[11px] text-[#98a2b3]">전환율</p>
+        <p class="f-bold text-[16px] text-[#172033]" th:text="|${data.conversionRate}%|"></p>
+      </div>
+    </div>
+    <p class="f-medium text-[13px] leading-[1.55] text-[#172033]" th:text="${data.reason}"></p>
+  </th:block>
+  <p th:if="${data == null}" class="f-regular text-[13px] text-[#667085]">비교할 캠페인이 아직 부족해요.</p>
+</div>
+
+<th:block th:fragment="scripts">
+<script>
+(() => {
+  // 같은 데이터로 처음 볼 때만 "분석 중" 화면을 잠깐 보여준다.
+  const result = document.querySelector("[data-insights-result]");
+  const loading = document.querySelector("[data-insights-loading]");
+  const key = "bizgent-insights-" + result.dataset.signature;
+  let seen = false;
+  try { seen = sessionStorage.getItem(key) === "1"; sessionStorage.setItem(key, "1"); } catch { seen = true; }
+  if (seen) return;
+  result.hidden = true;
+  loading.hidden = false;
+  setTimeout(() => { loading.hidden = true; result.hidden = false; }, 1500);
+})();
+</script>
+</th:block>
+</body>
+</html>

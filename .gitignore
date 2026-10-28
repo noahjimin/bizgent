@@ -59,3 +59,6 @@ desktop.ini
 
 # 대용량 영상
 *.mp4
+
+# Gradle Wrapper jar는 커밋 (위 *.jar 규칙의 예외)
+!gradle/wrapper/gradle-wrapper.jar

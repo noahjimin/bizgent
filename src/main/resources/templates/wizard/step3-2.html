@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!-- 캠페인 생성 3-2단계: 이미지 설정 (F11). 광고 이미지를 켠 경우에만 열린다 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/wizard :: layout('이미지 설정', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<form id="step-form" method="post" th:action="@{/campaigns/new/3-2}" enctype="multipart/form-data" class="flex flex-1 flex-col" data-image-form
+      th:with="s=${imageSetting}">
+  <div class="flex flex-1 justify-center px-[70px]">
+    <div class="flex w-full max-w-[1000px] flex-col gap-[24px] px-[24px] pt-[34px] pb-[40px]">
+      <div class="flex w-full flex-col items-center gap-[10px] text-center">
+        <span class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[6px]">
+          <img alt="" th:src="@{/assets/e7abe.svg}" class="size-[14px]">
+          <span class="f-bold whitespace-pre text-[13px] text-[#14b8a6]">3-2 단계 · 이미지</span>
+        </span>
+        <h1 class="f-bold text-[36px] text-[#172033]">이미지 설정</h1>
+        <p class="f-regular text-[18px] leading-[1.55] text-[#667085]">광고 이미지를 어떻게 만들지 알려주세요. 매장 정보를 바탕으로 AI가 미리 채워뒀어요.</p>
+      </div>
+
+      <div class="flex w-full flex-col gap-[16px]">
+        <section th:replace="~{:: card('이미지 목적', false, ~{:: chipSelect('purpose', '이미지 목적', ${ {'신메뉴 홍보', '할인·이벤트', '매장 분위기', '시즌·기념일'} }, ${s.purpose})})}"></section>
+        <section th:replace="~{:: card('주인공 상품', false, ~{:: chipSelect('product', '주인공 상품', ${productOptions}, ${s.product})})}"></section>
+
+        <section th:replace="~{:: card('이미지 스타일', true, ~{:: styleCards})}"></section>
+
+        <section class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] py-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="flex w-full items-center justify-between">
+            <h2 class="f-bold text-[20px] text-[#172033]">분위기와 색감</h2>
+            <span th:replace="~{:: aiBadge}"></span>
+          </div>
+          <div th:replace="~{:: chipSelect('mood', '분위기', ${ {'따뜻한', '청량한', '고급스러운', '발랄한', '차분한'} }, ${s.mood})}"></div>
+          <input type="hidden" name="brandColorOn" th:value="${s.brandColorOn}" data-brand-color>
+          <button type="button" role="checkbox" th:attr="aria-checked=${s.brandColorOn}" data-brand-toggle
+                  class="flex w-full items-center gap-[10px] rounded-[12px] bg-[#eff5ff] px-[14px] py-[12px] text-left">
+            <span data-brand-box class="flex size-[21px] shrink-0 items-center justify-center rounded-[6px]" th:classappend="${s.brandColorOn ? 'bg-[#2563eb]' : 'border border-[#d0d7e2] bg-white'}">
+              <img alt="" th:src="@{/assets/dcaf8.svg}" class="size-[13px]" data-brand-icon th:hidden="${!s.brandColorOn}">
+            </span>
+            <span class="f-bold min-w-0 flex-1 text-[14px] text-[#172033]">우리 브랜드 컬러 반영하기</span>
+            <span class="flex items-start">
+              <span class="mr-[-4px] size-[20px] rounded-full border-2 border-white bg-[#2563eb]"></span>
+              <span class="size-[20px] rounded-full border-2 border-white bg-[#14b8a6]"></span>
+            </span>
+          </button>
+        </section>
+
+        <section class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] py-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="flex w-full items-center justify-between">
+            <h2 class="f-bold text-[20px] text-[#172033]">이미지 비율</h2>
+            <span th:replace="~{:: aiBadge}"></span>
+          </div>
+          <div class="flex w-full flex-col gap-[9px]">
+            <div th:each="ch, i : ${draft.content.channels}" class="flex w-full items-center gap-[10px] rounded-[12px] border border-[#e5eaf1] bg-[#f7f9fc] px-[14px] py-[12px]">
+              <p class="f-bold min-w-0 flex-1 text-[14px] text-[#172033]" th:text="|${@fmt.circled(i.index)} ${ch}|"></p>
+              <label class="relative flex items-center">
+                <select th:name="|ratio_${i.index}|" th:aria-label="|${ch} 이미지 비율|" data-ratio
+                        class="f-semibold appearance-none rounded-[8px] border border-[#d0d7e2] bg-white py-[9px] pr-[34px] pl-[12px] text-[13px] text-[#667085] outline-none focus:border-[#2563eb]">
+                  <option th:each="r : ${ {'4:5 세로 (추천)', '1:1 정사각', '9:16 세로', '16:9 가로'} }" th:value="${r}" th:text="${r}" th:selected="${s.ratios[ch] == r}"></option>
+                </select>
+                <img alt="" th:src="@{/assets/aa826.svg}" class="pointer-events-none absolute right-[12px] size-[14px]">
+              </label>
+            </div>
+          </div>
+          <div class="flex w-full items-center gap-[6px]">
+            <img alt="" th:src="@{/assets/337b9.svg}" class="size-[14px]">
+            <p class="f-regular min-w-0 flex-1 text-[13px] text-[#667085]">선택한 채널에 맞춰 자동으로 추천했어요.</p>
+          </div>
+        </section>
+
+        <section class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] py-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="flex w-full items-center justify-between">
+            <h2 class="f-bold text-[20px] text-[#172033]">참고 이미지 (선택)</h2>
+            <span th:replace="~{:: aiBadge}"></span>
+          </div>
+          <div class="relative flex h-[174px] w-full flex-col items-center justify-center gap-[9px] rounded-[12px] border border-dashed border-[#d0d7e2] bg-[#f7f9fc]">
+            <label th:unless="${me.free}" class="flex size-full cursor-pointer flex-col items-center justify-center gap-[9px]">
+              <img data-ref-preview alt="참고 이미지" th:src="${s.referenceImageUrl}" th:hidden="${#strings.isEmpty(s.referenceImageUrl)}" class="h-[140px] rounded-[8px] object-cover">
+              <span data-ref-empty th:hidden="${!#strings.isEmpty(s.referenceImageUrl)}" class="contents">
+                <span class="f-semibold text-[14px] text-[#98a2b3]">참고할 이미지를 올려보세요</span>
+                <img alt="" th:src="@{/assets/6b624.svg}" class="size-[28px]">
+              </span>
+              <input type="file" name="referenceImageFile" accept="image/*" hidden data-ref-file>
+            </label>
+            <th:block th:if="${me.free}">
+              <p class="f-semibold absolute top-[40px] text-[14px] text-[#98a2b3]">참고할 이미지를 올려보세요</p>
+              <img alt="" th:src="@{/assets/6b624.svg}" class="size-[28px]">
+              <div class="absolute right-[11px] bottom-[5px] left-[11px] flex items-center gap-[11px] rounded-[12px] border border-[#e5eaf1] bg-white px-[14px] py-[12px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+                <span class="flex size-[32px] shrink-0 items-center justify-center rounded-full bg-[#f2f4f7]"><img alt="" th:src="@{/assets/1de58.svg}" class="size-[16px]"></span>
+                <div class="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
+                  <span class="f-bold rounded-full bg-[#ddf8f3] px-[7px] py-[3px] text-[10px] text-[#14b8a6]">구독 전용</span>
+                  <p class="f-regular text-[12px] leading-[1.4] text-[#667085]">구독하면 참고 이미지를 활용해 더 정확하게 만들 수 있어요.</p>
+                </div>
+                <button type="button" data-upgrade-feature-name="참고 이미지" class="f-bold shrink-0 text-[12px] text-[#2563eb] hover:underline">요금제 보기</button>
+              </div>
+            </th:block>
+          </div>
+        </section>
+
+        <section class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] py-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="flex w-full items-center justify-between">
+            <h2 class="f-bold text-[20px] text-[#172033]">추가로 요청할 내용 (선택)</h2>
+            <span th:replace="~{:: aiBadge}"></span>
+          </div>
+          <div class="flex h-[132px] w-full flex-col justify-between rounded-[12px] border border-[#d0d7e2] bg-[#f7f9fc] p-[14px] focus-within:border-[#2563eb]">
+            <textarea name="extraRequest" maxlength="300" th:text="${s.extraRequest}" data-extra
+                      placeholder="예) 창가 자리에서 햇살이 비치는 느낌으로, 글씨는 넣지 말아주세요" aria-label="추가 요청 내용"
+                      class="f-regular w-full flex-1 resize-none bg-transparent text-[14px] leading-[1.5] text-[#172033] outline-none placeholder:text-[#98a2b3]"></textarea>
+            <p class="f-regular w-full text-right text-[12px] text-[#98a2b3]" data-extra-count th:text="|${#strings.length(s.extraRequest)}/300|"></p>
+          </div>
+        </section>
+      </div>
+
+      <!-- 이렇게 만들어요 (설정 요약) -->
+      <section class="flex w-full flex-col gap-[18px] rounded-[18px] border border-[#e5eaf1] bg-white p-[22px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <div class="flex w-full items-center gap-[8px]">
+          <span class="flex size-[34px] items-center justify-center rounded-[8px] bg-[#ddf8f3]"><img alt="" th:src="@{/assets/0a558.svg}" class="size-[18px]"></span>
+          <h2 class="f-bold text-[20px] text-[#172033]">이렇게 만들어요</h2>
+        </div>
+        <div class="flex h-[214px] w-full flex-col items-center justify-center gap-[12px] rounded-[18px] bg-gradient-to-b from-[#cff7ef] via-[#dcebff] via-[55%] to-[#bfd5ff]">
+          <span class="flex size-[52px] items-center justify-center rounded-[12px] bg-[rgba(255,255,255,0.8)]"><img alt="" th:src="@{/assets/2388d.svg}" class="size-[26px]"></span>
+          <p class="f-semibold w-[240px] text-center text-[13px] leading-[1.45] text-[#667085]">미리보기는 생성 후 확인할 수 있어요</p>
+        </div>
+        <div class="flex w-full flex-col gap-[10px] text-[13px]">
+          <div th:each="k : ${ { {'목적', 'purpose'}, {'상품', 'product'}, {'스타일', 'composition'}, {'분위기', 'mood'}, {'비율', 'ratio'} } }" class="flex w-full items-start justify-between">
+            <p class="f-regular text-[#98a2b3]" th:text="${k[0]}"></p>
+            <p class="f-bold text-[#172033]" th:attr="data-summary=${k[1]}">-</p>
+          </div>
+        </div>
+        <div class="flex w-full rounded-[12px] bg-[#eff5ff] p-[12px]">
+          <p class="f-semibold min-w-0 flex-1 text-[13px] leading-[1.5] text-[#1d4ed8]" data-summary-line></p>
+        </div>
+        <div class="flex w-full items-start gap-[7px] border-t border-[#e5eaf1] pt-[14px]">
+          <img alt="" th:src="@{/assets/de8b5.svg}" class="size-[15px]">
+          <p class="f-regular min-w-0 flex-1 text-[12px] leading-[1.5] text-[#667085]">설정한 내용은 A/B 시안 이미지에 반영돼요.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="sticky bottom-0 z-10 flex h-[92px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[70px]">
+    <div class="flex w-full max-w-[1000px] items-center justify-end">
+      <button type="button" data-confirm-next data-next-button data-confirm-title="시안을 만들까요?"
+              data-confirm-body="설정한 내용으로 AI가 시안을 만들어요. 다음 단계로 넘어가면 이미지 설정은 다시 수정할 수 없어요."
+              class="flex h-[54px] items-center gap-[8px] rounded-full border border-[#2563eb] bg-[#2563eb] px-[28px] shadow-[0px_10px_24px_0px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-40">
+        <span class="f-bold text-[17px] whitespace-nowrap text-white">콘텐츠 생성 시작</span>
+        <img alt="" th:src="@{/assets/0ca09.svg}" class="size-[17px]">
+      </button>
+    </div>
+  </footer>
+</form>
+</th:block>
+
+<section th:fragment="card(title, ai, body)" class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] py-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+  <div class="flex w-full items-center justify-between">
+    <h2 class="f-bold text-[20px] text-[#172033]" th:text="${title}"></h2>
+    <th:block th:if="${ai}"><span th:replace="~{:: aiBadge}"></span></th:block>
+  </div>
+  <th:block th:replace="${body}"></th:block>
+</section>
+
+<span th:fragment="aiBadge" class="flex items-center gap-[4px] rounded-full bg-[#ddf8f3] px-[9px] py-[5px]">
+  <img alt="" th:src="@{/assets/7b537.svg}" class="size-[12px]">
+  <span class="f-bold text-[11px] text-[#14b8a6]">AI 추천</span>
+</span>
+
+<!-- 하나만 고르는 칩 + "직접 입력" -->
+<div th:fragment="chipSelect(name, label, options, value)" class="flex w-full flex-wrap items-start gap-[8px]" data-chip-select
+     th:with="isCustom=${!#strings.isEmpty(value) and !options.contains(value)}">
+  <input type="hidden" th:name="${name}" th:value="${value}" data-chip-value th:attr="data-summary-source=${name}">
+  <button th:each="o : ${options}" type="button" data-select-chip th:attr="data-value=${o},aria-pressed=${value == o}"
+          class="flex items-center gap-[7px] rounded-full border px-[14px] py-[10px] text-[14px] whitespace-nowrap"
+          th:classappend="${value == o ? 'f-bold border-[#2563eb] bg-[#2563eb] text-white' : 'f-semibold border-[#e5eaf1] bg-[#f2f4f7] text-[#667085] hover:bg-[#e9edf2]'}">
+    <img alt="" th:src="@{/assets/dcaf8.svg}" class="size-[13px]" data-chip-check th:hidden="${value != o}">
+    <span th:text="${o}"></span>
+  </button>
+  <button type="button" data-select-custom th:attr="aria-pressed=${isCustom}"
+          class="flex items-center gap-[7px] rounded-full border px-[14px] py-[10px] text-[14px] whitespace-nowrap"
+          th:classappend="${isCustom ? 'f-bold border-[#2563eb] bg-[#2563eb] text-white' : 'f-semibold border-[#e5eaf1] bg-[#f2f4f7] text-[#667085] hover:bg-[#e9edf2]'}">
+    <img alt="" th:src="@{/assets/dcaf8.svg}" class="size-[13px]" data-chip-check th:hidden="${!isCustom}">
+    <span data-custom-label th:text="${isCustom ? value : '직접 입력'}">직접 입력</span>
+  </button>
+  <input hidden data-custom-input th:value="${isCustom ? value : ''}" th:aria-label="|${label} 직접 입력|"
+         class="f-semibold h-[41px] w-[160px] rounded-full border border-[#2563eb] bg-white px-[14px] text-[14px] text-[#172033] outline-none">
+</div>
+
+<div th:fragment="styleCards" class="flex w-full items-start gap-[10px]" data-style-cards>
+  <input type="hidden" name="composition" th:value="${imageSetting.composition}" data-chip-value data-summary-source="composition">
+  <button th:each="st : ${ { {'사진 느낌', 'ce4c2.svg'}, {'일러스트', 'b7865.svg'}, {'미니멀', 'ab212.svg'}, {'3D 렌더', '0b08d.svg'} } }"
+          th:with="on=${imageSetting.composition == st[0]}" type="button" data-style th:attr="data-value=${st[0]},aria-pressed=${on}"
+          class="flex min-w-0 flex-1 flex-col gap-[9px] rounded-[12px] bg-white text-left"
+          th:classappend="${on ? 'border-2 border-[#2563eb] p-[7px]' : 'border border-[#e5eaf1] p-[8px] hover:border-[#c7d2e2]'}">
+    <span data-style-thumb class="flex h-[94px] w-full items-center justify-center rounded-[8px] bg-gradient-to-b" th:classappend="${on ? 'from-[#ddf8f3] to-[#dcebff]' : 'from-[#f2f4f7] to-[#e5eaf1]'}">
+      <img alt="" th:src="@{'/assets/' + ${st[1]}}" class="size-[30px]">
+    </span>
+    <span class="flex h-[20px] w-full items-center justify-between">
+      <span data-style-label class="text-[14px]" th:classappend="${on ? 'f-bold text-[#1d4ed8]' : 'f-semibold text-[#172033]'}" th:text="${st[0]}"></span>
+      <span data-style-check class="flex size-[20px] items-center justify-center rounded-full bg-[#2563eb]" th:hidden="${!on}">
+        <img alt="" th:src="@{/assets/82aad.svg}" class="size-[12px]">
+      </span>
+    </span>
+  </button>
+</div>
+
+<th:block th:fragment="scripts">
+<script>
+(() => {
+  const form = document.querySelector("[data-image-form]");
+  const ON = ["f-bold", "border-[#2563eb]", "bg-[#2563eb]", "text-white"];
+  const OFF = ["f-semibold", "border-[#e5eaf1]", "bg-[#f2f4f7]", "text-[#667085]", "hover:bg-[#e9edf2]"];
+  const setChip = (btn, on) => {
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.remove(...(on ? OFF : ON));
+    btn.classList.add(...(on ? ON : OFF));
+    btn.querySelector("[data-chip-check]").hidden = !on;
+  };
+
+  /* 요약 */
+  const summary = () => {
+    const val = (k) => (form.querySelector(`[data-summary-source="${k}"]`) || {}).value || "";
+    const ratio = Array.from(form.querySelectorAll("[data-ratio]")).map((s) => s.value.split(" ")[0]).join(", ");
+    const values = { purpose: val("purpose"), product: val("product"), composition: val("composition"), mood: val("mood"), ratio };
+    Object.entries(values).forEach(([k, v]) => (form.querySelector(`[data-summary="${k}"]`).textContent = v || "-"));
+    form.querySelector("[data-summary-line]").textContent = Object.values(values).filter(Boolean).join(" · ");
+    form.querySelector("[data-next-button]").disabled = !(values.composition && values.mood);
+  };
+
+  /* 칩 하나 선택 + 직접 입력 */
+  form.querySelectorAll("[data-chip-select]").forEach((group) => {
+    const hidden = group.querySelector("[data-chip-value]");
+    const custom = group.querySelector("[data-select-custom]");
+    const input = group.querySelector("[data-custom-input]");
+    const select = (value, customValue) => {
+      hidden.value = value;
+      group.querySelectorAll("[data-select-chip]").forEach((c) => setChip(c, c.dataset.value === value));
+      setChip(custom, !!customValue);
+      custom.querySelector("[data-custom-label]").textContent = customValue || "직접 입력";
+      summary();
+    };
+    group.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-select-chip]");
+      if (chip) select(chip.dataset.value, null);
+      if (e.target.closest("[data-select-custom]")) { custom.hidden = true; input.hidden = false; input.focus(); }
+    });
+    const commit = () => {
+      input.hidden = true;
+      custom.hidden = false;
+      const v = input.value.trim();
+      if (v) select(v, v);
+    };
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); input.blur(); } });
+  });
+
+  /* 스타일 카드 */
+  const styles = form.querySelector("[data-style-cards]");
+  styles.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-style]");
+    if (!card) return;
+    styles.querySelector("[data-chip-value]").value = card.dataset.value;
+    styles.querySelectorAll("[data-style]").forEach((c) => {
+      const on = c === card;
+      c.setAttribute("aria-pressed", String(on));
+      c.className = "flex min-w-0 flex-1 flex-col gap-[9px] rounded-[12px] bg-white text-left " + (on ? "border-2 border-[#2563eb] p-[7px]" : "border border-[#e5eaf1] p-[8px] hover:border-[#c7d2e2]");
+      c.querySelector("[data-style-thumb]").className = "flex h-[94px] w-full items-center justify-center rounded-[8px] bg-gradient-to-b " + (on ? "from-[#ddf8f3] to-[#dcebff]" : "from-[#f2f4f7] to-[#e5eaf1]");
+      c.querySelector("[data-style-label]").className = "text-[14px] " + (on ? "f-bold text-[#1d4ed8]" : "f-semibold text-[#172033]");
+      c.querySelector("[data-style-check]").hidden = !on;
+    });
+    summary();
+  });
+
+  /* 브랜드 컬러 */
+  const brand = form.querySelector("[data-brand-toggle]");
+  brand.addEventListener("click", () => {
+    const input = form.querySelector("[data-brand-color]");
+    const on = input.value !== "true";
+    input.value = String(on);
+    brand.setAttribute("aria-checked", String(on));
+    form.querySelector("[data-brand-box]").className = "flex size-[21px] shrink-0 items-center justify-center rounded-[6px] " + (on ? "bg-[#2563eb]" : "border border-[#d0d7e2] bg-white");
+    form.querySelector("[data-brand-icon]").hidden = !on;
+  });
+
+  /* 참고 이미지 (구독) */
+  const ref = form.querySelector("[data-ref-file]");
+  if (ref) ref.addEventListener("change", () => {
+    const f = ref.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { const img = form.querySelector("[data-ref-preview]"); img.src = r.result; img.hidden = false; form.querySelector("[data-ref-empty]").hidden = true; };
+    r.readAsDataURL(f);
+  });
+
+  form.querySelectorAll("[data-ratio]").forEach((s) => s.addEventListener("change", summary));
+  const extra = form.querySelector("[data-extra]");
+  extra.addEventListener("input", () => (form.querySelector("[data-extra-count]").textContent = `${extra.value.length}/300`));
+  form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
+  summary();
+})();
+</script>
+</th:block>
+</body>
+</html>

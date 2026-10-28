@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<!-- 매장 정보 관리 (SCR-U-004~006, F02): 기본 정보, 주요 상품·메뉴, 타겟, 톤앤매너, AI 대표 이미지 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/app :: layout('매장 정보 관리', 'store', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<form method="post" th:action="@{/store}" enctype="multipart/form-data" data-store-form
+      class="flex min-h-screen w-full flex-col bg-[#f7f9fc]">
+  <div class="flex w-full flex-col gap-[18px] px-[36px] pt-[24px]">
+    <div th:replace="~{fragments/app-parts :: pageHeader('등록', '매장 정보 관리')}"></div>
+    <div class="flex w-full items-end justify-between">
+      <div class="flex flex-col gap-[7px]">
+        <h1 class="f-bold text-[28px] text-[#172033]">매장/상품 정보 등록</h1>
+        <p class="f-regular text-[14px] text-[#667085]">홍보 콘텐츠 제작에 활용할 매장 정보를 입력해주세요.</p>
+      </div>
+      <span class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[7px]">
+        <img alt="" th:src="@{/assets/09e00.svg}" class="size-[14px]">
+        <span class="f-semibold text-[12px] whitespace-nowrap text-[#14b8a6]">기본 정보부터 차근차근</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="flex w-full flex-1 flex-col items-center px-[36px] pt-[26px] pb-[34px]">
+    <div class="flex w-full max-w-[800px] flex-col gap-[20px]">
+      <!-- 기본 정보 -->
+      <section class="flex w-full flex-col gap-[22px] rounded-[16px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.04)]">
+        <h2 class="f-bold text-[20px] text-[#172033]">기본 정보</h2>
+        <div class="flex w-full flex-wrap items-start gap-[22px]">
+          <div class="flex w-[259px] shrink-0 flex-col items-center gap-[23px]">
+            <label class="relative flex h-[210px] w-full cursor-pointer flex-col items-center justify-center gap-[13px] overflow-hidden rounded-[12px] border border-dashed border-[#d5dce7] bg-[#fbfcfe] hover:bg-[#f4f6f9]">
+              <img data-hero-preview th:alt="|${store.storeName} 대표 이미지|" th:src="${store.heroImageUrl}" th:hidden="${#strings.isEmpty(store.heroImageUrl)}"
+                   class="absolute inset-0 size-full object-cover">
+              <span data-hero-empty th:hidden="${!#strings.isEmpty(store.heroImageUrl)}" class="contents">
+                <span class="flex size-[48px] items-center justify-center rounded-full bg-[#eaf2ff]">
+                  <img alt="" th:src="@{/assets/ba22e.svg}" class="size-[22px]">
+                </span>
+                <span class="flex flex-col items-center gap-[5px]">
+                  <span class="f-bold text-[14px] text-[#172033]">매장 대표 이미지 등록</span>
+                  <span class="f-regular text-[12px] text-[#98a2b3]">권장 크기 1200 × 800</span>
+                </span>
+              </span>
+              <input type="file" name="heroImageFile" accept="image/*" class="hidden" data-hero-file>
+            </label>
+            <input type="hidden" name="heroImageUrl" th:value="${store.heroImageUrl}" data-hero-url>
+            <button type="button" data-modal-open="store-image-modal"
+                    class="flex h-[36px] items-center gap-[4px] rounded-[12px] border border-[#14b8a6] bg-[#f4fffc] px-[8px] hover:bg-[#e6faf6]">
+              <img alt="" th:src="@{/assets/16f99.svg}" class="size-[14px]">
+              <span class="f-bold text-[14px] whitespace-nowrap text-[#14b8a6]">AI로 대표 이미지 무료 생성</span>
+            </button>
+          </div>
+          <div class="flex min-w-[240px] flex-1 flex-col gap-[14px] px-[clamp(0px,8vw,125px)]">
+            <label class="flex w-full flex-col gap-[8px]">
+              <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">매장명</span>
+              <input name="storeName" th:value="${store.storeName}" placeholder="매장명을 입력해주세요" data-store-name
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+            </label>
+            <label class="flex w-full flex-col gap-[8px]">
+              <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">업종</span>
+              <span class="relative flex w-full items-center">
+                <select name="category" data-store-category
+                        class="f-regular h-[46px] w-full appearance-none rounded-[12px] border border-[#d5dce7] bg-white px-[14px] pr-[40px] text-[15px] text-[#172033] outline-none focus:border-[#2563eb]">
+                  <option th:each="c : ${categories}" th:value="${c}" th:text="${c}" th:selected="${c == store.category}"></option>
+                </select>
+                <img alt="" th:src="@{/assets/73ce0.svg}" class="pointer-events-none absolute right-[14px] size-[17px]">
+              </span>
+            </label>
+            <label class="flex w-full flex-col gap-[8px]">
+              <span class="flex items-center gap-[6px]">
+                <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">연락처</span>
+                <span class="f-regular text-[12px] text-[#98a2b3]">선택</span>
+              </span>
+              <input name="phone" th:value="${store.phone}" placeholder="연락처를 입력해주세요" inputmode="tel"
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 주요 상품·메뉴 -->
+      <section class="flex w-full flex-col gap-[22px] rounded-[16px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.04)]">
+        <div class="flex w-full flex-col gap-[6px]">
+          <h2 class="f-bold text-[20px] text-[#172033]">주요 상품·메뉴</h2>
+          <p class="f-regular text-[14px] leading-[1.45] text-[#667085]">대표 상품이나 메뉴를 등록하면 더 구체적인 홍보 콘텐츠를 만들 수 있어요.</p>
+        </div>
+        <div class="flex w-full flex-col gap-[14px]">
+          <div data-menu-list class="flex w-full flex-col gap-[14px]">
+            <th:block th:each="p, s : ${store.products}"><div th:replace="~{:: menuCard(${p}, ${s.index})}"></div></th:block>
+          </div>
+          <button type="button" data-menu-add
+                  class="flex h-[48px] w-full items-center justify-center gap-[8px] rounded-[12px] border border-dashed border-[#2563eb] bg-white hover:bg-[#f5f9ff]">
+            <img alt="" th:src="@{/assets/9872e.svg}" class="size-[17px]">
+            <span class="f-bold text-[14px] text-[#2563eb]">상품/메뉴 추가</span>
+          </button>
+          <template data-menu-template>
+            <div th:replace="~{:: menuCard(null, 0)}"></div>
+          </template>
+        </div>
+      </section>
+
+      <section th:replace="~{:: tagSection('마케팅 홍보 주요 타켓', '누구에게 홍보하고 싶으신가요? (복수 선택 가능)', ${targetPresets}, ${targets}, 'targetCustomer',
+                 '예: 퇴근 후 조용히 커피를 즐기는 30대 직장인 여성 고객', 'targetDescription', ${store.targetDescription},
+                 '예: 퇴근 후 조용히 커피를 즐기는 30대 직장인 여성 고객이 많아요')}"></section>
+      <section th:replace="~{:: tagSection('브랜드 톤앤매너', '브랜드가 어떤 느낌으로 보이길 원하시나요? (복수 선택 가능)', ${tonePresets}, ${tones}, 'toneManner',
+                 '예: 따뜻하고 편안한 동네 카페 느낌으로, 존댓말을 사용해요', 'toneDescription', ${store.toneDescription},
+                 '예: 따뜻하고 편안한 동네 카페 느낌으로, 존댓말을 사용해요')}"></section>
+    </div>
+  </div>
+
+  <div class="sticky bottom-0 z-20 flex h-[86px] w-full items-center justify-center border-t border-[#e5eaf1] bg-white px-[36px] drop-shadow-[0px_-4px_9px_rgba(16,24,40,0.07)]">
+    <div class="flex w-full max-w-[800px] items-center justify-between">
+      <p class="f-regular text-[13px] text-[#98a2b3]">입력한 정보는 언제든 수정할 수 있어요.</p>
+      <div class="flex items-start gap-[10px]">
+        <button type="button" data-store-cancel
+                class="f-bold flex h-[46px] w-[92px] items-center justify-center rounded-[12px] border border-[#d5dce7] bg-white text-[15px] text-[#667085] hover:bg-[#f7f9fc]">취소</button>
+        <button type="submit"
+                class="f-bold flex h-[46px] w-[118px] items-center justify-center rounded-[12px] border border-[#2563eb] bg-[#2563eb] text-[15px] text-white shadow-[0px_6px_16px_0px_rgba(37,99,235,0.13)] hover:bg-[#1d4ed8]">저장하기</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div th:replace="~{:: storeImageModal}"></div>
+</th:block>
+
+<!-- 상품·메뉴 카드. p가 null이면 새 상품 (입력 이름은 제출할 때 products[i].필드 로 붙인다) -->
+<div th:fragment="menuCard(p, idx)" data-menu-card class="flex w-full flex-col gap-[16px] rounded-[12px] border border-[#e5eaf1] bg-[#fbfcfe] p-[18px]">
+  <input type="hidden" data-field="productId" th:value="${p?.productId}">
+  <input type="hidden" data-field="imageUrl" th:value="${p?.imageUrl}" data-menu-image-url>
+  <div class="flex w-full items-center justify-between">
+    <div class="flex items-center gap-[8px]">
+      <span class="f-bold flex size-[26px] items-center justify-center rounded-[8px] bg-[#eaf2ff] text-[13px] text-[#2563eb]" data-menu-no th:text="${idx + 1}">1</span>
+      <p class="f-bold text-[14px] text-[#172033]">등록 상품</p>
+    </div>
+    <button type="button" data-menu-remove class="flex items-center gap-[5px] rounded-[6px] hover:opacity-70" aria-label="등록 상품 삭제">
+      <img alt="" th:src="@{/assets/b3b18.svg}" class="size-[16px]">
+      <span class="f-regular text-[13px] text-[#98a2b3]">삭제</span>
+    </button>
+  </div>
+  <div class="flex w-full items-start gap-[16px]">
+    <label class="relative flex h-[136px] w-[118px] shrink-0 cursor-pointer flex-col items-center justify-center gap-[8px] overflow-hidden rounded-[12px] border border-dashed border-[#d5dce7] bg-white hover:bg-[#f7f9fc]">
+      <img data-menu-preview th:alt="|${p?.productName} 사진|" th:src="${p?.imageUrl}" th:hidden="${#strings.isEmpty(p?.imageUrl)}" class="absolute inset-0 size-full object-cover">
+      <span data-menu-empty th:hidden="${!#strings.isEmpty(p?.imageUrl)}" class="contents">
+        <span class="flex size-[34px] items-center justify-center rounded-full bg-[#eaf2ff]">
+          <img alt="" th:src="@{/assets/cc636.svg}" class="size-[17px]">
+        </span>
+        <span class="f-semibold text-[12px] text-[#667085]">사진 업로드</span>
+      </span>
+      <input type="file" accept="image/*" class="hidden" data-field="imageFile" data-menu-file>
+    </label>
+    <div class="flex min-w-0 flex-1 flex-col gap-[14px]">
+      <div class="flex w-full items-start gap-[14px]">
+        <label class="flex min-w-0 flex-1 flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">상품/메뉴명</span>
+          <input data-field="productName" th:value="${p?.productName}" placeholder="예: 시그니처 크림 라떼"
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+        </label>
+        <label class="flex w-[190px] shrink-0 flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">가격</span>
+          <input data-field="price" inputmode="numeric" data-won th:with="priceText=${p != null and p.price > 0 ? @fmt.won(p.price) : ''}" th:value="${priceText}" placeholder="예: 6,500원"
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+        </label>
+      </div>
+      <div class="flex w-full items-start gap-[14px]">
+        <label class="flex min-w-0 flex-1 flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">간단 설명</span>
+          <input data-field="description" th:value="${p?.description}" placeholder="예: 부드러운 바닐라 크림을 올린 대표 라떼"
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+        </label>
+        <label class="flex w-[190px] shrink-0 flex-col gap-[8px]">
+          <span class="flex items-center gap-[6px]">
+            <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">재고 수량</span>
+            <span class="f-regular text-[12px] text-[#98a2b3]">선택</span>
+          </span>
+          <input data-field="stockQty" inputmode="numeric" data-digits th:value="${p?.stockQty}" placeholder="예: 30"
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 타겟·톤앤매너: 추천 칩 복수 선택 + 직접 추가 + 자유 설명 -->
+<section th:fragment="tagSection(title, desc, presets, selected, fieldName, inputPlaceholder, descName, descValue, descPlaceholder)"
+         data-tag-section class="flex w-full flex-col gap-[22px] rounded-[16px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.04)]">
+  <input type="hidden" th:name="${fieldName}" th:value="${#strings.listJoin(selected, ', ')}" data-tag-value>
+  <div class="flex w-full flex-col gap-[6px]">
+    <h2 class="f-bold text-[20px] text-[#172033]" th:text="${title}"></h2>
+    <p class="f-regular text-[14px] leading-[1.45] text-[#667085]" th:text="${desc}"></p>
+  </div>
+  <div class="flex w-full flex-wrap gap-[10px]" data-tag-presets>
+    <th:block th:each="t : ${presets}"><button th:replace="~{fragments/ui :: chip(${t}, ${selected.contains(t)}, 'pressed')}"></button></th:block>
+    <button type="button" data-tag-focus class="f-medium flex h-[38px] items-center gap-[7px] rounded-full border border-[#d5dce7] bg-white px-[16px] text-[14px] whitespace-nowrap text-[#667085] hover:bg-[#f7f9fc]">+ 기타</button>
+  </div>
+  <div class="flex w-full flex-col gap-[10px]">
+    <div class="flex w-full items-center gap-[10px]">
+      <input data-tag-input th:placeholder="${inputPlaceholder}" th:aria-label="|${title} 직접 추가|"
+             class="f-regular h-[46px] w-full min-w-0 flex-1 rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+      <button type="button" data-tag-add
+              class="f-bold flex h-[46px] w-[72px] shrink-0 items-center justify-center rounded-[12px] border border-[#2563eb] bg-[#2563eb] text-[14px] text-white shadow-[0px_6px_16px_0px_rgba(37,99,235,0.13)] hover:bg-[#1d4ed8]">추가</button>
+    </div>
+    <div class="flex w-full flex-wrap gap-[10px]" data-tag-custom>
+      <th:block th:each="t : ${selected}"><th:block th:unless="${presets.contains(t)}"><button th:replace="~{fragments/ui :: chip(${t}, true, 'pressed')}"></button></th:block></th:block>
+    </div>
+  </div>
+  <div class="flex w-full flex-col gap-[8px]">
+    <p class="f-semibold text-[14px] text-[#172033]">직접 설명하기 (선택)</p>
+    <textarea th:name="${descName}" th:text="${descValue}" th:placeholder="${descPlaceholder}" th:aria-label="|${title} 직접 설명|"
+              class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+    <div class="flex items-center gap-[6px]">
+      <img alt="" th:src="@{/assets/c920c.svg}" class="size-[14px]">
+      <p class="f-regular text-[12px] text-[#98a2b3]">입력한 내용은 캠페인 생성 시 AI가 자동으로 참고해요</p>
+    </div>
+  </div>
+</section>
+
+<!-- AI로 매장 대표 이미지 만들기 카드: settings → generating → result -->
+<div th:fragment="storeImageModal" id="store-image-modal" data-modal data-escape="off" role="presentation" hidden data-store-image
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.4)]">
+  <div role="dialog" aria-modal="true" aria-labelledby="store-image-title"
+       class="flex max-h-[calc(100vh-32px)] w-[640px] max-w-[calc(100vw-32px)] flex-col gap-[20px] rounded-[20px] border border-[#e5eaf1] bg-white p-[24px] drop-shadow-[0px_18px_20px_rgba(16,24,40,0.1)]">
+    <div class="flex w-full items-start justify-between gap-[12px]">
+      <div class="flex min-w-0 flex-1 flex-col gap-[6px]">
+        <h2 id="store-image-title" class="f-bold text-[28px] text-[#172033]">AI로 매장 대표 이미지 만들기</h2>
+        <p class="f-regular text-[15px] leading-[1.5] text-[#667085]">매장 정보를 바탕으로 대표 이미지 3장을 만들어 드려요</p>
+      </div>
+      <button type="button" data-si-close aria-label="닫기"
+              class="flex size-[36px] shrink-0 items-center justify-center rounded-full border border-[#e5eaf1] bg-[#f7f9fc] hover:bg-[#eef1f5] disabled:opacity-40">
+        <img alt="" th:src="@{/assets/d0027.svg}" class="size-[18px]">
+      </button>
+    </div>
+
+    <div class="flex min-h-0 w-full flex-1 flex-col gap-[20px] overflow-y-auto">
+      <!-- 설정 -->
+      <div data-si-phase="settings" class="flex w-full flex-col gap-[20px]">
+        <div class="flex w-full flex-wrap items-center gap-[8px]" aria-label="매장 정보 요약" data-si-summary></div>
+        <div class="flex w-full flex-col gap-[10px]">
+          <p class="f-semibold text-[14px] text-[#172033]">이미지 분위기</p>
+          <div role="radiogroup" aria-label="이미지 분위기" class="flex flex-wrap gap-[10px]" data-si-mood>
+            <th:block th:each="m : ${ {'따뜻한 감성', '깔끔한 모던', '빈티지', '밝고 경쾌한'} }"><button th:replace="~{fragments/ui :: chip(${m}, false, 'radio')}"></button></th:block>
+          </div>
+        </div>
+        <div class="flex w-full flex-col gap-[10px]">
+          <p class="f-semibold text-[14px] text-[#172033]">담고 싶은 장면</p>
+          <div role="radiogroup" aria-label="담고 싶은 장면" class="flex flex-wrap gap-[10px]" data-si-scene>
+            <th:block th:each="m : ${ {'매장 외관', '매장 내부', '대표 메뉴', '메뉴와 공간 함께'} }"><button th:replace="~{fragments/ui :: chip(${m}, false, 'radio')}"></button></th:block>
+          </div>
+        </div>
+        <div class="flex w-full flex-col gap-[10px]" data-si-menu-field hidden>
+          <p class="f-semibold text-[14px] text-[#172033]">메뉴 선택</p>
+          <label class="relative flex h-[46px] w-full items-center rounded-[12px] border border-[#d5dce7] bg-white focus-within:border-[#2563eb]">
+            <select data-si-menu aria-label="메뉴 선택"
+                    class="f-regular size-full appearance-none bg-transparent pr-[40px] pl-[14px] text-[15px] text-[#172033] outline-none">
+              <option th:each="p, s : ${store.products}" th:value="${p.productId}" th:text="${p.productName} + ${s.first ? ' (대표 메뉴)' : ''}"></option>
+            </select>
+            <img alt="" th:src="@{/assets/73ce0.svg}" class="pointer-events-none absolute right-[14px] size-[17px]">
+          </label>
+        </div>
+        <div class="flex w-full flex-col gap-[10px]">
+          <p class="f-semibold text-[14px] text-[#172033]">추가 요청 (선택)</p>
+          <textarea data-si-extra placeholder="예: 창가 자리에 햇살이 들어오는 느낌"
+                    class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+        </div>
+      </div>
+
+      <!-- 생성 중 -->
+      <div data-si-phase="generating" hidden class="flex w-full flex-col gap-[20px]" role="status">
+        <div class="flex w-full flex-col items-center gap-[16px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] py-[32px]">
+          <span class="size-[40px] animate-spin rounded-full border-4 border-[#eaf2ff] border-t-[#2563eb]"></span>
+          <p class="f-bold text-[18px] text-[#172033]">대표 이미지를 만들고 있어요</p>
+          <p class="f-regular text-[15px] text-[#667085]" data-si-generating-label></p>
+        </div>
+        <div class="grid w-full grid-cols-3 gap-[14px]">
+          <div class="aspect-square w-full animate-pulse rounded-[16px] bg-[#eef1f5]"></div>
+          <div class="aspect-square w-full animate-pulse rounded-[16px] bg-[#eef1f5]"></div>
+          <div class="aspect-square w-full animate-pulse rounded-[16px] bg-[#eef1f5]"></div>
+        </div>
+      </div>
+
+      <!-- 결과 -->
+      <div data-si-phase="result" hidden class="flex w-full flex-col gap-[12px]">
+        <div class="flex w-full items-center justify-between">
+          <p class="f-semibold text-[14px] text-[#172033]">마음에 드는 이미지를 골라주세요</p>
+          <button type="button" data-si-regenerate class="f-semibold flex items-center gap-[6px] text-[14px] text-[#2563eb] hover:underline">
+            <span th:if="${me.free}" class="f-bold rounded-full bg-[#ddf8f3] px-[8px] py-[3px] text-[11px] text-[#14b8a6]">구독 전용</span>
+            다시 만들기
+          </button>
+        </div>
+        <div role="radiogroup" aria-label="생성된 대표 이미지" class="grid w-full grid-cols-3 gap-[14px]" data-si-images></div>
+      </div>
+    </div>
+
+    <div class="flex w-full items-center justify-between border-t border-[#e5eaf1] pt-[16px]">
+      <button type="button" data-si-cancel
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc] disabled:opacity-40">취소</button>
+      <button type="button" data-si-generate disabled
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">이미지 만들기</button>
+      <button type="button" data-si-reset hidden
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">설정 다시 하기</button>
+      <button type="button" data-si-apply hidden disabled
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">이 이미지로 설정</button>
+    </div>
+  </div>
+</div>
+
+<th:block th:fragment="scripts">
+<script th:inline="javascript">
+  const IS_PRO = /*[[${!me.free}]]*/ false;
+  const OPEN_IMAGE_CARD = /*[[${openImageCard}]]*/ false;
+  const CHECK_ICON = /*[[@{/assets/a244b.svg}]]*/ "";
+  const DOWNLOAD_ICON = /*[[@{/assets/49184.svg}]]*/ "";
+</script>
+<script>
+(() => {
+  const form = document.querySelector("[data-store-form]");
+  let dirty = false;
+  const markDirty = () => (dirty = true);
+  const readFile = (file) => new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
+  const showPreview = (img, empty, src) => { img.src = src; img.hidden = !src; empty.hidden = !!src; };
+
+  /* ---------- 기본 정보 ---------- */
+  form.querySelector("[data-hero-file]").addEventListener("change", async (e) => {
+    const f = e.target.files[0];
+    if (f) showPreview(form.querySelector("[data-hero-preview]"), form.querySelector("[data-hero-empty]"), await readFile(f));
+  });
+
+  /* ---------- 상품·메뉴 카드 ---------- */
+  const list = form.querySelector("[data-menu-list]");
+  const renumber = () => list.querySelectorAll("[data-menu-card]").forEach((card, i) => (card.querySelector("[data-menu-no]").textContent = i + 1));
+  form.querySelector("[data-menu-add]").addEventListener("click", () => {
+    list.appendChild(form.querySelector("[data-menu-template]").content.firstElementChild.cloneNode(true));
+    renumber();
+    markDirty();
+  });
+  list.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-menu-remove]");
+    if (!btn) return;
+    btn.closest("[data-menu-card]").remove();
+    renumber();
+    markDirty();
+  });
+  list.addEventListener("change", async (e) => {
+    if (!e.target.matches("[data-menu-file]")) return;
+    const f = e.target.files[0];
+    if (!f) return;
+    const card = e.target.closest("[data-menu-card]");
+    showPreview(card.querySelector("[data-menu-preview]"), card.querySelector("[data-menu-empty]"), await readFile(f));
+  });
+  form.addEventListener("input", (e) => {
+    if (e.target.matches("[data-won]")) {
+      const n = e.target.value.replace(/[^0-9]/g, "");
+      e.target.value = n ? Number(n).toLocaleString() + "원" : "";
+    }
+    if (e.target.matches("[data-digits]")) e.target.value = e.target.value.replace(/[^0-9]/g, "");
+  });
+
+  /* ---------- 타겟·톤앤매너 칩 ---------- */
+  form.querySelectorAll("[data-tag-section]").forEach((section) => {
+    const hidden = section.querySelector("[data-tag-value]");
+    const input = section.querySelector("[data-tag-input]");
+    const custom = section.querySelector("[data-tag-custom]");
+    const sync = () => {
+      hidden.value = Array.from(section.querySelectorAll("[data-chip]")).filter(BG.isChipOn).map((c) => c.dataset.value).join(", ");
+      markDirty();
+    };
+    section.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-chip]");
+      if (chip) {
+        if (custom.contains(chip)) chip.remove();
+        else BG.setChip(chip, !BG.isChipOn(chip));
+        sync();
+      }
+      if (e.target.closest("[data-tag-focus]")) input.focus();
+      if (e.target.closest("[data-tag-add]")) add();
+    });
+    const add = () => {
+      const v = input.value.trim();
+      input.value = "";
+      if (!v) return;
+      const existing = Array.from(section.querySelectorAll("[data-chip]")).find((c) => c.dataset.value === v);
+      if (existing) BG.setChip(existing, true);
+      else {
+        const chip = section.querySelector("[data-tag-presets] [data-chip]").cloneNode(true);
+        chip.dataset.value = v;
+        chip.querySelector("span").textContent = v;
+        BG.setChip(chip, true);
+        custom.appendChild(chip);
+      }
+      sync();
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); add(); }
+    });
+  });
+
+  /* ---------- 저장 / 취소 / 나가기 확인 ---------- */
+  form.addEventListener("input", markDirty);
+  form.addEventListener("change", markDirty);
+  form.addEventListener("submit", () => {
+    // 상품 카드 입력에 products[i].필드 이름을 붙인다.
+    list.querySelectorAll("[data-menu-card]").forEach((card, i) =>
+      card.querySelectorAll("[data-field]").forEach((el) => (el.name = `products[${i}].${el.dataset.field}`)));
+    dirty = false;
+  });
+  form.querySelector("[data-store-cancel]").addEventListener("click", () => {
+    if (dirty) location.reload();
+    else location.href = "/";
+  });
+  window.addEventListener("beforeunload", (e) => { if (dirty) e.preventDefault(); });
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("a[href]");
+    if (!dirty || !link || link.target === "_blank" || link.getAttribute("href").startsWith("#")) return;
+    e.preventDefault();
+    BG.confirm("저장하지 않은 변경 사항이 있어요. 나가시겠어요?", "나가기", () => { dirty = false; location.href = link.href; });
+  }, true);
+
+  /* ---------- AI 대표 이미지 카드 ---------- */
+  const modal = document.getElementById("store-image-modal");
+  const $ = (sel) => modal.querySelector(sel);
+  const MENU_SCENES = ["대표 메뉴", "메뉴와 공간 함께"];
+  let phase = "settings";
+  let images = [];
+  let selected = null;
+
+  const radioValue = (group) => { const on = Array.from(group.querySelectorAll("[data-chip]")).find(BG.isChipOn); return on ? on.dataset.value : ""; };
+  const setPhase = (p) => {
+    phase = p;
+    modal.querySelectorAll("[data-si-phase]").forEach((el) => (el.hidden = el.dataset.siPhase !== p));
+    const result = p === "result";
+    $("[data-si-cancel]").hidden = result;
+    $("[data-si-generate]").hidden = result;
+    $("[data-si-reset]").hidden = !result;
+    $("[data-si-apply]").hidden = !result;
+    $("[data-si-close]").disabled = $("[data-si-cancel]").disabled = p === "generating";
+    $("[data-si-generate]").disabled = p === "generating" || !(radioValue($("[data-si-mood]")) && radioValue($("[data-si-scene]")));
+  };
+
+  // 저장 전 입력값도 요약에 반영한다.
+  modal.addEventListener("modal:open", () => {
+    const tone = form.querySelectorAll("[data-tag-value]")[1].value;
+    const summary = [form.querySelector("[data-store-name]").value.trim() || "매장명 미입력", form.querySelector("[data-store-category]").value, tone].filter(Boolean);
+    const box = $("[data-si-summary]");
+    box.innerHTML = "";
+    summary.forEach((s) => {
+      const span = document.createElement("span");
+      span.className = "f-semibold rounded-full bg-[#ddf8f3] px-[12px] py-[6px] text-[13px] text-[#0f766e]";
+      span.textContent = s;
+      box.appendChild(span);
+    });
+    setPhase("settings");
+  });
+
+  ["[data-si-mood]", "[data-si-scene]"].forEach((sel) =>
+    $(sel).addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-chip]");
+      if (!chip) return;
+      $(sel).querySelectorAll("[data-chip]").forEach((c) => BG.setChip(c, c === chip));
+      $("[data-si-menu-field]").hidden = !MENU_SCENES.includes(radioValue($("[data-si-scene]")));
+      setPhase("settings");
+    }));
+
+  const generate = async () => {
+    const mood = radioValue($("[data-si-mood]"));
+    const scene = radioValue($("[data-si-scene]"));
+    $("[data-si-generating-label]").textContent = `${mood} · ${scene}`;
+    selected = null;
+    setPhase("generating");
+    const [result] = await Promise.all([
+      BG.postJson("/api/store/hero-images", {
+        mood, scene,
+        productId: MENU_SCENES.includes(scene) ? Number($("[data-si-menu]").value) || null : null,
+        extraRequest: $("[data-si-extra]").value.trim(),
+      }),
+      new Promise((r) => setTimeout(r, 2000)), // 생성 중 화면을 보여주기 위한 대기
+    ]);
+    images = result;
+    renderImages();
+    setPhase("result");
+  };
+
+  const renderImages = () => {
+    const grid = $("[data-si-images]");
+    grid.innerHTML = "";
+    images.forEach((img, i) => {
+      const on = img.id === selected;
+      const cell = document.createElement("div");
+      cell.setAttribute("role", "radio");
+      cell.setAttribute("aria-checked", String(on));
+      cell.setAttribute("aria-label", `이미지 ${i + 1}`);
+      cell.tabIndex = 0;
+      cell.className = "relative aspect-square w-full cursor-pointer overflow-hidden rounded-[16px] border-2 " + (on ? "border-[#2563eb]" : "border-transparent hover:border-[#cfe0ff]");
+      cell.innerHTML = `
+        <img class="absolute inset-0 size-full object-cover">
+        ${on ? `<span class="absolute top-[10px] right-[10px] flex size-[26px] items-center justify-center rounded-full bg-[#2563eb] shadow-[0px_4px_10px_0px_rgba(37,99,235,0.3)]"><img alt="" src="${CHECK_ICON}" class="size-[14px]"></span>` : ""}
+        <button type="button" data-si-download aria-label="이미지 ${i + 1} 다운로드" class="absolute right-[10px] bottom-[10px] flex size-[32px] items-center justify-center rounded-[10px] bg-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.12)] hover:bg-[#f7f9fc]"><img alt="" src="${DOWNLOAD_ICON}" class="size-[17px]"></button>`;
+      const photo = cell.querySelector("img");
+      photo.src = img.imageUrl;
+      photo.alt = img.alt;
+      const pick = () => { selected = img.id; renderImages(); };
+      cell.addEventListener("click", (e) => {
+        if (e.target.closest("[data-si-download]")) BG.downloadImage(img.imageUrl, `bizgent_대표이미지${i + 1}.jpg`);
+        else pick();
+      });
+      cell.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+      grid.appendChild(cell);
+    });
+    $("[data-si-apply]").disabled = !selected;
+  };
+
+  const requestClose = () => {
+    if (phase === "generating") return;
+    if (phase === "result") BG.confirm("만든 이미지가 저장되지 않아요. 닫으시겠어요?", "닫기", () => BG.closeModal(modal));
+    else BG.closeModal(modal);
+  };
+  $("[data-si-close]").addEventListener("click", requestClose);
+  $("[data-si-cancel]").addEventListener("click", requestClose);
+  modal.addEventListener("mousedown", (e) => { if (e.target === modal) requestClose(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden && document.getElementById("confirm-dialog").hidden) requestClose(); });
+  $("[data-si-generate]").addEventListener("click", generate);
+  $("[data-si-reset]").addEventListener("click", () => setPhase("settings"));
+  $("[data-si-regenerate]").addEventListener("click", () => (IS_PRO ? generate() : BG.upgradeHint("대표 이미지 다시 만들기")));
+
+  // 대표 이미지는 다른 입력값과 별개로 바로 저장된다.
+  $("[data-si-apply]").addEventListener("click", async () => {
+    const chosen = images.find((img) => img.id === selected);
+    if (!chosen) return;
+    await BG.postJson("/api/store/hero-image", { imageUrl: chosen.imageUrl });
+    showPreview(form.querySelector("[data-hero-preview]"), form.querySelector("[data-hero-empty]"), chosen.imageUrl);
+    form.querySelector("[data-hero-url]").value = chosen.imageUrl;
+    form.querySelector("[data-hero-file]").value = "";
+    BG.closeModal(modal);
+    history.replaceState(null, "", location.pathname);
+    BG.toast("대표 이미지가 설정되었어요");
+  });
+
+  if (OPEN_IMAGE_CARD) BG.openModal("store-image-modal");
+})();
+</script>
+</th:block>
+</body>
+</html>

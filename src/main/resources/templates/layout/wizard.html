@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+  캠페인 생성 위자드 레이아웃 (사이드바 없음): 상단 단계 표시줄 + 2~4단계 오른쪽 "확정된 캠페인 내용" 패널
+  사용: <html th:replace="~{layout/wizard :: layout('목표 설정', ~{::content}, ~{::scripts})}">
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko" th:fragment="layout(title, content, scripts)">
+<head th:replace="~{fragments/common :: head(${title})}"></head>
+<body>
+<div class="flex min-h-screen flex-col bg-[#f7f9fc]" data-wizard
+     th:with="showSummary=${step == '2' or step == '3-1' or step == '3-2' or step == '4'}">
+  <header class="sticky top-0 z-20 flex h-[104px] shrink-0 items-center justify-between border-b border-[#e5eaf1] bg-white px-[40px]">
+    <div class="flex h-[42px] w-[147px] items-center gap-[10px]">
+      <a th:href="@{/}" aria-label="캠페인 만들기 닫기" class="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-[#f7f9fc] hover:bg-[#eef1f5]">
+        <img alt="" th:src="@{/assets/ee41f.svg}" class="size-[20px]">
+      </a>
+      <a th:href="@{/}" class="flex items-center gap-[7px]">
+        <span th:replace="~{fragments/common :: logoMark('size-[26px] rounded-[8px]', 'f-bold text-[18px]')}"></span>
+        <span class="f-bold text-[16px] text-[#172033]">BizGent</span>
+      </a>
+    </div>
+
+    <!-- 단계 표시줄 -->
+    <ol class="relative h-[72px] w-[900px] shrink-0" aria-label="캠페인 생성 단계" th:with="current=${stepIndex}">
+      <li th:each="c, s : ${ { {81, 122}, {235, 116}, {395, 110}, {549, 116}, {697, 122} } }" aria-hidden="true"
+          class="absolute top-[15px] h-[2px]" th:classappend="${s.index < current ? 'bg-[#2563eb]' : 'bg-[#e5eaf1]'}"
+          th:style="|left:${c[0]}px;width:${c[1]}px|"></li>
+      <li th:each="st, s : ${ { {'1', '목표 설정'}, {'2', 'AI 기획'}, {'3-1', '콘텐츠 설정'}, {'3-2', '이미지 설정'}, {'4', '시안 비교'}, {'5', '게시'} } }"
+          th:with="state=${s.index == current ? 'current' : s.index < current ? 'done' : 'upcoming'}"
+          th:attr="aria-current=${state == 'current' ? 'step' : null}"
+          class="absolute top-0 flex h-[72px] w-[130px] flex-col items-center" th:style="|left:${s.index * 154}px|"
+          th:classappend="${st[0] == '3-2' and !draft.content.imageOn ? 'opacity-40' : ''}">
+        <span class="f-bold flex h-[32px] items-center justify-center rounded-full text-[11px]"
+              th:classappend="${(st[0].length() > 1 ? 'w-[44px] ' : 'w-[32px] ') + (state == 'current' ? 'bg-[#2563eb] text-white' : state == 'done' ? 'border border-[#2563eb] bg-[#eaf2ff] text-[#1d4ed8]' : 'border border-[#e5e7eb] bg-white text-[#9ca3af]')}"
+              th:text="${st[0]}">1</span>
+        <span class="mt-[12px] text-[13px] whitespace-nowrap" th:classappend="${state == 'upcoming' ? 'f-medium text-[#9ca3af]' : 'f-bold text-[#1d4ed8]'}" th:text="${st[1]}"></span>
+      </li>
+    </ol>
+    <div class="h-[42px] w-[147px]" aria-hidden="true"></div>
+  </header>
+
+  <main class="flex flex-1 flex-col" th:classappend="${showSummary ? 'pr-[300px]' : ''}" data-wizard-main>
+    <th:block th:replace="${content}"></th:block>
+  </main>
+
+  <th:block th:if="${showSummary}"><div th:replace="~{fragments/wizard-parts :: summaryPanel(${step == '2' ? 'goal' : step == '3-2' or step == '4' ? 'content' : 'plan'})}"></div></th:block>
+
+  <div th:replace="~{fragments/wizard-parts :: confirmNext}"></div>
+  <div th:replace="~{fragments/common :: hosts}"></div>
+</div>
+<th:block th:replace="${scripts}"></th:block>
+</body>
+</html>

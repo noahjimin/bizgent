@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<!-- 로그인 후 레이아웃(app, wizard)에 들어가는 조각 -->
+
+<!-- 새 캠페인 시작: [data-new-campaign] 버튼이 data-goal / data-product-id / data-channels / data-source 값을 채워 제출한다 -->
+<form th:fragment="newCampaignForm" id="new-campaign-form" method="post" th:action="@{/campaigns/new}" hidden>
+  <input type="hidden" name="goal">
+  <input type="hidden" name="productId">
+  <input type="hidden" name="channels">
+  <input type="hidden" name="source">
+</form>
+
+<!-- 설정 메뉴 (계정 관리 / 크레딧 및 이용 현황 / 로그아웃) -->
+<div th:fragment="settingsMenu" id="settings-menu" role="menu" aria-label="설정 메뉴" hidden
+     th:with="used=${me.usedThisMonth}"
+     class="fixed z-[55] flex w-[240px] flex-col rounded-[12px] bg-[#1f2937] p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.28)]">
+  <div class="flex h-[36px] items-center justify-between gap-[8px] px-[12px]">
+    <span class="f-bold truncate text-[14px] text-white" th:text="${me.memberName} + '님'">김사장님</span>
+    <span class="f-semibold shrink-0 rounded-full px-[8px] py-[2px] text-[11px]"
+          th:classappend="${me.free ? 'bg-[#14b8a6]/20 text-[#5eead4]' : 'bg-[#2563eb] text-white'}"
+          th:text="${me.free ? '무료 플랜' : '구독 플랜'}">무료 플랜</span>
+  </div>
+  <div role="separator" class="mx-[-6px] my-[6px] h-px bg-white/10"></div>
+  <button type="button" role="menuitem" data-settings-close data-modal-open="account-modal"
+          class="f-medium flex h-[36px] w-full items-center justify-between rounded-[8px] px-[12px] text-left text-[14px] text-white outline-none hover:bg-white/10 focus-visible:bg-white/10">계정 관리</button>
+  <div class="relative" data-settings-sub-area>
+    <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" data-settings-sub-toggle
+            class="f-medium flex h-[36px] w-full items-center justify-between rounded-[8px] px-[12px] text-left text-[14px] text-white outline-none hover:bg-white/10 focus-visible:bg-white/10">
+      크레딧 및 이용 현황
+      <svg viewBox="0 0 16 16" class="size-[14px] text-white/60" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div data-settings-sub hidden class="absolute top-[-6px] left-full pl-[8px]">
+      <div role="menu" aria-label="크레딧 및 이용 현황" class="flex w-[240px] flex-col rounded-[12px] bg-[#1f2937] p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.28)]">
+        <div class="flex flex-col gap-[8px] px-[12px] py-[10px]">
+          <div class="flex items-center justify-between text-[13px]">
+            <span class="f-medium text-white">이번 달 캠페인 이용</span>
+            <span class="f-bold text-white" th:text="${used} + '/' + ${me.monthlyCampaignLimit} + '회'">1/3회</span>
+          </div>
+          <div role="progressbar" aria-valuemin="0" th:attr="aria-valuemax=${me.monthlyCampaignLimit},aria-valuenow=${used}"
+               class="h-[4px] w-full overflow-hidden rounded-full bg-white/15">
+            <div class="h-full rounded-full bg-[#14b8a6]" th:style="'width:' + ${used * 100 / me.monthlyCampaignLimit} + '%'"></div>
+          </div>
+        </div>
+        <p class="f-regular px-[12px] pb-[8px] text-[12px] text-white/60" th:text="'다음 리셋일: ' + ${@fmt.dotDate(me.usageResetAt)}">다음 리셋일</p>
+        <div role="separator" class="mx-[-6px] my-[6px] h-px bg-white/10"></div>
+        <a role="menuitem" th:href="@{/subscription}"
+           class="f-medium flex h-[36px] w-full items-center justify-between rounded-[8px] px-[12px] text-left text-[14px] text-white outline-none hover:bg-white/10 focus-visible:bg-white/10">
+          이용권 자세히 보기
+          <svg viewBox="0 0 16 16" class="size-[14px] text-white/60" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div role="separator" class="mx-[-6px] my-[6px] h-px bg-white/10"></div>
+  <form method="post" th:action="@{/logout}" data-confirm="로그아웃하시겠어요?" data-confirm-label="로그아웃">
+    <button type="submit" role="menuitem" data-settings-close
+            class="f-medium flex h-[36px] w-full items-center justify-between rounded-[8px] px-[12px] text-left text-[14px] text-white outline-none hover:bg-white/10 focus-visible:bg-white/10">로그아웃</button>
+  </form>
+</div>
+
+<!-- 계정 관리 모달 -->
+<div th:fragment="accountModal" id="account-modal" data-modal data-backdrop-close role="presentation" hidden
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.4)]">
+  <form method="post" th:action="@{/account}" role="dialog" aria-modal="true" aria-labelledby="account-title" data-account-form
+        class="flex max-h-[calc(100vh-32px)] w-[480px] max-w-[calc(100vw-32px)] flex-col gap-[20px] rounded-[20px] border border-[#e5eaf1] bg-white p-[24px] drop-shadow-[0px_18px_20px_rgba(16,24,40,0.1)]">
+    <div class="flex w-full items-center justify-between">
+      <h2 id="account-title" class="f-bold text-[24px] text-[#172033]">계정 관리</h2>
+      <button type="button" data-modal-close aria-label="닫기" class="flex size-[36px] items-center justify-center rounded-full border border-[#e5eaf1] bg-[#f7f9fc] hover:bg-[#eef1f5]">
+        <img alt="" th:src="@{/assets/d0027.svg}" class="size-[18px]">
+      </button>
+    </div>
+
+    <div class="flex min-h-0 flex-1 flex-col gap-[16px] overflow-y-auto">
+      <label class="flex w-full flex-col gap-[8px]">
+        <span class="f-semibold text-[14px] text-[#172033]">이름</span>
+        <input name="memberName" th:value="${me.memberName}" placeholder="이름을 입력해주세요" data-account-name
+               class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+      </label>
+      <label class="flex w-full flex-col gap-[8px]">
+        <span class="f-semibold text-[14px] text-[#172033]">이메일</span>
+        <input th:value="${me.email}" readonly
+               class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-[#f7f9fc] px-[14px] text-[15px] text-[#667085] outline-none">
+      </label>
+      <label class="flex w-full flex-col gap-[8px]">
+        <span class="flex items-center gap-[6px]">
+          <span class="f-semibold text-[14px] text-[#172033]">연락처</span>
+          <span class="f-regular text-[12px] text-[#98a2b3]">선택</span>
+        </span>
+        <input name="phone" th:value="${me.phone}" inputmode="tel" placeholder="예: 010-1234-5678" data-digits-dash
+               class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+      </label>
+
+      <button type="button" data-pw-open
+              class="f-bold flex h-[44px] w-fit items-center rounded-full border border-[#2563eb] bg-white px-[20px] text-[15px] text-[#2563eb] hover:bg-[#eaf2ff]">비밀번호 변경</button>
+      <div data-pw-box hidden class="flex flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-[#fbfcfe] p-[16px]">
+        <div class="flex items-center justify-between">
+          <p class="f-bold text-[15px] text-[#172033]">비밀번호 변경</p>
+          <button type="button" data-pw-close class="f-semibold text-[13px] text-[#667085] hover:underline">접기</button>
+        </div>
+        <label class="flex w-full flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] text-[#172033]">현재 비밀번호</span>
+          <input type="password" name="currentPassword" data-pw
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none focus:border-[#2563eb]">
+        </label>
+        <label class="flex w-full flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] text-[#172033]">새 비밀번호</span>
+          <input type="password" name="newPassword" data-pw
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none focus:border-[#2563eb]">
+        </label>
+        <label class="flex w-full flex-col gap-[8px]">
+          <span class="f-semibold text-[14px] text-[#172033]">새 비밀번호 확인</span>
+          <input type="password" data-pw data-pw-confirm
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none focus:border-[#2563eb]">
+        </label>
+        <p data-pw-mismatch hidden class="f-medium text-[13px] text-[#ef4444]">새 비밀번호가 일치하지 않아요</p>
+      </div>
+    </div>
+
+    <div class="flex w-full items-center justify-between border-t border-[#e5eaf1] pt-[16px]">
+      <button type="button" data-withdraw class="f-regular text-[13px] text-[#98a2b3] underline-offset-2 hover:underline">회원 탈퇴</button>
+      <div class="flex gap-[10px]">
+        <button type="button" data-modal-close class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">취소</button>
+        <button type="submit" data-account-save class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">저장하기</button>
+      </div>
+    </div>
+  </form>
+  <script>
+    (() => {
+      const form = document.querySelector("[data-account-form]");
+      const box = form.querySelector("[data-pw-box]");
+      const openBtn = form.querySelector("[data-pw-open]");
+      const pw = () => Array.from(form.querySelectorAll("[data-pw]")).map((i) => i.value);
+      const validate = () => {
+        const [current, next, confirm] = pw();
+        const open = !box.hidden;
+        const mismatch = open && confirm !== "" && next !== confirm;
+        const incomplete = open && (current || next || confirm) && (!current || !next || next !== confirm);
+        form.querySelector("[data-pw-mismatch]").hidden = !mismatch;
+        form.querySelector("[data-pw-confirm]").classList.toggle("border-[#ef4444]", mismatch);
+        form.querySelector("[data-account-save]").disabled = form.querySelector("[data-account-name]").value.trim() === "" || incomplete;
+      };
+      openBtn.addEventListener("click", () => { box.hidden = false; openBtn.hidden = true; validate(); });
+      form.querySelector("[data-pw-close]").addEventListener("click", () => {
+        box.hidden = true; openBtn.hidden = false;
+        form.querySelectorAll("[data-pw]").forEach((i) => (i.value = ""));
+        validate();
+      });
+      form.addEventListener("input", (e) => {
+        if (e.target.matches("[data-digits-dash]")) e.target.value = e.target.value.replace(/[^0-9-]/g, "");
+        validate();
+      });
+      form.querySelector("[data-withdraw]").addEventListener("click", () =>
+        BG.confirm("정말 탈퇴하시겠어요? 탈퇴하면 매장 정보와 캠페인 기록을 다시 볼 수 없어요.", "탈퇴하기", () => {}));
+    })();
+  </script>
+</div>
+
+<!-- 무료 캠페인 횟수 소진 안내 -->
+<div th:fragment="upgradeNotice" id="upgrade-notice" data-modal data-backdrop-close role="presentation" th:hidden="${upgradeNotice == null}"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/35">
+  <div role="dialog" aria-modal="true" aria-labelledby="campaign-limit-title"
+       class="w-[400px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_20px_48px_0px_rgba(16,24,40,0.18)]">
+    <h2 id="campaign-limit-title" class="f-bold text-[20px] text-[#172033]">이번 달 무료 캠페인 3회를 모두 사용했어요</h2>
+    <p class="f-regular mt-[10px] text-[14px] leading-[1.6] text-[#667085]">캠페인을 더 만들려면 구독 플랜을 확인해주세요.</p>
+    <div class="mt-[24px] flex justify-end gap-[10px]">
+      <button type="button" data-modal-close class="f-semibold h-[44px] rounded-full border border-[#d0d7e2] bg-white px-[18px] text-[15px] text-[#667085]">닫기</button>
+      <a th:href="@{/subscription}" class="f-semibold flex h-[44px] items-center rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8]">구독하기</a>
+    </div>
+  </div>
+</div>
+
+<!-- 개발용 바로가기: 시연 데이터 상태를 바꾼다 -->
+<div th:fragment="devShortcuts" class="fixed right-[20px] bottom-[20px] z-30 flex flex-col items-end gap-[8px]" data-dev>
+  <div data-dev-panel hidden class="flex w-[240px] flex-col gap-[12px] rounded-[14px] border border-[#e5eaf1] bg-white p-[14px] shadow-[0px_10px_24px_0px_rgba(16,24,40,0.12)]">
+    <p class="f-bold text-[13px] text-[#172033]">개발 바로가기</p>
+    <div class="flex flex-col gap-[4px]">
+      <a th:each="link : ${ { {'홈', '/'}, {'캠페인 보관함', '/campaigns'}, {'AI 캠페인 개선 방향', '/insights'}, {'이용권', '/subscription'} } }"
+         th:href="@{${link[1]}}" th:text="${link[0]}"
+         class="f-medium rounded-[8px] px-[8px] py-[6px] text-left text-[13px] text-[#667085] hover:bg-[#f4f6f9]">홈</a>
+      <button type="button" data-new-campaign class="f-medium rounded-[8px] px-[8px] py-[6px] text-left text-[13px] text-[#667085] hover:bg-[#f4f6f9]">새 캠페인 1단계</button>
+    </div>
+    <div class="flex flex-col gap-[6px]">
+      <p class="f-semibold text-[12px] text-[#98a2b3]" th:text="'무료 이용 횟수 · ' + ${me.campaignsUsedThisMonth} + '/' + ${me.monthlyCampaignLimit}">무료 이용 횟수</p>
+      <div class="flex gap-[4px]">
+        <form method="post" th:action="@{/dev/usage}" class="flex flex-1">
+          <input type="hidden" name="used" th:value="${me.monthlyCampaignLimit}">
+          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">무료 횟수 소진</button>
+        </form>
+        <form method="post" th:action="@{/dev/usage}" class="flex flex-1">
+          <input type="hidden" name="used" value="0">
+          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">무료 횟수 초기화</button>
+        </form>
+      </div>
+    </div>
+    <div class="flex flex-col gap-[6px]">
+      <p class="f-semibold text-[12px] text-[#98a2b3]">요금제 (모의 결제)</p>
+      <form method="post" th:action="@{/dev/plan}" class="flex gap-[4px] rounded-[10px] bg-[#f4f6f9] p-[3px]" role="group" aria-label="요금제 전환">
+        <button th:each="v : ${ { {'free', '무료'}, {'pro', '구독'} } }" name="plan" th:value="${v[0]}"
+                th:attr="aria-pressed=${(v[0] == 'free') == me.free}" th:text="${v[1]}"
+                class="f-semibold flex-1 rounded-[8px] py-[6px] text-[12px]"
+                th:classappend="${(v[0] == 'free') == me.free ? 'bg-white text-[#2563eb] shadow-sm' : 'text-[#667085]'}">무료</button>
+      </form>
+    </div>
+    <div class="flex flex-col gap-[6px]">
+      <p class="f-semibold text-[12px] text-[#98a2b3]">AI 개선 방향 데이터</p>
+      <form method="post" th:action="@{/dev/insights-view}" class="flex gap-[4px] rounded-[10px] bg-[#f4f6f9] p-[3px]" role="group" aria-label="데이터 양 전환">
+        <button th:each="v : ${ { {'early', 'data-small'}, {'enough', 'data-large'} } }" name="view" th:value="${v[0]}"
+                th:attr="aria-pressed=${insightsView == v[0]}" th:text="${v[1]}"
+                class="f-semibold flex-1 rounded-[8px] py-[6px] text-[12px]"
+                th:classappend="${insightsView == v[0] ? 'bg-white text-[#2563eb] shadow-sm' : 'text-[#667085]'}">data-small</button>
+      </form>
+    </div>
+    <form method="post" th:action="@{/dev/reset}" data-confirm="시연 데이터를 처음 상태로 되돌릴까요? 로그아웃됩니다." data-confirm-label="초기화">
+      <button class="f-semibold w-full rounded-[8px] border border-[#fecaca] py-[6px] text-[12px] text-[#dc2626] hover:bg-[#fef2f2]">시연 데이터 초기화</button>
+    </form>
+  </div>
+  <button type="button" data-dev-toggle class="f-semibold rounded-full bg-[#172033] px-[14px] py-[8px] text-[12px] text-white shadow-lg">개발 바로가기</button>
+  <script>
+    (() => {
+      const root = document.querySelector("[data-dev]");
+      const panel = root.querySelector("[data-dev-panel]");
+      const toggle = root.querySelector("[data-dev-toggle]");
+      toggle.addEventListener("click", () => {
+        panel.hidden = !panel.hidden;
+        toggle.textContent = panel.hidden ? "개발 바로가기" : "닫기";
+      });
+    })();
+  </script>
+</div>
+
+<!-- 페이지 상단 경로 + 계정 도구 (프로토타입 PageHeader) -->
+<div th:fragment="pageHeader(current, parent)" class="flex h-[38px] w-full items-center justify-between">
+  <nav aria-label="현재 위치" class="flex items-start gap-[8px] text-[13px]">
+    <a th:href="@{/}" class="f-regular text-[#667085] hover:text-[#172033]">홈</a>
+    <span class="f-regular text-[#98a2b3]">›</span>
+    <th:block th:if="${parent != null}">
+      <span class="f-regular text-[#667085]" th:text="${parent}"></span>
+      <span class="f-regular text-[#98a2b3]">›</span>
+    </th:block>
+    <span class="f-semibold text-[#2563eb]" th:text="${current}">현재</span>
+  </nav>
+  <div class="flex items-center gap-[10px]">
+    <button type="button" data-subscribe
+            class="f-bold flex h-[38px] items-center rounded-full bg-white px-[16px] text-[14px] whitespace-nowrap text-[#2563eb] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">플랜 업그레이드</button>
+    <button type="button" aria-label="알림" class="size-[38px]">
+      <img alt="" th:src="@{/assets/c0a13.svg}" class="size-[38px]">
+    </button>
+    <button type="button" aria-haspopup="menu" aria-label="계정 메뉴" data-settings-menu="below"
+            class="f-bold flex size-[38px] items-center justify-center rounded-full border-2 border-white bg-[#eaf2ff] text-[13px] text-[#2563eb] hover:bg-[#dbe8ff]"
+            th:text="${me.initial}">김</button>
+  </div>
+</div>
+
+</html>

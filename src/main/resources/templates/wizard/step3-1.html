@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- 캠페인 생성 3-1단계: 콘텐츠 설정 (F05, F07). 콘텐츠 유형, 게시 채널(무료 최대 2개), 광고 이미지 생성 여부 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/wizard :: layout('콘텐츠 설정', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<form id="step-form" method="post" th:action="@{/campaigns/new/3-1}" class="flex flex-1 flex-col" data-content-form
+      th:with="cs=${draft.content}, limit=${me.free ? 2 : 3}" th:attr="data-limit=${limit},data-free=${me.free}">
+  <input type="hidden" name="channels" th:value="${#strings.listJoin(cs.channels, ',')}" data-channels>
+  <input type="hidden" name="hashtagOn" th:value="${cs.hashtagOn}" data-flag="hashtagOn">
+  <input type="hidden" name="captionOn" th:value="${cs.captionOn}" data-flag="captionOn">
+  <input type="hidden" name="imageOn" th:value="${cs.imageOn}" data-flag="imageOn">
+
+  <div class="flex flex-1 justify-center px-[70px]">
+    <div class="flex w-full max-w-[1000px] flex-col gap-[18px] px-[24px] pt-[28px] pb-[24px]">
+      <div class="flex w-full flex-col items-center gap-[8px] text-center">
+        <span th:replace="~{fragments/wizard-parts :: stepBadge('3-1  단계', 'text-[14px]')}"></span>
+        <h1 class="f-bold text-[36px] text-[#172033]">콘텐츠 설정</h1>
+        <p class="f-regular text-[18px] leading-[1.6] text-[#667085]">어떤 내용을 어느 채널에 올릴지 정해주세요.</p>
+      </div>
+
+      <section class="flex w-full flex-col gap-[8px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] pt-[18px] pb-[16px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <h2 class="f-bold w-full text-[20px] text-[#172033]">생성할 콘텐츠 유형</h2>
+        <div class="flex w-full flex-col gap-[2px]">
+          <button th:replace="~{:: check(null, true, '홍보 문구')}"></button>
+          <button th:replace="~{:: check('hashtagOn', ${cs.hashtagOn}, '해시태그')}"></button>
+          <button th:replace="~{:: check('captionOn', ${cs.captionOn}, 'SNS 게시물용 캡션')}"></button>
+        </div>
+      </section>
+
+      <section class="flex w-full flex-col gap-[12px] rounded-[18px] border border-[#e5eaf1] bg-white px-[22px] pt-[18px] pb-[16px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <h2 class="f-bold w-full text-[20px] text-[#172033]" th:text="|게시할 SNS 채널을 선택해주세요 (최대 ${limit}개)|"></h2>
+        <div class="flex w-full flex-wrap items-start gap-[10px]" data-channel-list>
+          <button th:each="ch : ${ {'인스타그램', '기타', '카카오톡 채널', '블로그', '당근마켓'} }" type="button" data-channel th:attr="data-value=${ch}"
+                  class="flex items-center gap-[8px] rounded-full px-[14px] py-[10px]">
+            <span data-channel-no class="f-bold hidden size-[20px] items-center justify-center rounded-full bg-white text-[12px] text-[#2563eb]"></span>
+            <span data-channel-label class="f-semibold text-[15px] whitespace-nowrap" th:text="${ch}"></span>
+          </button>
+        </div>
+        <input name="customChannelNote" th:value="${cs.customChannelNote}" data-channel-note
+               placeholder="기타 선택시 예 : 캐주얼하고 유쾌한 분위기로 작성해주세요" aria-label="기타 채널 요청 사항"
+               class="f-regular w-full rounded-[12px] border border-[#e5eaf1] bg-[#f7f9fc] px-[16px] py-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb] disabled:cursor-not-allowed">
+        <p data-channel-notice role="status" class="f-regular w-full text-[13px] leading-[1.5] text-[#98a2b3]"
+           th:text="${me.free ? '무료 플랜은 최대 2개 채널까지 선택 가능해요' : '구독 플랜은 최대 3개 채널까지 선택 가능해요'}"></p>
+      </section>
+
+      <section class="flex w-full flex-col gap-[12px] rounded-[18px] border border-[#cdefe9] bg-[#eefbf8] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <h2 class="f-bold w-full text-[20px] text-[#172033]">광고 이미지도 함께 만들까요? (선택)</h2>
+        <div class="flex w-full flex-col gap-[5px]">
+          <p class="f-bold text-[16px] text-[#172033]">AI 광고 이미지 생성</p>
+          <p class="f-regular text-[14px] leading-[1.5] text-[#667085]">브랜드 톤앤매너를 반영한 이미지 시안을 함께 생성해요</p>
+          <p class="f-regular text-[14px] leading-[1.5] text-[#667085]">다음 단계에서 이미지 스타일과 분위기를 자세히 정할 수 있어요</p>
+        </div>
+        <button type="button" role="switch" th:attr="aria-checked=${cs.imageOn}" aria-label="AI 광고 이미지 생성" data-image-switch class="h-[28px] w-[50px]">
+          <span data-switch-track class="relative block h-[28px] w-[50px] rounded-full transition-colors" th:classappend="${cs.imageOn ? 'bg-[#2563eb]' : 'bg-[#d0d7e2]'}">
+            <span data-switch-knob class="absolute top-[3px] size-[22px] rounded-full bg-white shadow-[0px_1px_2px_0px_rgba(16,24,40,0.15)] transition-all"
+                  th:classappend="${cs.imageOn ? 'left-[25px]' : 'left-[3px]'}"></span>
+          </span>
+        </button>
+      </section>
+
+      <div class="flex min-h-[62px] w-full items-center gap-[12px] rounded-[14px] bg-[#f2f4f7] px-[18px] py-[14px]">
+        <span class="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-white"><img alt="" th:src="@{/assets/fbb56.svg}" class="size-[18px]"></span>
+        <p class="f-medium min-w-0 flex-1 text-[15px] leading-[1.5] text-[#667085]">채널을 1개 선택하면 해당 채널의 시안 2가지를, 2개 선택하면 채널별로 시안 A·B를 각각 보여드려요</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[70px]">
+    <div class="flex w-full max-w-[1000px] items-center justify-end">
+      <button type="button" data-confirm-next data-next-button
+              class="flex h-[56px] items-center gap-[8px] rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] shadow-[0px_10px_24px_0px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-40">
+        <span class="f-bold text-[18px] whitespace-nowrap text-white" data-next-label>다음</span>
+        <img alt="" th:src="@{/assets/21c0f.svg}" class="size-[18px]">
+      </button>
+    </div>
+  </footer>
+</form>
+</th:block>
+
+<!-- 체크박스. flag가 null이면 항상 켜진 고정 항목 -->
+<button th:fragment="check(flag, checked, label)" type="button" role="checkbox" th:attr="aria-checked=${checked},data-check=${flag}" th:disabled="${flag == null}"
+        class="flex h-[42px] w-full items-center gap-[12px] text-left disabled:cursor-default">
+  <span data-check-box class="flex size-[22px] shrink-0 items-center justify-center rounded-[6px]" th:classappend="${checked ? 'bg-[#2563eb]' : 'border border-[#d0d7e2] bg-white'}">
+    <img alt="" th:src="@{/assets/f29f1.svg}" class="size-[14px]" data-check-icon th:hidden="${!checked}">
+  </span>
+  <span class="f-semibold text-[16px] whitespace-nowrap text-[#172033]" th:text="${label}"></span>
+</button>
+
+<th:block th:fragment="scripts">
+<script>
+(() => {
+  const form = document.querySelector("[data-content-form]");
+  const limit = Number(form.dataset.limit);
+  const isFree = form.dataset.free === "true";
+  const channelsInput = form.querySelector("[data-channels]");
+  let channels = channelsInput.value.split(",").filter(Boolean);
+  const flag = (name) => form.querySelector(`[data-flag="${name}"]`);
+  const defaultNotice = form.querySelector("[data-channel-notice]").textContent;
+  let noticeTimer;
+
+  const render = () => {
+    channelsInput.value = channels.join(",");
+    const full = channels.length >= limit;
+    form.querySelectorAll("[data-channel]").forEach((btn) => {
+      const idx = channels.indexOf(btn.dataset.value);
+      const on = idx >= 0;
+      btn.setAttribute("aria-pressed", String(on));
+      btn.className = "flex items-center gap-[8px] rounded-full px-[14px] py-[10px] " + (on ? "bg-[#2563eb]" : "bg-[#f2f4f7]" + (full ? "" : " hover:bg-[#e9edf2]"));
+      const no = btn.querySelector("[data-channel-no]");
+      no.classList.toggle("hidden", !on);
+      no.classList.toggle("flex", on);
+      no.textContent = on ? "①②③"[idx] : "";
+      const label = btn.querySelector("[data-channel-label]");
+      label.className = "f-semibold text-[15px] whitespace-nowrap " + (on ? "text-white" : full ? "text-[#98a2b3]" : "text-[#667085]");
+    });
+    form.querySelector("[data-channel-note]").disabled = !channels.includes("기타");
+
+    const imageOn = flag("imageOn").value === "true";
+    const next = form.querySelector("[data-next-button]");
+    next.disabled = channels.length === 0;
+    form.querySelector("[data-next-label]").textContent = imageOn ? "다음: 이미지 설정" : "다음: 시안 비교";
+    next.dataset.confirmTitle = imageOn ? "이미지 설정으로 넘어갈까요?" : "시안을 만들까요?";
+    next.dataset.confirmBody = imageOn
+      ? "선택한 채널과 콘텐츠 설정이 확정돼요. 다음 단계로 넘어가면 3-1단계 내용은 다시 수정할 수 없어요."
+      : "광고 이미지 없이 문구 시안을 만들어요. 다음 단계로 넘어가면 3-1단계 내용은 다시 수정할 수 없어요.";
+  };
+
+  form.querySelector("[data-channel-list]").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-channel]");
+    if (!btn) return;
+    const ch = btn.dataset.value;
+    if (channels.includes(ch)) channels = channels.filter((c) => c !== ch);
+    else if (channels.length >= limit) {
+      const notice = form.querySelector("[data-channel-notice]");
+      notice.textContent = `채널은 최대 ${limit}개까지 선택할 수 있어요. 다른 채널을 해제한 뒤 선택해주세요.`;
+      notice.classList.replace("text-[#98a2b3]", "text-[#2563eb]");
+      clearTimeout(noticeTimer);
+      noticeTimer = setTimeout(() => { notice.textContent = defaultNotice; notice.classList.replace("text-[#2563eb]", "text-[#98a2b3]"); }, 2500);
+      if (isFree) BG.upgradeHint("채널 추가");
+      return;
+    } else channels.push(ch);
+    render();
+  });
+
+  form.querySelectorAll("[data-check]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const input = flag(btn.dataset.check);
+      const on = input.value !== "true";
+      input.value = String(on);
+      btn.setAttribute("aria-checked", String(on));
+      const box = btn.querySelector("[data-check-box]");
+      box.className = "flex size-[22px] shrink-0 items-center justify-center rounded-[6px] " + (on ? "bg-[#2563eb]" : "border border-[#d0d7e2] bg-white");
+      btn.querySelector("[data-check-icon]").hidden = !on;
+    }));
+
+  const sw = form.querySelector("[data-image-switch]");
+  sw.addEventListener("click", () => {
+    const on = flag("imageOn").value !== "true";
+    flag("imageOn").value = String(on);
+    sw.setAttribute("aria-checked", String(on));
+    sw.querySelector("[data-switch-track]").classList.toggle("bg-[#2563eb]", on);
+    sw.querySelector("[data-switch-track]").classList.toggle("bg-[#d0d7e2]", !on);
+    sw.querySelector("[data-switch-knob]").classList.toggle("left-[25px]", on);
+    sw.querySelector("[data-switch-knob]").classList.toggle("left-[3px]", !on);
+    render();
+  });
+
+  form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
+  render();
+})();
+</script>
+</th:block>
+</body>
+</html>

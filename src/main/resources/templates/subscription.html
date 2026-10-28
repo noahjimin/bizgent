@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- 구독 관리 및 크레딧 (SCR-U-012, F14·F15): 이번 달 이용 현황, 요금제 비교. 결제는 모의 처리 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/app :: layout('구독 관리 및 크레딧', 'subscription', ~{::content}, ~{})}">
+<body>
+<th:block th:fragment="content">
+<div class="flex w-full flex-col gap-[20px] px-[36px] pt-[24px] pb-[30px]"
+     th:with="used=${me.usedThisMonth}, limit=${me.monthlyCampaignLimit}, percent=${me.usagePercent}">
+  <div class="flex w-full flex-col gap-[18px]">
+    <div th:replace="~{fragments/app-parts :: pageHeader('이용권', null)}"></div>
+    <div class="flex flex-col gap-[4px]">
+      <h1 class="f-bold text-[30px] text-[#172033]">이용권</h1>
+      <p class="f-regular text-[14px] text-[#667085]">캠페인 이용 현황을 확인하고 나에게 맞는 플랜을 선택하세요</p>
+    </div>
+  </div>
+
+  <section class="flex w-full flex-col gap-[14px] rounded-[16px] border border-[#dcebff] bg-[#eaf2ff] px-[22px] pt-[20px] pb-[18px]">
+    <div class="flex w-full items-center justify-between gap-[12px]">
+      <div class="flex items-center gap-[10px]">
+        <span class="flex size-[36px] items-center justify-center rounded-[12px] bg-white">
+          <img alt="" th:src="@{/assets/1c638.svg}" class="size-[19px]">
+        </span>
+        <div class="flex flex-col gap-[3px]">
+          <h2 class="f-bold text-[20px] text-[#172033]">이번 달 이용 현황</h2>
+          <p class="f-semibold text-[14px] text-[#1d4ed8]" th:text="|이번 달 캠페인 이용 ${used}/${limit}회 사용|"></p>
+        </div>
+      </div>
+      <span class="f-bold rounded-full bg-white px-[11px] py-[6px] text-[12px] whitespace-nowrap text-[#2563eb]" th:text="|${percent}% 사용|"></span>
+    </div>
+    <div class="flex w-full flex-col gap-[8px]">
+      <div role="progressbar" aria-label="이번 달 캠페인 이용" aria-valuemin="0" th:attr="aria-valuemax=${limit},aria-valuenow=${used}"
+           class="h-[10px] w-full overflow-hidden rounded-full bg-[#cadaf7]">
+        <div class="h-[10px] rounded-full bg-[#2563eb] transition-[width]" th:style="|width:${percent}%|"></div>
+      </div>
+      <p class="f-regular text-[13px] text-[#667085]" th:text="|다음 리셋일: ${@fmt.monthDay(me.usageResetAt)}|"></p>
+    </div>
+    <div th:if="${used >= limit}" role="alert" class="flex w-full items-center gap-[8px] rounded-[12px] bg-[#fff7d6] px-[14px] py-[10px]">
+      <img alt="" th:src="@{/assets/5e774.svg}" class="size-[16px] shrink-0">
+      <p class="f-semibold min-w-0 flex-1 text-[13px] text-[#b7791f]">무료 이용 횟수를 모두 사용했어요. 구독하면 더 많은 캠페인을 만들 수 있어요</p>
+    </div>
+  </section>
+
+  <section class="flex w-full flex-col gap-[14px]">
+    <div class="flex w-full flex-wrap items-end justify-between gap-[8px]">
+      <div class="flex flex-col gap-[4px]">
+        <h2 class="f-bold text-[20px] text-[#172033]">요금제 비교</h2>
+        <p class="f-regular text-[14px] text-[#667085]">필요한 기능과 이용량에 맞는 플랜을 선택하세요</p>
+      </div>
+      <p class="flex items-center gap-[6px]">
+        <img alt="" th:src="@{/assets/40516.svg}" class="size-[15px]">
+        <span class="f-semibold text-[13px] whitespace-nowrap text-[#0f8f82]">언제든 플랜을 변경할 수 있어요</span>
+      </p>
+    </div>
+
+    <div class="grid w-full grid-cols-1 gap-[16px] md:grid-cols-2">
+      <div class="flex min-h-[470px] min-w-0 flex-col gap-[20px] rounded-[16px] border border-[#e5eaf1] bg-white p-[24px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <div class="flex w-full items-center justify-between">
+          <h3 class="f-bold text-[20px] text-[#172033]">무료 플랜</h3>
+          <span th:if="${me.free}" class="f-semibold rounded-full border border-[#e5eaf1] bg-[#f8fafc] px-[10px] py-[6px] text-[12px] whitespace-nowrap text-[#667085]">현재 플랜</span>
+        </div>
+        <p class="f-bold text-[32px] text-[#172033]">0원</p>
+        <div class="h-px w-full bg-[#eef1f5]"></div>
+        <ul class="flex w-full flex-col gap-[16px]">
+          <th:block th:each="f, s : ${ {'월 3회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 2개 선택'} }"><li th:replace="~{:: feature(${f}, ${s.index < 3 ? '443d1.svg' : 'ac97e.svg'}, 'bg-[#eaf2ff]', null)}"></li></th:block>
+        </ul>
+        <div class="min-h-px w-full flex-1"></div>
+        <button type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#98a2b3]"
+                th:text="${me.free ? '현재 이용 중' : '무료 플랜'}">현재 이용 중</button>
+      </div>
+
+      <div class="relative flex min-h-[470px] min-w-0 flex-col gap-[20px] overflow-hidden rounded-[16px] border-2 border-[#2563eb] bg-white px-[24px] pt-[28px] pb-[24px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+        <div class="absolute top-0 right-0 left-0 h-[6px] bg-[linear-gradient(90deg,#2563eb_25%,#14b8a6_75%)]" aria-hidden="true"></div>
+        <div class="flex w-full items-center justify-between">
+          <h3 class="f-bold text-[20px] text-[#172033]">구독 플랜</h3>
+          <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] whitespace-nowrap text-[#0f8f82]" th:text="${me.free ? '추천' : '현재 플랜'}">추천</span>
+        </div>
+        <p class="f-bold text-[32px] text-[#172033]">월 9,900원</p>
+        <div class="h-px w-full bg-[#dcebff]"></div>
+        <ul class="flex w-full flex-col gap-[13px]">
+          <th:block th:each="f, s : ${ { {'월 캠페인 이용 횟수 확대', null}, {'AI 기획 재분석: 원하는 방향을 적으면 AI가 다시 기획해줘요', '새 기능'}, {'AI 문구 대안 제안', null}, {'AI 이미지 수정', null}, {'참고 이미지로 더 정확한 이미지 생성', null} } }"><li th:replace="~{:: feature(${f[0]}, ${s.index < 1 ? '758e8.svg' : '02f42.svg'}, 'bg-[#ddf8f3]', ${f[1]})}"></li></th:block>
+        </ul>
+        <div class="min-h-px w-full flex-1"></div>
+        <button type="button" data-subscribe class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[16px] text-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">구독하기</button>
+      </div>
+    </div>
+  </section>
+</div>
+</th:block>
+
+<li th:fragment="feature(label, icon, iconBg, badge)" class="flex w-full items-center gap-[10px]">
+  <span class="flex size-[24px] shrink-0 items-center justify-center rounded-full" th:classappend="${iconBg}">
+    <img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[13px]">
+  </span>
+  <span class="f-medium min-w-0 flex-1 text-[14px] text-[#172033]" th:text="${label}"></span>
+  <span th:if="${badge != null}" class="f-bold shrink-0 rounded-full bg-[#ddf8f3] px-[8px] py-[4px] text-[11px] whitespace-nowrap text-[#0f8f82]" th:text="${badge}"></span>
+</li>
+</body>
+</html>

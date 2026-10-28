@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!-- 캠페인 생성 1단계: 목표 설정 (SCR-U-007, F03) -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/wizard :: layout('목표 설정', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<form id="step-form" method="post" th:action="@{/campaigns/new/1}" class="flex flex-1 flex-col" data-goal-form>
+  <input type="hidden" name="goalOption" th:value="${draft.goalOption}" data-goal-option>
+  <input type="hidden" name="productIds" th:value="${#strings.listJoin(draft.productIds, ',')}" data-product-ids>
+  <input type="hidden" name="newMenuNames" value="" data-new-menus>
+  <input type="hidden" name="targetCustomers" th:value="${#strings.listJoin(draft.targetCustomers, ', ')}" data-tags-value="targets">
+  <input type="hidden" name="toneManners" th:value="${#strings.listJoin(draft.toneManners, ', ')}" data-tags-value="tones">
+
+  <div class="flex flex-1 flex-col items-center pt-[32px] pb-[28px]">
+    <div class="flex w-[700px] flex-col gap-[28px]">
+      <div class="flex w-full flex-col items-center gap-[8px] text-center">
+        <span th:replace="~{fragments/wizard-parts :: stepBadge('1 단계', 'text-[12px]')}"></span>
+        <h1 class="f-bold text-[40px] text-[#172033]">이번 캠페인의 목표를 알려주세요</h1>
+        <p class="f-regular text-[18px] leading-[1.6] text-[#667085]">선택한 목표에 맞춰 AI가 타겟 고객과 전략을 분석해드려요</p>
+      </div>
+
+      <div th:if="${draft.insightPrefill}" role="status" data-prefill-banner
+           class="flex w-full items-center gap-[10px] rounded-[14px] border border-[#bcebe4] bg-[#eefbf8] px-[16px] py-[12px]">
+        <img alt="" th:src="@{/assets/eebbb.svg}" class="size-[16px] shrink-0">
+        <p class="f-medium min-w-0 flex-1 text-[14px] leading-[1.5] text-[#0e9384]">AI 캠페인 개선 방향에서 가져온 제안이에요. 목표와 대상 메뉴가 자동으로 선택되었어요.</p>
+        <button type="button" data-prefill-reset class="f-bold shrink-0 text-[14px] text-[#0e9384] underline underline-offset-2 hover:text-[#0f766e]">직접 바꾸기</button>
+      </div>
+
+      <!-- 목표 (택 1) -->
+      <section class="flex w-full flex-col gap-[12px]">
+        <h2 class="f-bold text-[20px] text-[#172033]">캠페인 목표를 선택해주세요 (택 1)</h2>
+        <div class="flex w-full gap-[12px]">
+          <th:block th:each="g : ${ { {'신메뉴/신상품 홍보', '3697b.svg'}, {'재방문 유도', '50f8b.svg'}, {'매장 인지도 확대', '0c8e7.svg'} } }"><button th:replace="~{:: goalCard(${g[0]}, ${g[1]})}"></button></th:block>
+        </div>
+        <div class="flex w-full gap-[12px]">
+          <th:block th:each="g : ${ { {'할인/이벤트 홍보', '3ee8c.svg'}, {'신규 고객 유치', '28b03.svg'}, {'재고 소진 프로모션', '3ee8c.svg'} } }"><button th:replace="~{:: goalCard(${g[0]}, ${g[1]})}"></button></th:block>
+        </div>
+        <div class="flex w-full items-start gap-[12px]">
+          <button th:replace="~{:: goalCard('비인기 메뉴 살리기', '3697b.svg')}"></button>
+          <div class="flex min-w-0 flex-1 flex-col gap-[8px]">
+            <button th:replace="~{:: goalCard('기타 (직접 입력)', '50ab4.svg')}"></button>
+            <input name="customGoal" th:value="${draft.customGoal}" placeholder="예: 지역 축제와 연계한 홍보" aria-label="목표 직접 입력" data-custom-goal
+                   th:hidden="${draft.goalOption != '기타 (직접 입력)'}"
+                   class="f-regular h-[48px] w-full rounded-[10px] border border-[#2563eb] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3]">
+          </div>
+          <div class="min-w-0 flex-1" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <!-- 대상 메뉴 (복수 선택) -->
+      <section class="flex w-full flex-col gap-[12px]">
+        <h2 class="f-bold text-[20px] text-[#172033]">어떤 상품·메뉴를 홍보하고 싶으신가요?</h2>
+        <div class="flex w-full flex-wrap gap-[8px]" data-menu-chips>
+          <button th:each="m : ${store.products}" type="button" data-menu-chip th:attr="data-id=${m.productId},aria-pressed=${draft.productIds.contains(m.productId)}"
+                  class="flex h-[46px] items-center gap-[6px] rounded-full border px-[16px] text-[17px] whitespace-nowrap"
+                  th:classappend="${draft.productIds.contains(m.productId) ? 'f-semibold border-[#2563eb] bg-[#eaf2ff] text-[#1d4ed8]' : 'f-medium border-[#d0d7e2] bg-white text-[#667085]'}">
+            <img alt="" th:src="@{/assets/66d83.svg}" class="size-[15px]" data-check th:hidden="${!draft.productIds.contains(m.productId)}">
+            <span th:text="${m.productName}"></span>
+          </button>
+          <button type="button" data-menu-input-open
+                  class="f-medium flex h-[46px] items-center gap-[6px] rounded-full border border-[#d0d7e2] bg-white px-[16px] text-[17px] whitespace-nowrap text-[#667085]">
+            <img alt="" th:src="@{/assets/b9a06.svg}" class="size-[15px]">
+            직접 입력
+          </button>
+          <input hidden data-menu-input placeholder="상품·메뉴 이름" aria-label="상품·메뉴 직접 입력"
+                 class="f-medium h-[46px] w-[180px] rounded-full border border-[#2563eb] bg-white px-[16px] text-[17px] text-[#172033] outline-none placeholder:text-[#98a2b3]">
+        </div>
+      </section>
+
+      <!-- 타겟과 분위기 -->
+      <section class="flex w-full flex-col gap-[12px]">
+        <h2 class="f-bold text-[20px] text-[#172033]">이번 캠페인의 타겟과 분위기</h2>
+        <div th:replace="~{:: tagGroup('targets', '마케팅 홍보 주요 타겟 (복수 선택 가능)', ${ {'20대', '30대', '직장인', '10대', '40대 이상', '학생', '가족 단위', '1인 가구'} }, ${draft.targetCustomers}, '예: 주변 직장인', ${store.targetCustomer})}"></div>
+        <div th:replace="~{:: tagGroup('tones', '브랜드 톤앤매너 (복수 선택 가능)', ${ {'친근한', '감성적인', '전문적인', '트렌디한', '신뢰감있는', '유쾌한'} }, ${draft.toneManners}, '예: 따뜻한', ${store.toneManner})}"></div>
+      </section>
+
+      <section class="flex w-full flex-col gap-[12px]">
+        <h2 class="f-bold text-[20px] text-[#172033]">추가로 전달하고 싶은 내용이 있다면 적어주세요 (선택)</h2>
+        <textarea name="extraNote" th:text="${draft.extraNote}" placeholder="예: 20-30대 여성 고객을 타겟으로 하고 싶어요" aria-label="추가 내용 입력"
+                  class="f-regular h-[108px] w-full resize-none rounded-[14px] border border-[#d0d7e2] bg-white p-[18px] text-[17px] leading-[1.6] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+      </section>
+    </div>
+  </div>
+
+  <footer class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[48px]">
+    <div class="flex w-[700px] items-center justify-between">
+      <a th:href="@{/}" class="f-semibold flex h-[52px] items-center px-[18px] text-[18px] text-[#667085]">취소</a>
+      <button type="button" data-confirm-next data-next-button disabled
+              data-confirm-title="AI 기획 단계로 넘어갈까요?"
+              data-confirm-body="선택한 목표와 대상 메뉴로 AI가 캠페인을 기획해요. 다음 단계로 넘어가면 1단계 내용은 다시 수정할 수 없어요."
+              class="flex h-[56px] items-center gap-[8px] rounded-full bg-[#2563eb] px-[24px] shadow-[0px_10px_24px_0px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-40">
+        <span class="f-bold text-[18px] whitespace-nowrap text-white">다음: AI 기획 보기</span>
+        <img alt="" th:src="@{/assets/effb2.svg}" class="size-[18px]">
+      </button>
+    </div>
+  </footer>
+</form>
+</th:block>
+
+<button th:fragment="goalCard(label, icon)" type="button" data-goal-card th:attr="data-value=${label},aria-pressed=${draft.goalOption == label}"
+        class="flex h-[112px] w-full min-w-0 flex-1 items-center gap-[12px] rounded-[16px] p-[18px] text-left shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]"
+        th:classappend="${draft.goalOption == label ? 'border-[1.5px] border-[#2563eb] bg-[#eaf2ff]' : 'border border-[#e5eaf1] bg-white hover:border-[#c7d2e2]'}">
+  <span data-goal-icon class="flex size-[40px] shrink-0 items-center justify-center rounded-[14px]" th:classappend="${draft.goalOption == label ? 'bg-white' : 'bg-[#ddf8f3]'}">
+    <img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[20px]">
+  </span>
+  <span data-goal-label class="f-semibold min-w-0 flex-1 text-[17px] leading-[1.4]" th:classappend="${draft.goalOption == label ? 'text-[#1d4ed8]' : 'text-[#172033]'}" th:text="${label}"></span>
+</button>
+
+<!-- 타겟·톤앤매너 칩 + 기타 입력 + 등록 정보 불러오기 -->
+<div th:fragment="tagGroup(key, label, presets, selected, placeholder, storeValue)" class="flex w-full flex-col gap-[8px]" th:attr="data-tag-group=${key},data-store-value=${storeValue}">
+  <div class="flex items-center gap-[8px]">
+    <p class="f-semibold text-[14px] whitespace-nowrap text-[#667085]" th:text="${label}"></p>
+    <button type="button" data-tag-load
+            class="f-medium flex h-[19px] w-[117px] items-center justify-center rounded-[998px] border border-[#d0d7e2] bg-[#c3ddef] text-[12px] whitespace-nowrap text-[#667085]">등록 정보 불러오기</button>
+  </div>
+  <div class="flex w-full flex-wrap gap-[8px]" data-tag-chips th:attr="data-presets=${#strings.listJoin(presets, '|')}">
+    <th:block th:each="o : ${presets}"><button th:replace="~{:: tagChip(${o}, ${selected.contains(o)})}"></button></th:block>
+    <th:block th:each="o : ${selected}" th:unless="${presets.contains(o)}"><button th:replace="~{:: tagChip(${o}, true)}"></button></th:block>
+    <div class="flex w-[220px] items-center gap-[8px]" data-tag-adder>
+      <button type="button" data-tag-add class="f-medium flex h-[36px] items-center rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] whitespace-nowrap text-[#667085]">+ 기타</button>
+      <input data-tag-input th:placeholder="${placeholder}" th:aria-label="|${label} 기타 입력|"
+             class="f-regular h-[36px] w-[120px] shrink-0 rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+      <button type="button" data-tag-add class="f-semibold flex h-[36px] shrink-0 items-center rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] whitespace-nowrap text-[#667085]">추가</button>
+    </div>
+  </div>
+</div>
+
+<button th:fragment="tagChip(value, on)" type="button" data-tag-chip th:attr="data-value=${value},aria-pressed=${on}" th:text="${value}"
+        class="flex h-[36px] items-center rounded-full border px-[12px] text-[14px] whitespace-nowrap"
+        th:classappend="${on ? 'f-semibold border-[#2563eb] bg-[#eaf2ff] text-[#1d4ed8]' : 'f-medium border-[#d0d7e2] bg-white text-[#667085]'}"></button>
+
+<th:block th:fragment="scripts">
+<script>
+(() => {
+  const form = document.querySelector("[data-goal-form]");
+  const $ = (s) => form.querySelector(s);
+  const CUSTOM = "기타 (직접 입력)";
+  const splitTags = (v) => (v || "").split(/[,·/]/).map((s) => s.trim()).filter(Boolean);
+  const toggleClasses = (el, on, onCls, offCls) => {
+    el.classList.remove(...(on ? offCls : onCls));
+    el.classList.add(...(on ? onCls : offCls));
+  };
+
+  const validate = () => {
+    const option = $("[data-goal-option]").value;
+    const goal = option === CUSTOM ? $("[data-custom-goal]").value.trim() : option;
+    const menus = $("[data-product-ids]").value || $("[data-new-menus]").value;
+    $("[data-next-button]").disabled = !(goal && menus);
+  };
+
+  /* 목표 카드 */
+  const setGoal = (value) => {
+    $("[data-goal-option]").value = value;
+    form.querySelectorAll("[data-goal-card]").forEach((card) => {
+      const on = card.dataset.value === value;
+      card.setAttribute("aria-pressed", String(on));
+      toggleClasses(card, on, ["border-[1.5px]", "border-[#2563eb]", "bg-[#eaf2ff]"], ["border", "border-[#e5eaf1]", "bg-white", "hover:border-[#c7d2e2]"]);
+      toggleClasses(card.querySelector("[data-goal-icon]"), on, ["bg-white"], ["bg-[#ddf8f3]"]);
+      toggleClasses(card.querySelector("[data-goal-label]"), on, ["text-[#1d4ed8]"], ["text-[#172033]"]);
+    });
+    $("[data-custom-goal]").hidden = value !== CUSTOM;
+    validate();
+  };
+  form.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-goal-card]");
+    if (card) setGoal(card.dataset.value);
+  });
+  $("[data-custom-goal]").addEventListener("input", validate);
+
+  /* 대상 메뉴 */
+  const syncMenus = () => {
+    $("[data-product-ids]").value = Array.from(form.querySelectorAll("[data-menu-chip][aria-pressed=true]")).filter((c) => c.dataset.id).map((c) => c.dataset.id).join(",");
+    $("[data-new-menus]").value = Array.from(form.querySelectorAll("[data-menu-chip][aria-pressed=true]")).filter((c) => c.dataset.newName).map((c) => c.dataset.newName).join("|");
+    validate();
+  };
+  const setMenuChip = (chip, on) => {
+    chip.setAttribute("aria-pressed", String(on));
+    toggleClasses(chip, on, ["f-semibold", "border-[#2563eb]", "bg-[#eaf2ff]", "text-[#1d4ed8]"], ["f-medium", "border-[#d0d7e2]", "bg-white", "text-[#667085]"]);
+    chip.querySelector("[data-check]").hidden = !on;
+  };
+  form.querySelector("[data-menu-chips]").addEventListener("click", (e) => {
+    const chip = e.target.closest("[data-menu-chip]");
+    if (chip) { setMenuChip(chip, chip.getAttribute("aria-pressed") !== "true"); syncMenus(); }
+  });
+  const menuInput = $("[data-menu-input]");
+  const menuOpen = $("[data-menu-input-open]");
+  menuOpen.addEventListener("click", () => { menuOpen.hidden = true; menuInput.hidden = false; menuInput.focus(); });
+  // 새 메뉴는 1단계를 확정할 때 매장 상품으로 등록된다.
+  const addMenu = () => {
+    const name = menuInput.value.trim();
+    menuInput.value = "";
+    menuInput.hidden = true;
+    menuOpen.hidden = false;
+    if (!name) return;
+    const existing = Array.from(form.querySelectorAll("[data-menu-chip]")).find((c) => c.querySelector("span").textContent === name);
+    if (existing) { setMenuChip(existing, true); return syncMenus(); }
+    const chip = form.querySelector("[data-menu-chip]").cloneNode(true);
+    delete chip.dataset.id;
+    chip.dataset.newName = name;
+    chip.querySelector("span").textContent = name;
+    setMenuChip(chip, true);
+    menuOpen.before(chip);
+    syncMenus();
+  };
+  menuInput.addEventListener("blur", addMenu);
+  menuInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); menuInput.blur(); } });
+
+  /* 타겟·톤앤매너 */
+  form.querySelectorAll("[data-tag-group]").forEach((group) => {
+    const key = group.dataset.tagGroup;
+    const hidden = form.querySelector(`[data-tags-value="${key}"]`);
+    const chips = group.querySelector("[data-tag-chips]");
+    const input = group.querySelector("[data-tag-input]");
+    const presets = chips.dataset.presets.split("|");
+    const setChip = (chip, on) => {
+      chip.setAttribute("aria-pressed", String(on));
+      toggleClasses(chip, on, ["f-semibold", "border-[#2563eb]", "bg-[#eaf2ff]", "text-[#1d4ed8]"], ["f-medium", "border-[#d0d7e2]", "bg-white", "text-[#667085]"]);
+    };
+    const sync = () => (hidden.value = Array.from(chips.querySelectorAll("[data-tag-chip][aria-pressed=true]")).map((c) => c.dataset.value).join(", "));
+    const ensureChip = (value) => {
+      let chip = Array.from(chips.querySelectorAll("[data-tag-chip]")).find((c) => c.dataset.value === value);
+      if (!chip) {
+        chip = chips.querySelector("[data-tag-chip]").cloneNode(true);
+        chip.dataset.value = value;
+        chip.textContent = value;
+        group.querySelector("[data-tag-adder]").before(chip);
+      }
+      return chip;
+    };
+    // 선택값 전체를 바꾼다 (프리셋이 아닌 칩은 선택 해제 시 사라진다)
+    const setSelected = (values) => {
+      chips.querySelectorAll("[data-tag-chip]").forEach((c) => {
+        if (!presets.includes(c.dataset.value) && !values.includes(c.dataset.value)) c.remove();
+        else setChip(c, values.includes(c.dataset.value));
+      });
+      values.forEach((v) => setChip(ensureChip(v), true));
+      sync();
+    };
+    chips.addEventListener("click", (e) => {
+      const chip = e.target.closest("[data-tag-chip]");
+      if (chip) { setChip(chip, chip.getAttribute("aria-pressed") !== "true"); sync(); }
+      if (e.target.closest("[data-tag-add]")) add();
+    });
+    const add = () => {
+      const v = input.value.trim();
+      input.value = "";
+      if (v) { setChip(ensureChip(v), true); sync(); }
+    };
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); add(); } });
+    group.querySelector("[data-tag-load]").addEventListener("click", () => setSelected(splitTags(group.dataset.storeValue)));
+  });
+
+  /* 개선 방향에서 가져온 제안 되돌리기 */
+  const reset = form.querySelector("[data-prefill-reset]");
+  if (reset) reset.addEventListener("click", () => {
+    setGoal("");
+    $("[data-custom-goal]").value = "";
+    form.querySelectorAll("[data-menu-chip]").forEach((c) => setMenuChip(c, false));
+    syncMenus();
+    form.querySelector("[data-prefill-banner]").remove();
+  });
+
+  form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
+  validate();
+})();
+</script>
+</th:block>
+</body>
+</html>

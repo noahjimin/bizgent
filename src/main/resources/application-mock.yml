@@ -1,0 +1,7 @@
+# 화면 구현 단계: DB 없이 실행하기 위해 DataSource·MyBatis 자동 설정을 끈다.
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration

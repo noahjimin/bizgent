@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<!-- 여러 화면에서 쓰는 입력 요소 -->
+
+<!-- 선택 칩. kind: 'pressed'(복수 선택) 또는 'radio'(하나만 선택) -->
+<button th:fragment="chip(label, on, kind)" type="button" data-chip th:attr="data-value=${label},role=${kind == 'radio' ? 'radio' : null},aria-pressed=${kind == 'radio' ? null : on},aria-checked=${kind == 'radio' ? on : null}"
+        class="flex h-[38px] items-center gap-[7px] rounded-full border px-[16px] text-[14px] whitespace-nowrap"
+        th:classappend="${on ? 'f-semibold border-[#2563eb] bg-[#2563eb] text-white' : 'f-medium border-[#d5dce7] bg-white text-[#667085] hover:bg-[#f7f9fc]'}">
+  <img alt="" th:src="@{/assets/a244b.svg}" class="size-[14px]" data-chip-check th:hidden="${!on}">
+  <span th:text="${label}">칩</span>
+</button>
+
+</html>

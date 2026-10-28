@@ -45,13 +45,30 @@ BizGent는 소상공인이 **매장 정보와 마케팅 목표만 입력**하면
 
 | 구분 | 계획 및 현황 |
 | --- | --- |
-| Frontend | HTML, CSS, JavaScript, Thymeleaf (계획) |
-| 화면 설계·프로토타입 | Figma Make, 소스코드 zip 파일 |
-| Backend | Java, Spring Boot (계획) |
-| Database | Oracle 11g XE |
-| AI / API | LLM API (기획·문구), 이미지 생성 API (광고·대표 이미지) (계획) |
+| Frontend | Thymeleaf, HTML, CSS(Tailwind CSS 4 브라우저 빌드), JavaScript, Chart.js |
+| 화면 설계·프로토타입 | Figma Make, 소스코드 zip 파일 (React 프로토타입을 Thymeleaf로 옮겨 구현) |
+| Backend | Java 17, Spring Boot 4.0, Gradle |
+| 데이터 접근 | MyBatis (Oracle 11g 호환을 위해 JPA 대신 사용) |
+| Database | Oracle 11g XE (JDBC 드라이버 `ojdbc8` 19c) — DB 연동 전까지는 세션 데모 데이터로 동작 |
+| AI / API | LLM API (기획·문구), 이미지 생성 API (광고·대표 이미지) — 현재는 모의 응답(`MockAiService`) |
 | 버전 관리 | Git / GitHub |
 | 개발·AI 코딩 도구 | 팀 협의 후 확정 |
+
+### 실행 방법
+
+JDK 17이 필요합니다. 빌드 도구는 Gradle Wrapper가 포함되어 있어 따로 설치하지 않아도 됩니다.
+
+```bash
+# JAVA_HOME을 JDK 17로 지정 (PowerShell: $env:JAVA_HOME="C:\Program Files\Java\jdk-17")
+export JAVA_HOME="/c/Program Files/Java/jdk-17"
+./gradlew bootRun
+```
+
+- 접속: http://localhost:8080 → "무료로 시작하기" → 약관 동의 → 아무 이메일·비밀번호로 로그인
+- 기본 프로필 `mock`: DB 없이 로그인 세션마다 시연 데이터(모먼트 카페)로 동작하며, 서버를 재시작하면 처음 상태로 돌아갑니다.
+- 화면 오른쪽 아래 **개발 바로가기**에서 무료 횟수 소진/초기화, 무료↔구독 플랜 전환(모의 결제), AI 개선 방향 데이터 양 전환, 시연 데이터 초기화를 할 수 있습니다.
+- 템플릿·정적 파일은 저장 후 새로고침만 하면 반영되고, Java 코드를 바꾸면 서버를 다시 실행합니다.
+- 업로드한 이미지는 `uploads/` 폴더에 저장됩니다(Git 제외).
 
 ## 5. 팀 구성 및 업무 분장
 
@@ -83,7 +100,18 @@ bizgent/
 ├── 02_요구사항분석/     # Use Case 다이어그램
 ├── 03_화면설계/         # 화면설계서, Figma Make 링크
 ├── 04_DB설계/           # 논리·물리 ERD
-└── src/                # 구현 소스코드 (개발 단계에서 구성)
+├── build.gradle, gradlew  # Gradle 빌드 (Wrapper 포함)
+└── src/main/
+    ├── java/com/bizgent/
+    │   ├── config/      # 로그인 확인 인터셉터, 업로드 경로
+    │   ├── domain/      # ERD 기준 도메인 (Member, Store, Product, Campaign, Draft, Sale …)
+    │   ├── demo/        # DB 연동 전 세션 데모 데이터 (DemoSession, DemoSeed)
+    │   ├── service/     # 업무 로직 (캠페인·위자드·매출 분석 …), ai/ 는 AI 기능 인터페이스와 모의 구현
+    │   └── web/         # 컨트롤러, 화면용 헬퍼(@fmt, @icons)
+    └── resources/
+        ├── templates/   # Thymeleaf 화면 (layout/, fragments/, auth/, wizard/ …)
+        ├── static/      # assets(이미지), css, js (vendor: Tailwind·Chart.js)
+        └── application*.yml  # 기본 설정, mock 프로필
 ```
 
 > 팀별 산출물과 확정된 기술 스택에 맞춰 수정하며, 실제 파일 업로드 후 문서 링크를 연결합니다.
@@ -97,6 +125,9 @@ bizgent/
 - [ ] 개발·AI 코딩 도구 및 협업 방식 확정
 - [x] GitHub 저장소 생성 및 분석·설계 문서 구조화
 - [ ] 팀원별 Clone 확인
+- [x] Spring Boot 프로젝트 구성 및 전체 화면 구현 (Figma Make 프로토타입 → Thymeleaf, 모의 데이터·모의 AI)
+- [ ] ERD 보완 및 Oracle DDL 작성, MyBatis 연동
+- [ ] 실제 LLM·이미지 생성 API 연동
 - [ ] 서버·DB 연동 및 필수 기능 구현
 - [ ] 통합 테스트, 배포 및 검증
 

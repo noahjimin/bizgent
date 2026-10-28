@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<!-- 위자드 단계 화면이 함께 쓰는 조각 -->
+
+<!--
+  오른쪽 "확정된 캠페인 내용" 패널 (2~4단계)
+  variant: goal(2단계: 1단계 내용) / plan(3-1단계: 기획) / content(3-2·4단계: 기획 + 콘텐츠 설정)
+-->
+<aside th:fragment="summaryPanel(variant)" data-summary-panel aria-label="확정된 캠페인 내용"
+       th:with="plan=${draft.plan}, cs=${draft.content}, goal=${#strings.isEmpty(draft.goal) ? (#strings.isEmpty(draft.goalOption) ? '-' : draft.goalOption) : draft.goal},
+                menuLine=${menuNames.size() > 1 ? menuNames[0] + ' 외 ' + (menuNames.size() - 1) + '개' : (menuNames.isEmpty() ? '-' : menuNames[0])}"
+       class="fixed top-[104px] right-0 bottom-0 w-[300px] overflow-y-auto border-l border-[#e5e7eb] bg-white">
+  <div class="flex w-full flex-col gap-[10px] px-[20px] pt-[24px] pb-[20px]">
+    <div class="flex w-full items-center gap-[8px]">
+      <img alt="" th:src="@{/assets/1d326.svg}" class="size-[16px] shrink-0" data-summary-body>
+      <p class="f-bold min-w-0 flex-1 text-[15px] text-[#172033]" data-summary-body>확정된 캠페인 내용</p>
+      <button type="button" data-summary-toggle aria-label="패널 접기"
+              class="flex size-[28px] shrink-0 items-center justify-center rounded-[8px] bg-[#f7f9fc] hover:bg-[#eef1f5]">
+        <img alt="" th:src="@{/assets/79845.svg}" class="size-[15px]" data-summary-arrow>
+      </button>
+    </div>
+    <p class="f-regular w-full text-[11px] leading-[18px] text-[#667085]" data-summary-body>이전 단계에서 확정되어 수정할 수 없어요</p>
+  </div>
+
+  <div class="flex w-full flex-col gap-[16px] px-[20px] pt-[4px] pb-[24px]" data-summary-body>
+    <div th:if="${variant == 'goal'}" class="flex w-full flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-white p-[16px] shadow-[0px_4px_12px_0px_rgba(16,24,40,0.03)]">
+      <p class="f-bold w-full text-[12px] text-[#14b8a6]">1단계 목표 설정</p>
+      <div class="flex w-full flex-col gap-[20px]">
+        <div th:each="row : ${ { {'마케팅 목표', goal}, {'대상 상품·메뉴', menuNames.isEmpty() ? '-' : #strings.listJoin(menuNames, ' · ')},
+                                {'타겟 고객', draft.targetCustomers.isEmpty() ? '-' : #strings.listJoin(draft.targetCustomers, ' · ')},
+                                {'톤앤매너', draft.toneManners.isEmpty() ? '-' : #strings.listJoin(draft.toneManners, ' · ')} } }"
+             class="flex w-full flex-col gap-[6px]">
+          <p class="f-regular w-full text-[12px] leading-[18px] text-[#667085]" th:text="${row[0]}"></p>
+          <p class="f-semibold w-full text-[13px] leading-[22px] text-[#172033]" th:text="${row[1]}"></p>
+        </div>
+      </div>
+    </div>
+
+    <th:block th:unless="${variant == 'goal'}">
+      <div class="flex w-full flex-col gap-[5px] border-b border-[#e5e7eb] pt-[2px] pb-[16px]">
+        <p class="f-bold w-full text-[13px] leading-[21px] text-[#172033]"
+           th:text="|${draft.goalOption == '기타 (직접 입력)' ? '기타' : goal} · ${menuLine}|"></p>
+      </div>
+      <div th:replace="~{:: summaryCard('캠페인 방향', ${ {
+            #strings.isEmpty(plan.direction) ? goal : plan.direction,
+            '콘텐츠 톤  ' + (plan.tones.isEmpty() ? (draft.toneManners.isEmpty() ? '-' : #strings.listJoin(draft.toneManners, ' · ')) : #strings.listJoin(plan.tones, ' · ')),
+            '추천 채널  ' + (plan.channels.isEmpty() ? '-' : #strings.listJoin(plan.channels, ' · '))
+          } }, 'gap-[6px]')}"></div>
+      <div th:replace="~{:: summaryCard('타겟 고객', ${ {
+            #strings.isEmpty(plan.ageGroup) ? (draft.targetCustomers.isEmpty() ? '-' : #strings.listJoin(draft.targetCustomers, ' · ')) : plan.ageGroup,
+            #strings.isEmpty(plan.targetCustomer) ? '-' : plan.targetCustomer
+          } }, 'gap-[6px]')}"></div>
+      <div th:replace="~{:: summaryCard('전략 · 기대효과', ${ {
+            #strings.isEmpty(plan.expectedEffect) ? '-' : plan.expectedEffect,
+            '예상 도달  ' + (plan.reach == null ? '-' : plan.reach),
+            (plan.frequency == null ? '-' : plan.frequency) + ' 게시 · ' + (plan.duration == null ? '-' : plan.duration) + ' 진행'
+          } }, 'gap-[6px]')}"></div>
+
+      <div th:if="${variant == 'content'}" class="flex w-full flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-white p-[16px] shadow-[0px_4px_12px_0px_rgba(16,24,40,0.03)]">
+        <p class="f-bold w-full text-[12px] text-[#14b8a6]">콘텐츠 설정</p>
+        <div class="f-medium flex w-full flex-col gap-[7px] text-[13px] leading-[21px] text-[#172033]">
+          <p th:each="c, s : ${cs.channels}" class="w-full whitespace-pre-wrap"
+             th:text="|${@fmt.circled(s.index)} ${c}${c == '기타' and !#strings.isEmpty(cs.customChannelNote) ? ' · ' + cs.customChannelNote : ''}|"></p>
+        </div>
+        <div class="flex w-full flex-col gap-[8px] border-t border-[#e5eaf1] pt-[12px]">
+          <p class="f-regular w-full text-[12px] text-[#667085]">광고 이미지 사용</p>
+          <span th:if="${cs.imageOn}" class="flex w-fit items-start gap-[6px] rounded-full bg-[#eefbf8] px-[9px] py-[5px]">
+            <img alt="" th:src="@{/assets/28281.svg}" class="size-[14px]">
+            <span class="f-semibold text-[12px] text-[#0e9384]">광고 이미지 켜짐</span>
+          </span>
+        </div>
+      </div>
+    </th:block>
+  </div>
+  <script>
+    (() => {
+      // 접힘 상태는 이 브라우저에만 기억한다.
+      const panel = document.querySelector("[data-summary-panel]");
+      const main = document.querySelector("[data-wizard-main]");
+      const apply = (collapsed) => {
+        panel.classList.toggle("w-[300px]", !collapsed);
+        panel.classList.toggle("w-[68px]", collapsed);
+        main.classList.toggle("pr-[300px]", !collapsed);
+        main.classList.toggle("pr-[68px]", collapsed);
+        panel.querySelectorAll("[data-summary-body]").forEach((el) => (el.hidden = collapsed));
+        panel.querySelector("[data-summary-arrow]").classList.toggle("rotate-180", collapsed);
+        panel.querySelector("[data-summary-toggle]").setAttribute("aria-label", collapsed ? "패널 펼치기" : "패널 접기");
+      };
+      let collapsed = false;
+      try { collapsed = localStorage.getItem("bizgent-summary-collapsed") === "1"; } catch {}
+      apply(collapsed);
+      panel.querySelector("[data-summary-toggle]").addEventListener("click", () => {
+        collapsed = !collapsed;
+        apply(collapsed);
+        try { localStorage.setItem("bizgent-summary-collapsed", collapsed ? "1" : "0"); } catch {}
+      });
+    })();
+  </script>
+</aside>
+
+<div th:fragment="summaryCard(title, lines, gap)" class="flex w-full flex-col gap-[12px] rounded-[16px] border border-[#e5eaf1] bg-white p-[16px] shadow-[0px_4px_12px_0px_rgba(16,24,40,0.03)]">
+  <p class="f-bold w-full text-[12px] text-[#14b8a6]" th:text="${title}"></p>
+  <div class="f-medium flex w-full flex-col text-[13px] leading-[21px] text-[#172033]" th:classappend="${gap}">
+    <p th:each="l : ${lines}" class="w-full whitespace-pre-wrap" th:text="${l}"></p>
+  </div>
+</div>
+
+<!--
+  "다음 단계로 넘어갈까요?" 확인 팝업 (모든 단계 공용)
+  다음 버튼에 data-confirm-next, data-confirm-title, data-confirm-body를 달면 확인 시 #step-form을 제출한다.
+-->
+<div th:fragment="confirmNext" id="confirm-next" data-modal data-backdrop-close role="presentation" hidden
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/35">
+  <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-next-title" aria-describedby="confirm-next-body"
+       class="relative w-[420px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_20px_48px_0px_rgba(16,24,40,0.18)]">
+    <button type="button" aria-label="닫기" data-modal-close
+            class="absolute top-[20px] right-[20px] flex size-[32px] items-center justify-center rounded-full text-[#98a2b3] hover:bg-[#f2f4f7] hover:text-[#667085]">
+      <svg viewBox="0 0 24 24" fill="none" class="size-[18px]" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <h2 id="confirm-next-title" class="f-bold pr-[32px] text-[20px] text-[#172033]"></h2>
+    <p id="confirm-next-body" class="f-regular mt-[10px] text-[14px] leading-[1.6] text-[#667085]"></p>
+    <p class="f-medium mt-[8px] text-[12px] text-[#98a2b3]">이전 단계로 돌아갈 수 없어요.</p>
+    <div class="mt-[24px] flex justify-end gap-[10px]">
+      <button type="button" data-modal-close class="f-semibold h-[44px] rounded-full border border-[#d0d7e2] bg-white px-[18px] text-[15px] text-[#667085]">취소</button>
+      <button type="button" data-confirm-next-ok class="f-semibold h-[44px] rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8]">확인하고 다음으로</button>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const dialog = document.getElementById("confirm-next");
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-confirm-next]");
+        if (!btn || btn.disabled) return;
+        dialog.querySelector("#confirm-next-title").textContent = btn.dataset.confirmTitle;
+        dialog.querySelector("#confirm-next-body").textContent = btn.dataset.confirmBody;
+        BG.openModal("confirm-next");
+      });
+      dialog.querySelector("[data-confirm-next-ok]").addEventListener("click", () => {
+        const form = document.getElementById("step-form");
+        form.dispatchEvent(new CustomEvent("step:submit"));
+        form.submit();
+      });
+    })();
+  </script>
+</div>
+
+<span th:fragment="stepBadge(label, size)" class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[6px]">
+  <img alt="" th:src="@{/assets/eebbb.svg}" class="size-[14px]">
+  <span class="f-bold whitespace-pre text-[#14b8a6]" th:classappend="${size}" th:text="${label}">1 단계</span>
+</span>
+
+<!-- 하단 "다음" 버튼 -->
+<footer th:fragment="footer(label, confirmTitle, confirmBody, disabled)"
+        class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[70px]">
+  <div class="flex w-full max-w-[1000px] items-center justify-end">
+    <button type="button" data-confirm-next data-next-button th:attr="data-confirm-title=${confirmTitle},data-confirm-body=${confirmBody}" th:disabled="${disabled}"
+            class="flex h-[56px] items-center gap-[8px] rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] shadow-[0px_10px_24px_0px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-40">
+      <span class="f-bold text-[18px] whitespace-nowrap text-white" th:text="${label}">다음</span>
+      <img alt="" th:src="@{/assets/effb2.svg}" class="size-[18px]">
+    </button>
+  </div>
+</footer>
+
+<div th:fragment="loading(title, desc)" class="flex w-full flex-col items-center gap-[16px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] py-[64px]" role="status">
+  <span class="size-[40px] animate-spin rounded-full border-4 border-[#eaf2ff] border-t-[#2563eb]"></span>
+  <p class="f-bold text-[18px] text-[#172033]" th:text="${title}"></p>
+  <p class="f-regular text-[15px] text-[#667085]" th:text="${desc}"></p>
+</div>
+
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- 홈 대시보드 (SCR-U-003, F10) -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/app :: layout('홈', 'home', ~{::content}, ~{})}">
+<body>
+<th:block th:fragment="content">
+<div class="pd-scope relative min-h-screen bg-[#f8fafc]">
+  <!-- 파랑 → 민트 배경이 페이지 배경으로 자연스럽게 사라진다 -->
+  <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 h-[460px]"
+       style="background-image: linear-gradient(180deg, rgba(248,250,252,0) 45%, #f8fafc 100%), linear-gradient(90deg, #dbeafe 0%, #ccfbf1 100%)"></div>
+
+  <div class="relative mx-auto flex max-w-[1200px] flex-col gap-[48px] px-[40px] pt-[24px] pb-[64px]">
+    <section class="relative flex flex-col items-center pt-[28px]">
+      <button type="button" data-subscribe
+              class="absolute top-0 right-0 flex h-[34px] items-center gap-[6px] rounded-full bg-white px-[14px] text-[13px] font-semibold text-[#172033] shadow-[0_4px_20px_rgba(15,23,42,0.06)] transition duration-150 hover:-translate-y-[1px] hover:text-[#2563eb]">
+        <span class="text-[#f59e0b]"><svg th:replace="~{fragments/common :: icon('crown', 15, 1.8)}"></svg></span>
+        플랜 업그레이드
+      </button>
+
+      <p class="text-[14px] font-medium text-[#475569]" th:text="|${me.memberName}님의 마케팅 작업실 · ${store.storeName}|">김사장님의 마케팅 작업실</p>
+      <h1 class="mt-[10px] bg-clip-text pb-[4px] text-center text-[40px] leading-[1.25] font-extrabold tracking-[-0.02em] text-transparent"
+          style="background-image: linear-gradient(90deg, #2563eb 0%, #14b8a6 100%)">오늘은 어떤 마케팅을 해볼까요?</h1>
+      <p class="mt-[8px] text-[14px] text-[#64748b]">매장 정보와 목표만 알려주면 AI가 홍보 캠페인을 기획하고 콘텐츠까지 만들어 드려요.</p>
+
+      <div class="mt-[28px] flex justify-center gap-[12px]">
+        <button type="button" data-new-campaign
+                class="flex h-[56px] items-center gap-[8px] rounded-[28px] px-[28px] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(37,99,235,0.25)] transition duration-150 ease-in-out hover:-translate-y-[2px] hover:shadow-[0_12px_30px_rgba(37,99,235,0.34)] active:scale-[0.98] motion-reduce:hover:translate-y-0"
+                style="background-image: linear-gradient(90deg, #2563eb 0%, #14b8a6 100%)">
+          <svg th:replace="~{fragments/common :: icon('plus', 20, 2.4)}"></svg>
+          새로운 캠페인 생성하기
+        </button>
+        <a th:href="@{/store(imageCard='open')}"
+           class="flex h-[56px] items-center gap-[8px] rounded-[28px] border-[1.5px] border-[#2563eb] bg-white px-[28px] text-[16px] font-bold text-[#2563eb] shadow-[0_4px_14px_rgba(37,99,235,0.08)] transition duration-150 ease-in-out hover:-translate-y-[2px] hover:shadow-[0_10px_24px_rgba(37,99,235,0.18)] active:scale-[0.98] motion-reduce:hover:translate-y-0">
+          <svg th:replace="~{fragments/common :: icon('sparkle', 20, 1.8)}"></svg>
+          AI로 매장 대표 이미지 생성하기
+        </a>
+      </div>
+      <!-- 빠른 작업 줄이 움직이지 않도록 높이를 유지한다 -->
+      <p class="mt-[16px] h-[20px] text-[13px] leading-[20px] text-[#64748b]"
+         th:text="${me.free} ? |무료 플랜 · 이번 달 캠페인 ${me.monthlyCampaignLimit}회 중 ${me.remainingCampaigns}회 남음| : ''"></p>
+      <div aria-hidden="true" class="h-[12px]"></div>
+    </section>
+
+    <!-- 빠른 작업: 링크 이동 또는 채널을 미리 고른 새 캠페인 -->
+    <nav aria-label="빠른 작업" class="flex justify-center gap-[28px]">
+      <th:block th:each="q : ${ {
+          {'새 캠페인', 'plus', '#2563eb', '', ''},
+          {'대표 이미지', 'image', '#14b8a6', '/store?imageCard=open', ''},
+          {'인스타 게시물', 'instagram', '#ec4899', '', '인스타그램'},
+          {'블로그 글', 'blog', '#22c55e', '', '블로그'},
+          {'당근 홍보', 'carrot', '#f97316', '', '당근마켓'},
+          {'매출 올리기', 'upload', '#8b5cf6', '/performance?upload=open', ''},
+          {'성과 보기', 'chart', '#4f46e5', '/performance', ''},
+          {'개선 방향', 'bulb', '#f59e0b', '/insights', ''}
+        } }">
+        <a th:if="${q[3] != ''}" th:href="@{${q[3]}}" class="group flex w-[80px] flex-col items-center gap-[10px]">
+          <span class="flex size-[56px] items-center justify-center rounded-full text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)] transition-transform duration-200 ease-out group-hover:-translate-y-[3px] group-hover:scale-105 motion-reduce:transition-none"
+                th:style="'background-color:' + ${q[2]}"><svg th:replace="~{fragments/common :: icon(${q[1]}, 24, 1.8)}"></svg></span>
+          <span class="text-[13px] font-medium whitespace-nowrap text-[#334155]" th:text="${q[0]}"></span>
+        </a>
+        <button th:if="${q[3] == ''}" type="button" data-new-campaign th:attr="data-channels=${q[4]},data-source=${q[4] != '' ? 'quick' : null}"
+                class="group flex w-[80px] flex-col items-center gap-[10px]">
+          <span class="flex size-[56px] items-center justify-center rounded-full text-white shadow-[0_8px_18px_rgba(15,23,42,0.12)] transition-transform duration-200 ease-out group-hover:-translate-y-[3px] group-hover:scale-105 motion-reduce:transition-none"
+                th:style="'background-color:' + ${q[2]}"><svg th:replace="~{fragments/common :: icon(${q[1]}, 24, 1.8)}"></svg></span>
+          <span class="text-[13px] font-medium whitespace-nowrap text-[#334155]" th:text="${q[0]}"></span>
+        </button>
+      </th:block>
+    </nav>
+
+    <section class="flex flex-col gap-[16px]">
+      <div class="flex items-end justify-between">
+        <h2 class="text-[22px] font-bold text-[#172033]">최근 캠페인</h2>
+        <a th:href="@{/campaigns}" class="flex items-center gap-[2px] text-[14px] font-semibold text-[#2563eb] transition-colors hover:text-[#1d4ed8]">
+          모두 보기 <svg th:replace="~{fragments/common :: icon('chevron', 16, 2)}"></svg>
+        </a>
+      </div>
+      <div class="-mx-[8px] flex snap-x gap-[16px] overflow-x-auto px-[8px] pt-[4px] pb-[16px] [scrollbar-width:thin]">
+        <button type="button" data-new-campaign
+                class="flex h-[260px] w-[200px] shrink-0 snap-start flex-col items-center justify-center gap-[10px] rounded-[20px] border-2 border-dashed border-[#bfd3f5] bg-white/60 text-[#2563eb] transition-colors duration-150 hover:border-[#2563eb] hover:bg-[#eff6ff]">
+          <span class="flex size-[44px] items-center justify-center rounded-full bg-[#eff6ff]"><svg th:replace="~{fragments/common :: icon('plus', 22, 2.2)}"></svg></span>
+          <span class="text-[15px] font-bold">새 캠페인</span>
+        </button>
+        <a th:each="c : ${recent}" th:href="@{/campaigns(campaign=${c.campaignId})}"
+           th:with="draftCount=${c.publishedDraftKeys.size()}"
+           class="relative h-[260px] w-[200px] shrink-0 snap-start overflow-hidden rounded-[20px] shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
+          <img th:if="${!#strings.isEmpty(c.thumbnail)}" alt="" th:src="${c.thumbnail}" class="absolute inset-0 size-full object-cover">
+          <div th:if="${#strings.isEmpty(c.thumbnail)}" class="absolute inset-0 flex items-center justify-center"
+               style="background-image: linear-gradient(90deg, #2563eb 0%, #14b8a6 100%)">
+            <span class="flex size-[56px] items-center justify-center rounded-full bg-white/20 text-white"><svg th:replace="~{fragments/common :: icon('pencil', 26, 1.8)}"></svg></span>
+          </div>
+          <div class="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-[rgba(12,20,40,0.82)] via-[rgba(12,20,40,0.35)] to-transparent"></div>
+          <span class="absolute top-[12px] left-[12px] flex items-center gap-[5px] rounded-full border border-white/30 bg-white/25 px-[9px] py-[4px] text-[11px] font-semibold text-white backdrop-blur-md">
+            <span class="size-[6px] rounded-full" th:classappend="${c.published ? 'bg-[#5eead4]' : 'bg-[#fde68a]'}"></span>
+            <th:block th:text="${c.published ? '게시 완료' : '작성 중'}"></th:block>
+          </span>
+          <span th:if="${draftCount > 1}" class="absolute top-[12px] right-[12px] rounded-full bg-white/90 px-[8px] py-[4px] text-[11px] font-semibold text-[#1d4ed8]"
+                th:text="|시안 ${draftCount}개|"></span>
+          <div class="absolute inset-x-[14px] bottom-[14px] flex flex-col gap-[4px]">
+            <p class="line-clamp-2 text-[15px] leading-[1.35] font-bold text-white" th:text="${c.title}"></p>
+            <p class="truncate text-[12px] text-white/75"
+               th:text="${c.published and c.publishedAt != null} ? |${c.firstChannel} · ${@fmt.monthDay(c.publishedAt)} 게시| : |마지막 수정 ${@fmt.monthDay(c.timestamp)}|"></p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-[16px]">
+      <h2 class="text-[22px] font-bold text-[#172033]">추천 콘텐츠 유형</h2>
+      <!-- {제목, 배경색, 강조색, 이미지, 줄 수, 해시태그 여부} -->
+      <div class="grid grid-cols-4 gap-[16px]">
+        <article th:each="t : ${ {
+            {'SNS 게시물 캡션', '#fdecf3', '#db2777', '93c88.png', 2, false},
+            {'홍보 문구', '#eaf2ff', '#2563eb', '', 4, false},
+            {'해시태그 세트', '#ddf8f3', '#0e9384', '', 0, true},
+            {'AI 광고 이미지', '#fff7d6', '#b7791f', '77d12.png', 0, false},
+            {'블로그 포스팅', '#f1ebff', '#7c3aed', 'afdbb.png', 3, false},
+            {'당근 소식', '#fff0e7', '#ea580c', 'a299e.png', 1, false},
+            {'카카오톡 채널 공지', '#fef9c3', '#a16207', '', 3, false},
+            {'이벤트 포스터', '#e0f2fe', '#0369a1', '2cbe7.png', 1, false}
+          } }"
+                 class="group relative h-[88px] overflow-hidden rounded-[16px] px-[18px] py-[16px]" th:style="'background-color:' + ${t[1]}">
+          <p class="relative z-10 max-w-[130px] text-[15px] leading-[1.35] font-bold text-[#172033]" th:text="${t[0]}"></p>
+          <div class="absolute right-[-14px] bottom-[-34px] flex w-[92px] rotate-[10deg] flex-col gap-[5px] rounded-[10px] bg-white p-[7px] shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-transform duration-200 ease-out group-hover:-translate-y-[8px] group-hover:rotate-[4deg] motion-reduce:transition-none">
+            <img th:if="${t[3] != ''}" alt="" th:src="@{'/assets/' + ${t[3]}}" class="h-[52px] w-full rounded-[6px] object-cover">
+            <div th:if="${t[5]}" class="flex flex-wrap gap-[3px] pb-[30px]">
+              <span th:each="tag : ${ {'#카페', '#신메뉴', '#라떼', '#데일리'} }" class="rounded-full px-[5px] py-[1px] text-[8px] font-semibold"
+                    th:style="|color:${t[2]};background-color:${t[2]}14|" th:text="${tag}"></span>
+            </div>
+            <span th:each="i : ${t[4] > 0 ? #numbers.sequence(0, t[4] - 1) : {}}" class="h-[5px] rounded-full bg-[#e2e8f0]"
+                  th:style="|width:${i % 2 == 1 ? 62 : 100}%;${i == 0 ? 'background-color:' + t[2] + '40' : ''}|"></span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</div>
+</th:block>
+</body>
+</html>

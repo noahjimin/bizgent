@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+  로그인 후 화면 공통 레이아웃 (프로토타입 AppLayout)
+  사용: <html th:replace="~{layout/app :: layout('홈', 'home', ~{::content}, ~{::scripts})}">
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko" th:fragment="layout(title, active, content, scripts)">
+<head th:replace="~{fragments/common :: head(${title})}"></head>
+<body>
+<div class="min-h-screen bg-[#f8fafc]">
+  <aside class="pd-scope fixed inset-y-0 left-0 z-20 flex w-[76px] flex-col items-center bg-white pt-[20px] pb-[18px] shadow-[4px_0_20px_rgba(15,23,42,0.04)]">
+    <a th:href="@{/}" aria-label="BizGent 홈" class="group relative">
+      <span th:replace="~{fragments/common :: logoMark('size-[36px] rounded-[11px]', 'text-[18px]')}"></span>
+      <span role="tooltip" class="rail-tooltip">BizGent</span>
+    </a>
+
+    <button type="button" data-new-campaign aria-label="새로운 캠페인 생성"
+            class="group relative mt-[22px] flex flex-col items-center gap-[5px] outline-none">
+      <span class="flex size-[44px] items-center justify-center rounded-full bg-[#2563eb] text-white shadow-[0_8px_18px_rgba(37,99,235,0.3)] transition duration-150 group-hover:-translate-y-[1px] group-hover:bg-[#1d4ed8] group-focus-visible:ring-2 group-focus-visible:ring-[#2563eb] group-focus-visible:ring-offset-2">
+        <svg th:replace="~{fragments/common :: icon('plus', 22, 2.2)}"></svg>
+      </span>
+      <span class="text-[11px] font-semibold text-[#2563eb]">만들기</span>
+      <span role="tooltip" class="rail-tooltip">새로운 캠페인 생성</span>
+    </button>
+
+    <nav class="mt-[22px] flex min-h-0 flex-1 flex-col items-center gap-[6px]" aria-label="주요 메뉴">
+      <a th:each="item : ${ {
+             {'home', '/', '홈', '홈', 'home'},
+             {'store', '/store', '매장 정보 관리', '매장 정보', 'store'},
+             {'campaigns', '/campaigns', '캠페인 보관함', '보관함', 'archive'},
+             {'performance', '/performance', '성과분석', '성과분석', 'chart'},
+             {'insights', '/insights', 'AI 캠페인 개선 방향', '개선 방향', 'bulb'},
+             {'subscription', '/subscription', '구독 관리 및 크레딧', '이용권', 'ticket'}
+         } }"
+         th:with="isActive=${active == item[0]}"
+         th:href="@{${item[1]}}" th:aria-label="${item[2]}" th:attr="aria-current=${isActive ? 'page' : null}"
+         class="group relative flex w-[68px] flex-col items-center gap-[4px] py-[4px] outline-none">
+        <span class="flex size-[40px] items-center justify-center rounded-[12px] transition-colors duration-150 group-focus-visible:ring-2 group-focus-visible:ring-[#2563eb]"
+              th:classappend="${isActive ? 'bg-[#eff6ff] text-[#2563eb]' : 'text-[#667085] group-hover:bg-[#f1f5f9] group-hover:text-[#172033]'}">
+          <svg th:replace="~{fragments/common :: icon(${item[4]}, 22, 1.8)}"></svg>
+        </span>
+        <span class="text-[11px] whitespace-nowrap"
+              th:classappend="${isActive ? 'font-semibold text-[#2563eb]' : 'font-medium text-[#667085]'}"
+              th:text="${item[3]}">홈</span>
+        <span role="tooltip" class="rail-tooltip" th:text="${item[2]}">홈</span>
+      </a>
+    </nav>
+
+    <div class="flex flex-col items-center gap-[12px]">
+      <button type="button" aria-label="알림" class="group relative flex size-[40px] items-center justify-center rounded-[12px] text-[#667085] transition-colors duration-150 hover:bg-[#f1f5f9] hover:text-[#172033]">
+        <svg th:replace="~{fragments/common :: icon('bell', 22, 1.8)}"></svg>
+        <span role="tooltip" class="rail-tooltip">알림</span>
+      </button>
+      <button type="button" aria-haspopup="menu" aria-label="설정 및 계정 메뉴" data-settings-menu="above"
+              class="group relative flex size-[38px] items-center justify-center rounded-full bg-[#eff6ff] text-[14px] font-bold text-[#2563eb] ring-2 ring-white transition-colors duration-150 hover:bg-[#dbeafe]">
+        <th:block th:text="${me.initial}">김</th:block>
+        <span role="tooltip" class="rail-tooltip">설정</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="min-h-screen pl-[76px]">
+    <th:block th:replace="${content}"></th:block>
+  </main>
+
+  <div th:replace="~{fragments/app-parts :: newCampaignForm}"></div>
+  <div th:replace="~{fragments/app-parts :: settingsMenu}"></div>
+  <div th:replace="~{fragments/app-parts :: accountModal}"></div>
+  <div th:replace="~{fragments/app-parts :: upgradeNotice}"></div>
+  <div th:replace="~{fragments/app-parts :: devShortcuts}"></div>
+  <div th:replace="~{fragments/common :: hosts}"></div>
+</div>
+<th:block th:replace="${scripts}"></th:block>
+</body>
+</html>

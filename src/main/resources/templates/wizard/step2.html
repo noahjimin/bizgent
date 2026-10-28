@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!-- 캠페인 생성 2단계: AI 기획 (SCR-U-007, F04). 타겟·전략 수정, 구독 시 방향 직접 입력 재분석 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{layout/wizard :: layout('AI 기획', ~{::content}, ~{::scripts})}">
+<body>
+<th:block th:fragment="content">
+<form id="step-form" method="post" th:action="@{/campaigns/new/2}" class="flex flex-1 flex-col" data-plan-form
+      th:with="plan=${draft.plan}, hasPlan=${!draft.plan.empty}">
+  <input type="hidden" name="tones" th:value="${#strings.listJoin(plan.tones, ', ')}" data-tag-value="tones">
+  <input type="hidden" name="channels" th:value="${#strings.listJoin(plan.channels, ', ')}" data-tag-value="channels">
+
+  <div class="flex flex-1 justify-center px-[70px]">
+    <div class="flex w-full max-w-[1000px] flex-col gap-[16px] px-[24px] py-[25px]">
+      <div class="flex w-full flex-col items-center gap-[8px] text-center">
+        <span th:replace="~{fragments/wizard-parts :: stepBadge('2 단계', 'text-[12px]')}"></span>
+        <h1 class="f-bold text-[38px] text-[#172033]">AI가 이번 캠페인의 방향을 제안해드려요</h1>
+        <p class="f-regular text-[18px] leading-[1.6] text-[#667085]" th:text="|‘${draft.goal}’ 목표를 기반으로 분석한 결과예요|"></p>
+        <p class="f-regular text-[14px] leading-[1.5] text-[#98a2b3]">AI가 제안한 내용을 직접 고쳐서 다음 단계로 넘어갈 수 있어요</p>
+      </div>
+
+      <div data-plan-loading th:hidden="${hasPlan}">
+        <div th:replace="~{fragments/wizard-parts :: loading('AI가 캠페인 방향을 분석하고 있어요', '목표와 매장 정보를 바탕으로 타겟과 전략을 정리 중이에요')}"></div>
+      </div>
+
+      <th:block th:if="${hasPlan}">
+        <!-- 추천 타깃 고객 -->
+        <section data-plan-result class="flex w-full flex-col gap-[15px] rounded-[18px] border border-[#d9e6ff] bg-[#f2f6ff] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div th:replace="~{:: cardHeader('83a9f.svg', '추천 타깃 고객', 'target')}"></div>
+          <div class="flex w-full items-center gap-[18px]">
+            <span class="flex size-[74px] shrink-0 items-center justify-center rounded-[18px] bg-[#eaf2ff]">
+              <img alt="" th:src="@{/assets/74ed8.svg}" class="size-[34px]">
+            </span>
+            <div class="flex min-w-0 flex-1 flex-col gap-[7px]">
+              <div class="flex w-full items-start gap-[16px]">
+                <p class="f-semibold w-[92px] shrink-0 pt-[11px] text-[15px] leading-[1.5] text-[#667085]">연령대</p>
+                <input name="ageGroup" th:value="${plan.ageGroup}" readonly data-edit-field="target" aria-label="연령대"
+                       class="f-bold w-full min-w-0 flex-1 rounded-[12px] border border-[#d0d7e2] bg-white px-[14px] py-[10px] text-[16px] leading-[1.5] text-[#172033] outline-none read-only:cursor-default read-only:focus:border-[#d0d7e2] focus:border-[#2563eb]">
+              </div>
+              <div class="flex w-full items-start gap-[16px]">
+                <p class="f-semibold w-[92px] shrink-0 pt-[11px] text-[15px] leading-[1.5] text-[#667085]">특징</p>
+                <input name="targetCustomer" th:value="${plan.targetCustomer}" readonly data-edit-field="target" aria-label="특징"
+                       class="f-medium w-full min-w-0 flex-1 rounded-[12px] border border-[#d0d7e2] bg-white px-[14px] py-[10px] text-[16px] leading-[1.5] text-[#172033] outline-none read-only:cursor-default read-only:focus:border-[#d0d7e2] focus:border-[#2563eb]">
+              </div>
+              <div class="flex w-full items-center gap-[16px]">
+                <p class="f-semibold w-[92px] shrink-0 text-[15px] text-[#667085]">주요 활동 채널</p>
+                <div th:replace="~{:: tagList('channels', ${plan.channels}, 'blue')}"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 추천 캠페인 전략 -->
+        <section class="flex w-full flex-col gap-[14px] rounded-[18px] border border-[#cdefe9] bg-[#eefbf8] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div th:replace="~{:: cardHeader('fe9f3.svg', '추천 캠페인 전략', 'strategy')}"></div>
+          <div class="flex w-full pl-[54px]">
+            <textarea name="strategy" hidden data-edit-field="strategy" aria-label="추천 캠페인 전략" th:text="${plan.strategy}"
+                      class="f-medium h-[84px] w-full resize-none rounded-[12px] border border-[#2563eb] bg-white px-[14px] py-[10px] text-[16px] leading-[1.65] text-[#172033] outline-none"></textarea>
+            <p data-edit-view="strategy" class="f-medium flex-1 text-[16px] leading-[1.65] text-balance text-[#172033]" th:text="${plan.strategy}"></p>
+          </div>
+          <div class="flex w-full flex-col gap-[9px]">
+            <div class="flex w-full items-center gap-[16px]">
+              <p class="f-semibold w-[126px] shrink-0 text-[15px] text-[#667085]">추천 콘텐츠 톤</p>
+              <div th:replace="~{:: tagList('tones', ${plan.tones}, 'mint')}"></div>
+            </div>
+            <div class="flex w-full items-center gap-[16px]">
+              <p class="f-semibold w-[126px] shrink-0 text-[15px] text-[#667085]">추천 채널</p>
+              <div th:replace="~{:: tagList('channels', ${plan.channels}, 'mint')}"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 방향 직접 입력 후 재분석 (구독) -->
+        <section class="flex w-full flex-col gap-[12px] rounded-[18px] border border-[#e5eaf1] bg-white p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="flex w-full items-center justify-between">
+            <div class="flex items-center gap-[12px]">
+              <span class="flex size-[42px] shrink-0 items-center justify-center rounded-[14px] bg-white"><img alt="" th:src="@{/assets/686d3.svg}" class="size-[21px]"></span>
+              <h2 class="f-bold text-[21px] text-[#172033]">방향을 직접 알려주고 다시 분석받기</h2>
+            </div>
+            <button th:if="${me.free}" type="button" data-upgrade-feature-name="AI 기획 재분석"
+                    class="f-bold rounded-full bg-[#ddf8f3] px-[11px] py-[6px] text-[14px] whitespace-nowrap text-[#14b8a6]">구독 전용</button>
+          </div>
+          <p class="f-regular w-full text-[15px] leading-[1.6] text-[#667085]">원하는 방향을 적으면 AI가 그에 맞게 다시 분석해드려요.</p>
+          <div th:unless="${me.free}" class="flex w-full gap-[8px]">
+            <input data-feedback placeholder="예: 직장인 점심 시간대 방문을 늘리고 싶어요" aria-label="원하는 방향 입력"
+                   class="f-regular h-[46px] min-w-0 flex-1 rounded-[12px] border border-[#d0d7e2] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+            <button type="button" data-reanalyze disabled
+                    class="f-semibold h-[46px] shrink-0 rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8] disabled:opacity-40">다시 분석하기</button>
+          </div>
+        </section>
+
+        <!-- 예상 기대 효과 -->
+        <section class="flex w-full flex-col gap-[5px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] pt-[16px] pb-[12px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <h2 class="f-bold text-[18px] text-[#172033]">예상 기대 효과</h2>
+          <div class="flex w-full items-center">
+            <th:block th:each="s, i : ${ { {'a56a6.svg', '예상 도달', plan.reach}, {'8bcef.svg', '추천 게시 빈도', plan.frequency}, {'33c78.svg', '추천 진행 기간', plan.duration} } }">
+              <div th:unless="${i.first}" class="h-[52px] w-px shrink-0 bg-[#e5eaf1]"></div>
+              <div class="flex h-[92px] min-w-0 flex-1 items-center justify-center gap-[13px]">
+                <span class="flex size-[42px] shrink-0 items-center justify-center rounded-[14px] bg-[#eaf2ff]"><img alt="" th:src="@{'/assets/' + ${s[0]}}" class="size-[20px]"></span>
+                <div class="flex w-[150px] flex-col gap-[4px] whitespace-nowrap">
+                  <p class="f-medium text-[14px] text-[#667085]" th:text="${s[1]}"></p>
+                  <p class="f-bold text-[20px] text-[#172033]" th:text="${s[2] == null ? '-' : s[2]}"></p>
+                </div>
+              </div>
+            </th:block>
+          </div>
+        </section>
+      </th:block>
+    </div>
+  </div>
+
+  <footer th:replace="~{fragments/wizard-parts :: footer('다음: 콘텐츠 생성하기', '콘텐츠 설정으로 넘어갈까요?',
+      'AI가 제안한 타겟 고객과 캠페인 방향이 확정돼요. 다음 단계로 넘어가면 2단계 내용은 다시 수정할 수 없어요.', ${!hasPlan})}"></footer>
+</form>
+</th:block>
+
+<div th:fragment="cardHeader(icon, title, editKey)" class="flex w-full items-center justify-between">
+  <div class="flex items-center gap-[12px]">
+    <span class="flex size-[42px] shrink-0 items-center justify-center rounded-[14px] bg-white"><img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[21px]"></span>
+    <h2 class="f-bold text-[21px] text-[#172033]" th:text="${title}"></h2>
+  </div>
+  <button type="button" th:attr="data-edit-toggle=${editKey}" aria-pressed="false"
+          class="flex h-[32px] shrink-0 items-center gap-[6px] rounded-full border border-[#c8d9ff] bg-white px-[10px] hover:bg-[#f2f6ff]">
+    <img alt="" th:src="@{/assets/3ec72.svg}" class="size-[16px]">
+    <span class="f-semibold text-[14px] whitespace-nowrap text-[#2563eb]" data-edit-label>수정</span>
+  </button>
+</div>
+
+<!-- 누르면 삭제되는 태그 목록 + 추가. 같은 key의 목록은 함께 바뀐다 -->
+<div th:fragment="tagList(key, tags, tone)" class="flex min-w-0 flex-wrap items-start gap-[8px]" th:attr="data-tag-list=${key},data-tone=${tone}">
+  <button th:each="t : ${tags}" type="button" title="클릭하면 삭제돼요" data-tag th:attr="data-value=${t}" th:text="${t}"
+          class="f-semibold flex items-center rounded-full border bg-white px-[13px] py-[7px] text-[15px] whitespace-nowrap"
+          th:classappend="${tone == 'blue' ? 'border-[#c8d9ff] text-[#1d4ed8]' : 'border-[#bcebe4] text-[#0e9384]'}"></button>
+  <button type="button" data-tag-add
+          class="f-semibold flex items-center gap-[6px] rounded-full border border-[#c8d9ff] bg-white px-[13px] py-[7px] text-[15px] whitespace-nowrap"
+          th:classappend="${tone == 'blue' ? 'text-[#1d4ed8]' : 'text-[#0e9384]'}"><span>+</span><span>추가</span></button>
+  <input hidden data-tag-input aria-label="태그 추가"
+         class="f-semibold h-[37px] w-[120px] rounded-full border border-[#2563eb] bg-white px-[13px] text-[15px] text-[#172033] outline-none">
+</div>
+
+<th:block th:fragment="scripts">
+<script th:inline="javascript">
+  const HAS_PLAN = /*[[${!draft.plan.empty}]]*/ false;
+</script>
+<script>
+(() => {
+  const form = document.querySelector("[data-plan-form]");
+
+  // 기획이 없으면 생성하고 다시 그린다 (분석 중 화면을 잠깐 보여준다).
+  if (!HAS_PLAN) {
+    Promise.all([BG.postJson("/api/wizard/plan"), new Promise((r) => setTimeout(r, 1500))])
+      .then(() => location.reload())
+      .catch(() => BG.toast("AI 기획을 만들지 못했어요. 새로고침해 주세요"));
+    return;
+  }
+
+  /* 수정 / 완료 */
+  form.querySelectorAll("[data-edit-toggle]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.editToggle;
+      const on = btn.getAttribute("aria-pressed") !== "true";
+      form.querySelectorAll("[data-edit-toggle]").forEach((b) => {
+        const active = b === btn && on;
+        b.setAttribute("aria-pressed", String(active));
+        b.querySelector("[data-edit-label]").textContent = active ? "완료" : "수정";
+        form.querySelectorAll(`[data-edit-field="${b.dataset.editToggle}"]`).forEach((f) => {
+          if (f.tagName === "TEXTAREA") {
+            f.hidden = !active;
+            form.querySelector(`[data-edit-view="${b.dataset.editToggle}"]`).hidden = active;
+            form.querySelector(`[data-edit-view="${b.dataset.editToggle}"]`).textContent = f.value;
+          } else f.readOnly = !active;
+        });
+      });
+    }));
+
+  /* 태그 (같은 key의 목록은 모두 같은 값을 보여준다) */
+  const values = (key) => form.querySelector(`[data-tag-value="${key}"]`).value.split(",").map((s) => s.trim()).filter(Boolean);
+  const renderTags = (key, list) => {
+    form.querySelector(`[data-tag-value="${key}"]`).value = list.join(", ");
+    form.querySelectorAll(`[data-tag-list="${key}"]`).forEach((box) => {
+      box.querySelectorAll("[data-tag]").forEach((t) => t.remove());
+      const add = box.querySelector("[data-tag-add]");
+      const blue = box.dataset.tone === "blue";
+      list.forEach((v) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.title = "클릭하면 삭제돼요";
+        b.dataset.tag = "";
+        b.dataset.value = v;
+        b.textContent = v;
+        b.className = "f-semibold flex items-center rounded-full border bg-white px-[13px] py-[7px] text-[15px] whitespace-nowrap " + (blue ? "border-[#c8d9ff] text-[#1d4ed8]" : "border-[#bcebe4] text-[#0e9384]");
+        add.before(b);
+      });
+    });
+  };
+  form.querySelectorAll("[data-tag-list]").forEach((box) => {
+    const key = box.dataset.tagList;
+    const add = box.querySelector("[data-tag-add]");
+    const input = box.querySelector("[data-tag-input]");
+    box.addEventListener("click", (e) => {
+      const tag = e.target.closest("[data-tag]");
+      if (tag) renderTags(key, values(key).filter((v) => v !== tag.dataset.value));
+      if (e.target.closest("[data-tag-add]")) { add.hidden = true; input.hidden = false; input.focus(); }
+    });
+    const commit = () => {
+      const v = input.value.trim();
+      input.value = "";
+      input.hidden = true;
+      add.hidden = false;
+      if (v && !values(key).includes(v)) renderTags(key, [...values(key), v]);
+    };
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); input.blur(); } });
+  });
+
+  /* 재분석 (구독) */
+  const feedback = form.querySelector("[data-feedback]");
+  if (feedback) {
+    const btn = form.querySelector("[data-reanalyze]");
+    feedback.addEventListener("input", () => (btn.disabled = !feedback.value.trim()));
+    const run = async () => {
+      if (!feedback.value.trim()) return;
+      form.querySelector("[data-plan-loading]").hidden = false;
+      form.querySelectorAll("section").forEach((s) => (s.hidden = true));
+      await Promise.all([BG.postJson("/api/wizard/plan/reanalyze", { feedback: feedback.value.trim() }), new Promise((r) => setTimeout(r, 1500))]);
+      location.reload();
+    };
+    btn.addEventListener("click", run);
+    feedback.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); run(); } });
+  }
+
+  form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
+})();
+</script>
+</th:block>
+</body>
+</html>

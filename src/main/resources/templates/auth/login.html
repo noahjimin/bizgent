@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- 로그인 (SCR-U-001): 랜딩 화면을 어둡게 깔고 그 위에 로그인 카드 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{fragments/common :: head('로그인')}"></head>
+<body>
+<div class="pd-scope relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(180deg,#2563eb_0%,#1a8cd9_15%,#14b8a6_45%,#8ce0d9_70%,#d9f2f2_85%,#f5fafc_100%)]">
+  <div class="absolute inset-0" aria-hidden="true">
+    <header class="flex h-[88px] items-center justify-between px-[120px] py-[20px]">
+      <div th:replace="~{fragments/common :: entryBrand(true, false)}"></div>
+      <nav class="flex items-center gap-[32px] text-[15px] font-medium text-white">
+        <span>기능 소개</span><span>요금제</span>
+        <span class="flex h-[44px] items-center rounded-[12px] border border-white px-[20px] text-[15px] font-semibold">무료로 시작하기</span>
+      </nav>
+    </header>
+    <div class="flex flex-col items-center pt-[24px] text-center">
+      <p class="rounded-full bg-white/20 px-[14px] py-[8px] text-[13px] font-semibold text-white">소상공인을 위한 AI 마케팅 에이전트</p>
+      <h1 class="mt-[12px] text-[48px] leading-[1.25] font-extrabold text-white">매장 마케팅을, <span class="text-[#ffd60a]">AI</span> 가 기획하다</h1>
+      <p class="mt-[8px] text-[16px] leading-[1.6] font-normal text-[#f0f5fa]">타겟 고객 분석부터 콘텐츠 제작, 게시까지 AI가 한 번에 해결해드립니다.<br>마케팅 전문가 없어도, 광고 문구 몰라도 BizGent가 함께 하겠습니다.</p>
+      <img alt="" th:src="@{/assets/a6c40.png}" class="mt-[100px] h-[452px] w-[1251px] rounded-[40px] object-cover opacity-81">
+    </div>
+  </div>
+  <div class="absolute inset-0 bg-black/45"></div>
+
+  <div class="relative z-10 flex flex-col items-center gap-[32px]">
+    <div th:replace="~{fragments/common :: entryBrand(true, true)}"></div>
+    <form method="post" th:action="@{/login}" novalidate
+          class="flex w-[480px] flex-col gap-[28px] rounded-[24px] bg-white/97 p-[40px] shadow-[0px_12px_32px_rgba(15,23,42,0.05),0px_20px_60px_rgba(0,0,0,0.35)]">
+      <div class="text-center">
+        <h2 class="text-[34px] leading-[36px] font-extrabold text-[#0f172a]">로그인</h2>
+        <p class="mt-[8px] text-[18px] leading-[22px] font-medium text-[#64748b]">BizGent와 함께 매장 마케팅을 시작하세요</p>
+      </div>
+      <div class="flex flex-col gap-[16px]">
+        <label th:replace="~{fragments/auth-parts :: authField('이메일', 'email', 'email', ${email}, '이메일을 입력하세요', false, ${errors?.get('email')})}"></label>
+        <label th:replace="~{fragments/auth-parts :: authField('비밀번호', 'password', 'password', '', '비밀번호를 입력하세요', false, ${errors?.get('password')})}"></label>
+      </div>
+      <button type="submit" class="btn-primary h-[56px] rounded-[12px] bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-[20px] font-bold text-white">로그인</button>
+      <p class="text-center text-[17px] font-medium text-[#64748b]">
+        계정이 없으신가요? <a th:href="@{/signup}" class="link-hover font-bold text-[#059669]">회원가입</a>
+      </p>
+    </form>
+  </div>
+</div>
+<div th:replace="~{fragments/common :: hosts}"></div>
+<script th:replace="~{auth/signup :: clearErrorScript}"></script>
+</body>
+</html>

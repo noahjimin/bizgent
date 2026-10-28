@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<!-- 매출 데이터 올리기 모달 (F17). 동작은 /js/sales-upload.js -->
+
+<div th:fragment="modal" id="sales-upload-modal" data-modal data-escape="off" role="presentation" hidden
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.4)]">
+  <div role="dialog" aria-modal="true" aria-labelledby="sales-upload-title"
+       class="flex h-[780px] max-h-[calc(100vh-32px)] w-[960px] max-w-[calc(100vw-32px)] flex-col rounded-[20px] bg-white shadow-[0px_24px_72px_0px_rgba(16,24,40,0.2)]">
+    <div class="flex w-full shrink-0 flex-col gap-[8px] px-[32px] pt-[28px] pb-[16px]">
+      <div class="flex w-full items-center justify-between">
+        <h2 id="sales-upload-title" class="f-bold text-[28px] leading-[36px] text-[#172033]">매출 데이터 올리기</h2>
+        <button type="button" data-su-close aria-label="닫기" class="flex size-[32px] items-center justify-center rounded-[8px] hover:bg-[#f7f9fc] disabled:opacity-40">
+          <img alt="" th:src="@{/assets/e5875.svg}" class="size-[20px]">
+        </button>
+      </div>
+      <p class="f-regular text-[14px] leading-[22px] text-[#667085]">영수증이나 엑셀 파일을 올리면 AI가 매출을 분석해요.</p>
+
+      <!-- 단계 표시 -->
+      <div class="flex w-full justify-center pt-[10px]" data-su-stepper>
+        <div class="relative h-[72px] w-[438px]">
+          <div data-su-line="1" class="absolute top-[15px] left-[81px] h-[2px] w-[122px] bg-[#e5eaf1]"></div>
+          <div data-su-line="2" class="absolute top-[15px] left-[235px] h-[2px] w-[116px] bg-[#e5eaf1]"></div>
+          <div th:each="label, s : ${ {'1 올리기', '2 결과 확인', '3 분석 완료'} }" class="absolute top-0 h-[72px] w-[130px]" th:style="|left:${s.index * 154}px|"
+               th:attr="data-su-step=${s.count}">
+            <div data-su-dot class="absolute top-0 flex h-[32px] items-center justify-center rounded-full border border-[#e5eaf1] bg-[#f0f3f8]"
+                 th:classappend="${s.count == 3 ? 'left-[43px] w-[44px]' : 'left-[49px] w-[32px]'}">
+              <span data-su-num class="f-bold text-[11px] text-[#98a2b3]" th:text="${s.count}">1</span>
+            </div>
+            <p data-su-label class="f-medium absolute top-[44px] left-1/2 -translate-x-1/2 text-center text-[13px] whitespace-nowrap text-[#98a2b3]" th:text="${label}"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex min-h-0 w-full flex-1 flex-col border-t border-[#e5eaf1] px-[32px] py-[24px]">
+      <!-- 1. 올리기 -->
+      <div data-su-panel="1" class="flex min-h-0 w-full flex-1 flex-col gap-[20px]">
+        <div role="tablist" aria-label="올리는 방식" class="flex h-[44px] w-full shrink-0 gap-[4px] rounded-[12px] bg-[#f7f9fc] p-[4px]">
+          <button th:each="t, s : ${ { {'excel', '엑셀/CSV'}, {'receipt', '영수증 사진'}, {'manual', '직접 입력'} } }" type="button" role="tab"
+                  th:attr="data-su-tab=${t[0]},aria-selected=${s.first}" th:text="${t[1]}"
+                  class="flex h-[36px] min-w-0 flex-1 items-center justify-center rounded-[8px] text-[14px] whitespace-nowrap"
+                  th:classappend="${s.first ? 'f-bold border border-[#e5eaf1] bg-white text-[#2563eb]' : 'f-medium text-[#667085] hover:text-[#172033]'}">엑셀</button>
+        </div>
+
+        <div data-su-tab-panel="excel" class="flex w-full flex-col gap-[20px]">
+          <label data-su-drop class="flex h-[296px] w-full cursor-pointer flex-col items-center justify-center gap-[12px] rounded-[16px] border-[1.5px] border-dashed border-[#b8c9e8] bg-[#fafcff] hover:bg-[#f5f8fe]">
+            <input type="file" accept=".xlsx,.xls,.csv" class="hidden" data-su-file="excel">
+            <span data-su-empty class="contents">
+              <span class="flex size-[64px] items-center justify-center rounded-[16px] bg-[#eaf2ff]"><img alt="" th:src="@{/assets/ce93d.svg}" class="size-[32px]"></span>
+              <span class="f-semibold text-[17px] text-[#172033]">파일을 끌어다 놓거나 클릭해서 선택하세요</span>
+              <span class="f-regular text-[13px] text-[#98a2b3]">xlsx, xls, csv · 최대 10MB</span>
+            </span>
+            <span data-su-selected hidden class="contents">
+              <span class="flex size-[64px] items-center justify-center rounded-[16px] bg-[#ddf8f3]"><img alt="" th:src="@{/assets/32c90.svg}" class="size-[28px]"></span>
+              <span data-su-name class="f-semibold max-w-[600px] truncate text-[17px] text-[#172033]"></span>
+              <span data-su-meta class="f-regular text-[13px] text-[#98a2b3]"></span>
+              <span class="f-semibold text-[13px] text-[#2563eb] underline">다른 파일 선택</span>
+            </span>
+          </label>
+          <button type="button" data-su-template class="flex w-full items-center justify-center gap-[6px]">
+            <img alt="" th:src="@{/assets/9b8cd.svg}" class="size-[16px]">
+            <span class="f-semibold text-[13px] text-[#2563eb] underline">양식 파일 내려받기</span>
+          </button>
+        </div>
+
+        <div data-su-tab-panel="receipt" hidden class="flex w-full flex-col">
+          <div data-su-receipt-loading hidden class="flex w-full flex-col items-center gap-[16px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] py-[64px]" role="status">
+            <span class="size-[40px] animate-spin rounded-full border-4 border-[#eaf2ff] border-t-[#2563eb]"></span>
+            <p class="f-bold text-[18px] text-[#172033]">영수증을 인식하고 있어요</p>
+            <p class="f-regular text-[15px] text-[#667085]">잠시만 기다려 주세요</p>
+          </div>
+          <label data-su-drop class="flex h-[296px] w-full cursor-pointer flex-col items-center justify-center gap-[12px] rounded-[16px] border-[1.5px] border-dashed border-[#b8c9e8] bg-[#fafcff] hover:bg-[#f5f8fe]">
+            <input type="file" accept="image/*" class="hidden" data-su-file="receipt">
+            <span data-su-empty class="contents">
+              <span class="flex size-[64px] items-center justify-center rounded-[16px] bg-[#eaf2ff]"><img alt="" th:src="@{/assets/ce93d.svg}" class="size-[32px]"></span>
+              <span class="f-semibold text-[17px] text-[#172033]">영수증 사진을 끌어다 놓거나 클릭해서 선택하세요</span>
+              <span class="f-regular text-[13px] text-[#98a2b3]">jpg, png · 최대 10MB</span>
+            </span>
+            <span data-su-selected hidden class="contents">
+              <img data-su-preview alt="올린 영수증" class="h-[120px] w-[96px] rounded-[12px] border border-[#e5eaf1] object-cover">
+              <span data-su-name class="f-semibold max-w-[600px] truncate text-[17px] text-[#172033]"></span>
+              <span data-su-meta class="f-regular text-[13px] text-[#98a2b3]"></span>
+              <span class="f-semibold text-[13px] text-[#2563eb] underline">다른 파일 선택</span>
+            </span>
+          </label>
+        </div>
+
+        <div data-su-tab-panel="manual" hidden class="flex min-h-0 w-full flex-1 flex-col gap-[12px]">
+          <div class="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-[12px] border border-[#e5eaf1]">
+            <div class="f-semibold flex h-[40px] w-full shrink-0 items-center gap-[12px] bg-[#f7f9fc] px-[16px] text-[12px] text-[#667085]">
+              <p class="w-[160px]">날짜</p>
+              <p class="min-w-0 flex-1">상품명</p>
+              <p class="w-[90px]">수량</p>
+              <p class="w-[150px]">금액</p>
+              <p class="w-[40px]"></p>
+            </div>
+            <div class="min-h-0 flex-1 overflow-y-auto" data-su-manual-rows>
+              <p data-su-manual-empty class="f-regular px-[16px] py-[28px] text-center text-[13px] text-[#98a2b3]">아래 버튼으로 매출을 한 줄씩 추가해 주세요.</p>
+            </div>
+          </div>
+          <button type="button" data-su-manual-add class="flex h-[44px] w-full shrink-0 items-center justify-center gap-[8px] rounded-[12px] border border-dashed border-[#2563eb] bg-white hover:bg-[#f5f9ff]">
+            <img alt="" th:src="@{/assets/9872e.svg}" class="size-[17px]">
+            <span class="f-bold text-[14px] text-[#2563eb]">행 추가</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. 결과 확인 -->
+      <div data-su-panel="2" hidden class="flex min-h-0 w-full flex-1 flex-col gap-[16px]">
+        <div data-su-analyzing hidden class="flex w-full flex-1 items-center">
+          <div class="flex w-full flex-col items-center gap-[16px] rounded-[18px] border border-[#e5eaf1] bg-white px-[20px] py-[64px]" role="status">
+            <span class="size-[40px] animate-spin rounded-full border-4 border-[#eaf2ff] border-t-[#2563eb]"></span>
+            <p class="f-bold text-[18px] text-[#172033]">매출을 분석하고 있어요</p>
+            <p class="f-regular text-[15px] text-[#667085]">잠시만 기다려 주세요</p>
+          </div>
+        </div>
+        <div data-su-check class="flex min-h-0 w-full flex-1 flex-col gap-[16px]">
+          <div class="flex w-full flex-wrap items-start gap-[8px]" aria-live="polite">
+            <span data-su-total class="f-semibold rounded-full bg-[#eaf2ff] px-[12px] py-[7px] text-[13px] text-[#2563eb]"></span>
+            <span data-su-issues class="f-semibold rounded-full px-[12px] py-[7px] text-[13px]"></span>
+            <span data-su-period class="f-semibold rounded-full bg-[#f7f9fc] px-[12px] py-[7px] text-[13px] text-[#667085]"></span>
+          </div>
+          <div class="flex min-h-0 w-full flex-col overflow-hidden rounded-[12px] border border-[#e5eaf1]">
+            <div class="f-semibold flex h-[40px] w-full shrink-0 items-center gap-[16px] bg-[#f7f9fc] px-[16px] text-[12px] text-[#667085]">
+              <p class="w-[86px]">날짜</p>
+              <p class="w-[320px]">상품명</p>
+              <p class="w-[80px]">수량</p>
+              <p class="w-[150px]">금액</p>
+              <p class="w-[132px]">상태</p>
+            </div>
+            <div data-su-rows class="max-h-[322px] overflow-y-auto [scrollbar-color:#b3bdcb_#eaeff5] [scrollbar-width:thin]"></div>
+          </div>
+          <div class="f-regular flex w-full items-center justify-between text-[12px] whitespace-nowrap">
+            <p class="text-[#667085]">상품을 확인하고, 필요한 항목은 직접 수정할 수 있어요.</p>
+            <p data-su-visible class="text-[#98a2b3]"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 분석 완료 -->
+      <div data-su-panel="3" hidden class="flex w-full flex-1 flex-col items-center justify-center gap-[20px]">
+        <span class="flex size-[96px] items-center justify-center rounded-full bg-[#ddf8f3]">
+          <span class="flex size-[72px] items-center justify-center rounded-full bg-[#14b8a6]"><img alt="" th:src="@{/assets/40de3.svg}" class="size-[36px]"></span>
+        </span>
+        <div class="flex w-full flex-col items-center gap-[10px] text-center">
+          <p class="f-bold text-[30px] leading-[40px] text-[#172033]">분석이 끝났어요</p>
+          <p data-su-done class="f-regular text-[16px] text-[#667085]"></p>
+        </div>
+        <span data-su-done-period class="f-semibold rounded-full bg-[#f7f9fc] px-[12px] py-[7px] text-[13px] text-[#667085]"></span>
+      </div>
+    </div>
+
+    <div class="flex h-[100px] w-full shrink-0 items-center justify-between border-t border-[#e5eaf1] px-[32px] py-[28px]">
+      <button type="button" data-su-back class="f-bold flex h-[44px] min-w-[92px] items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-white px-[20px] text-[14px] text-[#172033] hover:bg-[#f7f9fc] disabled:opacity-40">취소</button>
+      <button type="button" data-su-next disabled class="f-bold flex h-[44px] min-w-[92px] items-center justify-center rounded-[12px] bg-[#2563eb] px-[20px] text-[14px] text-white hover:bg-[#1d4ed8] disabled:bg-[#dce4f0] disabled:text-[#98a2b3]">다음</button>
+    </div>
+  </div>
+</div>
+
+</html>
