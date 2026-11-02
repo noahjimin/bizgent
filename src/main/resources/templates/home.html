@@ -18,14 +18,12 @@
       </button>
 
       <p class="text-[14px] font-medium text-[#475569]" th:text="|${me.memberName}님의 마케팅 작업실 · ${store.storeName}|">김사장님의 마케팅 작업실</p>
-      <h1 class="mt-[10px] bg-clip-text pb-[4px] text-center text-[40px] leading-[1.25] font-extrabold tracking-[-0.02em] text-transparent"
-          style="background-image: linear-gradient(90deg, #2563eb 0%, #14b8a6 100%)">오늘은 어떤 마케팅을 해볼까요?</h1>
-      <p class="mt-[8px] text-[14px] text-[#64748b]">매장 정보와 목표만 알려주면 AI가 홍보 캠페인을 기획하고 콘텐츠까지 만들어 드려요.</p>
+      <h1 class="mt-[10px] pb-[4px] text-center text-[40px] leading-[1.25] font-extrabold tracking-[-0.02em] text-[#172033]">오늘은 어떤 마케팅을 해볼까요?</h1>
+      <p class="mt-[8px] text-[15px] text-[#475569]">매장 정보와 목표만 알려주면 AI가 홍보 캠페인을 기획하고 콘텐츠까지 만들어 드려요.</p>
 
       <div class="mt-[28px] flex justify-center gap-[12px]">
         <button type="button" data-new-campaign
-                class="flex h-[56px] items-center gap-[8px] rounded-[28px] px-[28px] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(37,99,235,0.25)] transition duration-150 ease-in-out hover:-translate-y-[2px] hover:shadow-[0_12px_30px_rgba(37,99,235,0.34)] active:scale-[0.98] motion-reduce:hover:translate-y-0"
-                style="background-image: linear-gradient(90deg, #2563eb 0%, #14b8a6 100%)">
+                class="flex h-[56px] items-center gap-[8px] rounded-[28px] px-[28px] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(37,99,235,0.25)] transition duration-150 ease-in-out hover:-translate-y-[2px] hover:shadow-[0_12px_30px_rgba(37,99,235,0.34)] active:scale-[0.98] motion-reduce:hover:translate-y-0 bg-[#2563eb] hover:bg-[#1d4ed8]">
           <svg th:replace="~{fragments/common :: icon('plus', 20, 2.4)}"></svg>
           새로운 캠페인 생성하기
         </button>
@@ -36,7 +34,7 @@
         </a>
       </div>
       <!-- 빠른 작업 줄이 움직이지 않도록 높이를 유지한다 -->
-      <p class="mt-[16px] h-[20px] text-[13px] leading-[20px] text-[#64748b]"
+      <p class="mt-[16px] h-[20px] text-[13px] leading-[20px] text-[#475569]"
          th:text="${me.free} ? |무료 플랜 · 이번 달 캠페인 ${me.monthlyCampaignLimit}회 중 ${me.remainingCampaigns}회 남음| : ''"></p>
       <div aria-hidden="true" class="h-[12px]"></div>
     </section>
@@ -101,15 +99,15 @@
             <span class="flex size-[56px] items-center justify-center rounded-full bg-white/20 text-white"><svg th:replace="~{fragments/common :: icon('pencil', 26, 1.8)}"></svg></span>
           </div>
           <div class="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-[rgba(12,20,40,0.82)] via-[rgba(12,20,40,0.35)] to-transparent"></div>
-          <span class="absolute top-[12px] left-[12px] flex items-center gap-[5px] rounded-full border border-white/30 bg-white/25 px-[9px] py-[4px] text-[11px] font-semibold text-white backdrop-blur-md">
+          <span class="absolute top-[12px] left-[12px] flex items-center gap-[5px] rounded-full border border-white/20 bg-[rgba(12,20,40,0.55)] px-[9px] py-[4px] text-[12px] font-semibold text-white backdrop-blur-md">
             <span class="size-[6px] rounded-full" th:classappend="${c.published ? 'bg-[#5eead4]' : 'bg-[#fde68a]'}"></span>
             <th:block th:text="${c.published ? '게시 완료' : '작성 중'}"></th:block>
           </span>
-          <span th:if="${draftCount > 1}" class="absolute top-[12px] right-[12px] rounded-full bg-white/90 px-[8px] py-[4px] text-[11px] font-semibold text-[#1d4ed8]"
+          <span th:if="${draftCount > 1}" class="absolute top-[12px] right-[12px] rounded-full bg-white/90 px-[8px] py-[4px] text-[12px] font-semibold text-[#1d4ed8]"
                 th:text="|시안 ${draftCount}개|"></span>
           <div class="absolute inset-x-[14px] bottom-[14px] flex flex-col gap-[4px]">
             <p class="line-clamp-2 text-[15px] leading-[1.35] font-bold text-white" th:text="${c.title}"></p>
-            <p class="truncate text-[12px] text-white/75"
+            <p class="truncate text-[12px] text-white/85"
                th:text="${c.published and c.publishedAt != null} ? |${c.firstChannel} · ${@fmt.monthDay(c.publishedAt)} 게시| : |마지막 수정 ${@fmt.monthDay(c.timestamp)}|"></p>
           </div>
         </a>
@@ -140,7 +138,7 @@
                 th:attr="data-goal=${t[0]},aria-label=|${t[0]} 목표로 새 캠페인 시작|"
                 class="group relative h-[88px] cursor-pointer overflow-hidden rounded-[16px] px-[18px] py-[16px] text-left outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-2" th:style="'background-color:' + ${t[1]}">
           <span class="relative z-10 block max-w-[130px] text-[15px] leading-[1.35] font-bold text-[#172033]" th:text="${t[0]}"></span>
-          <span class="absolute right-[-14px] bottom-[-34px] flex w-[92px] rotate-[10deg] flex-col gap-[5px] rounded-[10px] bg-white p-[7px] shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-transform duration-200 ease-out group-hover:-translate-y-[8px] group-hover:rotate-[4deg] motion-reduce:transition-none">
+          <span aria-hidden="true" class="absolute right-[-14px] bottom-[-34px] flex w-[92px] rotate-[10deg] flex-col gap-[5px] rounded-[10px] bg-white p-[7px] shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-transform duration-200 ease-out group-hover:-translate-y-[8px] group-hover:rotate-[4deg] motion-reduce:transition-none">
             <img th:if="${t[3] != ''}" alt="" th:src="@{'/assets/' + ${t[3]}}" class="h-[52px] w-full rounded-[6px] object-cover">
             <span th:if="${t[5]}" class="flex flex-wrap gap-[3px] pb-[30px]">
               <span th:each="tag : ${ {'#카페', '#신메뉴', '#라떼', '#데일리'} }" class="rounded-full px-[5px] py-[1px] text-[8px] font-semibold"
