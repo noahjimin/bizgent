@@ -12,7 +12,7 @@
     <div class="flex w-full max-w-[1000px] flex-col items-center gap-[8px] text-center">
       <span class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[6px]">
         <img alt="" th:src="@{/assets/831ac.svg}" class="size-[14px]">
-        <span class="f-bold whitespace-pre text-[14px] text-[#14b8a6]">4 단계</span>
+        <span class="f-bold whitespace-pre text-[14px] text-[#0f766e]">4 단계</span>
       </span>
       <h1 class="f-bold text-[34px] text-[#172033]">마음에 드는 시안을 선택해주세요</h1>
       <p class="f-regular text-[18px] leading-[1.5] text-[#667085]">무료·구독 모두 A/B 2가지 시안을 비교하고, 여러 개를 함께 게시할 수 있어요</p>
@@ -39,7 +39,7 @@
         <div class="flex min-h-0 w-full flex-1 flex-col gap-[12px] px-[20px] py-[18px]">
           <div class="f-semibold flex w-full flex-col gap-[12px]">
             <p class="w-full text-[13px] text-[#667085]" th:text="${@fmt.channelLabel(d.channel, note, '용')}"></p>
-            <p data-draft-text class="w-full text-[16px] leading-[1.55] text-[#172033]" th:text="${d.text}"></p>
+            <p data-draft-text class="w-full text-[16px] leading-[1.55] break-keep text-[#172033]" th:text="${d.text}"></p>
             <p data-draft-tags class="w-full text-[14px] leading-[1.5] text-[#2563eb]" th:text="${d.hashtagText}" th:hidden="${d.hashtags.isEmpty()}"></p>
           </div>
           <div class="min-h-0 w-full flex-1"></div>
@@ -60,7 +60,7 @@
   </div>
 
   <footer class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[70px]">
-    <div class="flex w-full max-w-[1000px] items-center justify-between">
+    <div class="flex w-full max-w-[1000px] items-center justify-end">
       <div class="flex items-center gap-[12px]">
         <span data-selection-badge hidden class="flex items-center gap-[6px] rounded-full bg-[#eff5ff] px-[12px] py-[7px]">
           <img alt="" th:src="@{/assets/df502.svg}" class="size-[16px]">
@@ -157,7 +157,7 @@
   <span class="flex min-w-0 flex-1 flex-col gap-[4px]">
     <span class="flex w-full items-center gap-[8px]">
       <span class="f-bold text-[14px] whitespace-nowrap text-[#172033]" th:text="${title}"></span>
-      <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[4px] text-[12px] whitespace-nowrap text-[#14b8a6]">구독 전용</span>
+      <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[4px] text-[12px] whitespace-nowrap text-[#0f766e]">구독 전용</span>
     </span>
     <span class="f-regular w-full text-[13px] leading-[1.4] text-[#667085]" th:text="${desc}"></span>
   </span>

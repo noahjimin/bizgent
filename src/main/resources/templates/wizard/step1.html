@@ -22,8 +22,8 @@
       <div th:if="${draft.insightPrefill}" role="status" data-prefill-banner
            class="flex w-full items-center gap-[10px] rounded-[14px] border border-[#bcebe4] bg-[#eefbf8] px-[16px] py-[12px]">
         <img alt="" th:src="@{/assets/eebbb.svg}" class="size-[16px] shrink-0">
-        <p class="f-medium min-w-0 flex-1 text-[14px] leading-[1.5] text-[#0e9384]">AI 캠페인 개선 방향에서 가져온 제안이에요. 목표와 대상 메뉴가 자동으로 선택되었어요.</p>
-        <button type="button" data-prefill-reset class="f-bold shrink-0 text-[14px] text-[#0e9384] underline underline-offset-2 hover:text-[#0f766e]">직접 바꾸기</button>
+        <p class="f-medium min-w-0 flex-1 text-[14px] leading-[1.5] text-[#0f766e]">AI 캠페인 개선 방향에서 가져온 제안이에요. 목표와 대상 메뉴가 자동으로 선택되었어요.</p>
+        <button type="button" data-prefill-reset class="f-bold shrink-0 text-[14px] text-[#0f766e] underline underline-offset-2 hover:text-[#115e59]">직접 바꾸기</button>
       </div>
 
       <!-- 목표 (택 1) -->
@@ -35,13 +35,13 @@
         <div class="flex w-full gap-[12px]">
           <th:block th:each="g : ${ { {'할인/이벤트 홍보', '3ee8c.svg'}, {'신규 고객 유치', '28b03.svg'}, {'재고 소진 프로모션', '3ee8c.svg'} } }"><button th:replace="~{:: goalCard(${g[0]}, ${g[1]})}"></button></th:block>
         </div>
-        <div class="flex w-full items-start gap-[12px]">
+        <div class="grid w-full grid-cols-3 items-start gap-[12px]">
           <button th:replace="~{:: goalCard('비인기 메뉴 살리기', '3697b.svg')}"></button>
-          <div class="flex min-w-0 flex-1 flex-col gap-[8px]">
+          <div class="grid min-w-0 flex-1 gap-[8px]">
             <button th:replace="~{:: goalCard('기타 (직접 입력)', '50ab4.svg')}"></button>
             <input name="customGoal" th:value="${draft.customGoal}" placeholder="예: 지역 축제와 연계한 홍보" aria-label="목표 직접 입력" data-custom-goal
                    th:hidden="${draft.goalOption != '기타 (직접 입력)'}"
-                   class="f-regular h-[48px] w-full rounded-[10px] border border-[#2563eb] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3]">
+                   class="f-regular h-[48px] w-full rounded-[10px] border border-[#2563eb] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085]">
           </div>
           <div class="min-w-0 flex-1" aria-hidden="true"></div>
         </div>
@@ -63,7 +63,7 @@
             직접 입력
           </button>
           <input hidden data-menu-input placeholder="상품·메뉴 이름" aria-label="상품·메뉴 직접 입력"
-                 class="f-medium h-[46px] w-[180px] rounded-full border border-[#2563eb] bg-white px-[16px] text-[17px] text-[#172033] outline-none placeholder:text-[#98a2b3]">
+                 class="f-medium h-[46px] w-[180px] rounded-full border border-[#2563eb] bg-white px-[16px] text-[17px] text-[#172033] outline-none placeholder:text-[#667085]">
         </div>
       </section>
 
@@ -77,8 +77,8 @@
       <section class="flex w-full flex-col gap-[12px]">
         <h2 class="f-bold text-[20px] text-[#172033]">추가로 전달하고 싶은 내용이 있다면 적어주세요 (선택)</h2>
         <textarea name="extraNote" maxlength="300" th:text="${draft.extraNote}" oninput="this.nextElementSibling.textContent = this.value.length + '/300'" placeholder="예: 20-30대 여성 고객을 타겟으로 하고 싶어요" aria-label="추가 내용 입력"
-                  class="f-regular h-[108px] w-full resize-none rounded-[14px] border border-[#d0d7e2] bg-white p-[18px] text-[17px] leading-[1.6] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
-        <p class="f-regular -mt-[4px] w-full text-right text-[12px] text-[#98a2b3]" th:text="|${#strings.length(draft.extraNote)}/300|">0/300</p>
+                  class="f-regular h-[108px] w-full resize-none rounded-[14px] border border-[#d0d7e2] bg-white p-[18px] text-[17px] leading-[1.6] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]"></textarea>
+        <p class="f-regular -mt-[4px] w-full text-right text-[12px] text-[#667085]" th:text="|${#strings.length(draft.extraNote)}/300|">0/300</p>
       </section>
     </div>
   </div>
@@ -104,7 +104,7 @@
   <span data-goal-icon class="flex size-[40px] shrink-0 items-center justify-center rounded-[14px]" th:classappend="${draft.goalOption == label ? 'bg-white' : 'bg-[#ddf8f3]'}">
     <img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[20px]">
   </span>
-  <span data-goal-label class="f-semibold min-w-0 flex-1 text-[17px] leading-[1.4]" th:classappend="${draft.goalOption == label ? 'text-[#1d4ed8]' : 'text-[#172033]'}" th:text="${label}"></span>
+  <span data-goal-label class="f-semibold min-w-0 flex-1 text-[17px] leading-[1.4] break-keep" th:classappend="${draft.goalOption == label ? 'text-[#1d4ed8]' : 'text-[#172033]'}" th:text="${label}"></span>
 </button>
 
 <!-- 타겟·톤앤매너 칩 + 기타 입력 + 등록 정보 불러오기 -->
@@ -112,7 +112,7 @@
   <div class="flex items-center gap-[8px]">
     <p class="f-semibold text-[14px] whitespace-nowrap text-[#667085]" th:text="${label}"></p>
     <button type="button" data-tag-load
-            class="f-medium flex h-[19px] w-[117px] items-center justify-center rounded-[998px] border border-[#d0d7e2] bg-[#c3ddef] text-[12px] whitespace-nowrap text-[#667085]">등록 정보 불러오기</button>
+            class="f-medium flex h-[24px] items-center justify-center rounded-full border border-[#bfd3f5] bg-[#eaf2ff] px-[10px] text-[12px] whitespace-nowrap text-[#1d4ed8] hover:bg-[#dbeafe]">등록 정보 불러오기</button>
   </div>
   <div class="flex w-full flex-wrap gap-[8px]" data-tag-chips th:attr="data-presets=${#strings.listJoin(presets, '|')}">
     <th:block th:each="o : ${presets}"><button th:replace="~{:: tagChip(${o}, ${selected.contains(o)})}"></button></th:block>
@@ -120,7 +120,7 @@
     <div class="flex w-[220px] items-center gap-[8px]" data-tag-adder>
       <button type="button" data-tag-add class="f-medium flex h-[36px] items-center rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] whitespace-nowrap text-[#667085]">+ 기타</button>
       <input data-tag-input th:placeholder="${placeholder}" th:aria-label="|${label} 기타 입력|"
-             class="f-regular h-[36px] w-[120px] shrink-0 rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+             class="f-regular h-[36px] w-[120px] shrink-0 rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
       <button type="button" data-tag-add class="f-semibold flex h-[36px] shrink-0 items-center rounded-full border border-[#d0d7e2] bg-white px-[12px] text-[14px] whitespace-nowrap text-[#667085]">추가</button>
     </div>
   </div>
