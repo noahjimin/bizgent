@@ -24,7 +24,7 @@
       </span>
       <div class="flex min-w-0 flex-col gap-[4px]">
         <p class="f-bold text-[18px] text-[#172033]" th:text="${result.headline}"></p>
-        <p class="f-regular text-[14px] leading-[1.55] text-[#667085]" th:text="${result.summary}"></p>
+        <p class="f-regular text-[14px] leading-[1.55] text-[#475569]" th:text="${result.summary}"></p>
       </div>
     </section>
 
@@ -62,7 +62,7 @@
       <span class="mt-[7px] size-[6px] shrink-0 rounded-full" th:classappend="${tone == 'good' ? 'bg-[#14b8a6]' : tone == 'bad' ? 'bg-[#f59e0b]' : 'bg-[#2563eb]'}"></span>
       <p class="f-bold text-[15px] leading-[1.45] text-[#172033]" th:text="${item.title}"></p>
     </div>
-    <p class="f-regular pl-[14px] text-[13px] leading-[1.55] text-[#667085]" th:text="${item.desc}"></p>
+    <p class="f-regular pl-[14px] text-[13px] leading-[1.55] break-keep text-[#667085]" th:text="${item.desc}"></p>
     <div class="pl-[14px]">
       <!-- 제안의 목표·메뉴를 미리 선택한 채로 캠페인 생성 1단계로 이동 -->
       <button type="button" data-new-campaign data-source="insight" th:attr="data-goal=${item.goal},data-product-id=${item.productId}"
@@ -73,7 +73,7 @@
 
 <div th:fragment="compareCard(data, good)" class="flex min-w-0 flex-1 flex-col gap-[14px] rounded-[18px] border p-[20px]"
      th:classappend="${good ? 'border-[#cdefe9] bg-[#eefbf8]' : 'border-[#fde7c7] bg-[#fffaf2]'}">
-  <span class="f-bold w-fit rounded-full px-[10px] py-[4px] text-[12px] text-white" th:classappend="${good ? 'bg-[#14b8a6]' : 'bg-[#f59e0b]'}"
+  <span class="f-bold w-fit rounded-full px-[10px] py-[4px] text-[12px] text-white" th:classappend="${good ? 'bg-[#0f766e]' : 'bg-[#b54708]'}"
         th:text="${good ? 'Good · 잘된 캠페인' : 'Bad · 아쉬운 캠페인'}"></span>
   <th:block th:if="${data != null}">
     <div class="flex flex-col gap-[4px]">
@@ -82,11 +82,11 @@
     </div>
     <div class="grid grid-cols-4 gap-[8px]">
       <div th:each="kv : ${ { {'조회', data.views}, {'클릭', data.clicks}, {'방문 전환', data.conversions} } }" class="flex flex-col gap-[2px] rounded-[12px] bg-white px-[12px] py-[10px]">
-        <p class="f-regular text-[11px] text-[#98a2b3]" th:text="${kv[0]}"></p>
+        <p class="f-regular text-[12px] text-[#667085]" th:text="${kv[0]}"></p>
         <p class="f-bold text-[16px] text-[#172033]" th:text="${@fmt.number(kv[1])}"></p>
       </div>
       <div class="flex flex-col gap-[2px] rounded-[12px] bg-white px-[12px] py-[10px]">
-        <p class="f-regular text-[11px] text-[#98a2b3]">전환율</p>
+        <p class="f-regular text-[12px] text-[#667085]">전환율</p>
         <p class="f-bold text-[16px] text-[#172033]" th:text="|${data.conversionRate}%|"></p>
       </div>
     </div>
