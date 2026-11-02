@@ -4,8 +4,8 @@
 
 <!-- 체크박스 모양 (바로 앞의 peer 체크박스 상태를 따른다) -->
 <th:block th:fragment="checkBox">
-  <span class="size-[24px] shrink-0 rounded-[6px] border-2 border-[#cbd5e1] bg-white peer-checked:hidden"></span>
-  <span class="hidden size-[24px] shrink-0 items-center justify-center rounded-[6px] bg-[#2563eb] transition-colors peer-checked:flex">
+  <span class="size-[24px] shrink-0 rounded-[6px] border-2 border-[#94a3b8] bg-white peer-checked:hidden peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#2563eb]"></span>
+  <span class="hidden size-[24px] shrink-0 items-center justify-center rounded-[6px] bg-[#2563eb] transition-colors peer-checked:flex peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#2563eb]">
     <svg viewBox="0 0 24 24" fill="none" class="size-[16px]" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </span>
 </th:block>
@@ -30,7 +30,7 @@
       <div class="flex flex-col gap-[32px]">
         <div class="flex flex-col gap-[8px]">
           <h2 id="terms-title" class="text-[28px] font-extrabold text-[#0f172a]">이용약관</h2>
-          <p class="text-[14px] font-medium text-[#94a3b8]">서비스 이용을 위해 아래 약관에 동의해 주세요.</p>
+          <p class="text-[14px] font-medium text-[#64748b]">서비스 이용을 위해 아래 약관에 동의해 주세요.</p>
         </div>
 
         <div>
@@ -54,7 +54,7 @@
             <th:block th:replace="~{fragments/auth-parts :: checkBox}"></th:block>
             <span class="flex-1 text-[15px] font-medium text-[#475569]">개인정보 수집 및 이용에 동의합니다 (필수)</span>
             <button type="button" data-privacy-toggle aria-expanded="false" aria-controls="privacy-detail"
-                    class="text-[13px] font-bold text-[#94a3b8] underline underline-offset-2 hover:text-[#475569]">더보기</button>
+                    class="text-[13px] font-bold text-[#475569] underline underline-offset-2 hover:text-[#0f172a]">더보기</button>
           </label>
           <!-- ④ 개인정보 수집·이용 상세 -->
           <div id="privacy-detail" data-privacy-detail hidden class="mt-[8px] max-h-[150px] overflow-y-auto rounded-[12px] bg-[#f8fafc] p-[12px]">
@@ -64,12 +64,12 @@
       </div>
 
       <button type="submit" disabled data-terms-submit
-              class="btn-primary flex h-[54px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[18px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#cbd5e1]">
+              class="btn-primary flex h-[54px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[18px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#e2e8f0] disabled:text-[#475569]">
         동의 및 계속하기
       </button>
     </div>
 
-    <div class="hidden h-full w-[405px] flex-col md:flex items-center justify-center bg-gradient-to-r from-[#2563eb] to-[#14b8a6]">
+    <div class="hidden h-full w-[405px] flex-col md:flex items-center justify-center bg-gradient-to-r from-[#2563eb] to-[#0f766e]">
       <div class="relative size-[320px]">
         <img alt="" th:src="@{/assets/d1f73.svg}" class="absolute top-1/2 left-1/2 size-[200px] -translate-x-1/2 -translate-y-1/2">
         <img alt="" th:src="@{/assets/d2552.svg}" class="absolute top-1/2 left-1/2 size-[140px] -translate-x-1/2 -translate-y-1/2">
@@ -86,7 +86,7 @@
       </div>
       <div class="mt-[-18px] text-center">
         <p class="text-[20px] font-extrabold text-white">AI 기반 매장 자동 성장의 힘</p>
-        <p class="mt-[8px] text-[14px] leading-[20px] font-medium text-[#e0f2fe]">기획, 광고, 분석까지 AI 에이전트<br>BizGent가 알아서 관리해 드립니다.</p>
+        <p class="mt-[8px] text-[14px] leading-[20px] font-medium text-white">기획, 광고, 분석까지 AI 에이전트<br>BizGent가 알아서 관리해 드립니다.</p>
       </div>
     </div>
   </form>
@@ -170,7 +170,7 @@
     <div class="flex items-start justify-between gap-[16px] border-b border-[#eef1f5] px-[32px] pt-[28px] pb-[20px]">
       <div class="flex flex-col gap-[6px]">
         <h2 id="terms-doc-title" data-terms-doc-title class="text-[24px] font-extrabold text-[#0f172a]">이용약관</h2>
-        <p class="text-[13px] font-medium text-[#94a3b8]">시연용 예시 약관입니다. 정식 서비스 전에 내용이 바뀔 수 있어요.</p>
+        <p class="text-[13px] font-medium text-[#64748b]">시연용 예시 약관입니다. 정식 서비스 전에 내용이 바뀔 수 있어요.</p>
       </div>
       <button type="button" data-modal-close aria-label="닫기"
               class="flex size-[40px] shrink-0 items-center justify-center rounded-[20px] bg-[#f1f5f9] transition-colors duration-150 hover:bg-[#e2e8f0]">
@@ -240,11 +240,11 @@
   <span class="relative flex">
     <input th:type="${type}" th:name="${name}" th:value="${value}" th:placeholder="${placeholder}"
            th:attr="aria-invalid=${error != null}" data-clear-error
-           class="h-[56px] w-full rounded-[10px] border bg-white px-[16px] font-normal text-[#0f172a] outline-none placeholder:text-[#94a3b8] focus:border-[#2563eb]"
+           class="h-[56px] w-full rounded-[10px] border bg-white px-[16px] font-normal text-[#0f172a] outline-none placeholder:text-[#64748b] focus:border-[#2563eb]"
            th:classappend="${(error != null ? 'border-[#dc2626] ' : 'border-[#e2e8f0] ') + (compact ? 'text-[16px]' : 'text-[18px]') + (type == 'password' ? ' pr-[52px]' : '')}">
     <!-- SCR-U-001 ②: 입력값은 그대로 두고 보기·숨김만 전환 -->
     <button th:if="${type == 'password'}" type="button" data-pw-toggle aria-label="비밀번호 보기" aria-pressed="false"
-            class="absolute inset-y-0 right-[8px] my-auto flex size-[40px] items-center justify-center rounded-[8px] text-[#94a3b8] hover:text-[#475569]">
+            class="absolute inset-y-0 right-[8px] my-auto flex size-[40px] items-center justify-center rounded-[8px] text-[#64748b] hover:text-[#0f172a]">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>
         <path data-pw-slash d="M3 3l18 18" style="display:none"/>
