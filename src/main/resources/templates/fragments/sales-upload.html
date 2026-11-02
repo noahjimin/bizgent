@@ -57,6 +57,7 @@
               <span class="f-semibold text-[13px] text-[#2563eb] underline">다른 파일 선택</span>
             </span>
           </label>
+          <p data-su-error role="alert" hidden class="f-medium -mt-[8px] text-[13px] text-[#ef4444]"></p>
           <button type="button" data-su-template class="flex w-full items-center justify-center gap-[6px]">
             <img alt="" th:src="@{/assets/9b8cd.svg}" class="size-[16px]">
             <span class="f-semibold text-[13px] text-[#2563eb] underline">양식 파일 내려받기</span>
@@ -70,7 +71,7 @@
             <p class="f-regular text-[15px] text-[#667085]">잠시만 기다려 주세요</p>
           </div>
           <label data-su-drop class="flex h-[296px] w-full cursor-pointer flex-col items-center justify-center gap-[12px] rounded-[16px] border-[1.5px] border-dashed border-[#b8c9e8] bg-[#fafcff] hover:bg-[#f5f8fe]">
-            <input type="file" accept="image/*" class="hidden" data-su-file="receipt">
+            <input type="file" accept=".jpg,.jpeg,.png" class="hidden" data-su-file="receipt">
             <span data-su-empty class="contents">
               <span class="flex size-[64px] items-center justify-center rounded-[16px] bg-[#eaf2ff]"><img alt="" th:src="@{/assets/ce93d.svg}" class="size-[32px]"></span>
               <span class="f-semibold text-[17px] text-[#172033]">영수증 사진을 끌어다 놓거나 클릭해서 선택하세요</span>
@@ -83,6 +84,7 @@
               <span class="f-semibold text-[13px] text-[#2563eb] underline">다른 파일 선택</span>
             </span>
           </label>
+          <p data-su-error role="alert" hidden class="f-medium mt-[12px] text-[13px] text-[#ef4444]"></p>
         </div>
 
         <div data-su-tab-panel="manual" hidden class="flex min-h-0 w-full flex-1 flex-col gap-[12px]">

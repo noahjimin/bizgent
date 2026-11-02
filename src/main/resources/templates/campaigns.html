@@ -52,9 +52,16 @@
     </div>
   </form>
 
-  <div th:if="${campaigns.isEmpty()}"
+  <div th:if="${campaigns.isEmpty() and !noCampaignYet}"
        class="f-regular flex h-[240px] w-full items-center justify-center rounded-[16px] border border-dashed border-[#d0d7e2] bg-white text-[14px] text-[#98a2b3]">
     조건에 맞는 캠페인이 없어요.
+  </div>
+  <!-- SCR-U-007 비고: 캠페인이 하나도 없을 때 첫 캠페인 안내 -->
+  <div th:if="${noCampaignYet}"
+       class="flex h-[240px] w-full flex-col items-center justify-center gap-[12px] rounded-[16px] border border-dashed border-[#bfd3f5] bg-white text-center">
+    <p class="f-bold text-[18px] text-[#172033]">아직 만든 캠페인이 없어요</p>
+    <p class="f-regular text-[14px] text-[#667085]">첫 캠페인을 만들어보세요. 목표만 고르면 AI가 기획부터 시안까지 만들어 드려요.</p>
+    <button type="button" data-new-campaign class="f-bold flex h-[42px] items-center rounded-[12px] bg-[#2563eb] px-[18px] text-[14px] text-white hover:bg-[#1d4ed8]">첫 캠페인 만들기</button>
   </div>
 
   <!-- 카드 보기 -->

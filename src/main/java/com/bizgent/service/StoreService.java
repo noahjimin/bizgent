@@ -29,6 +29,8 @@ public class StoreService {
         store.setStoreName(form.getStoreName().trim());
         store.setCategory(form.getCategory());
         store.setPhone(blankToNull(form.getPhone()));
+        String color = form.getBrandColor() == null ? "" : form.getBrandColor().trim();
+        store.setBrandColor(color.matches("#[0-9a-fA-F]{6}") ? color.toLowerCase() : null);
         store.setTargetCustomer(form.getTargetCustomer());
         store.setToneManner(form.getToneManner());
         store.setTargetDescription(blankToNull(form.getTargetDescription()));

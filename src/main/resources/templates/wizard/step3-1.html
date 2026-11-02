@@ -37,6 +37,9 @@
             <span data-channel-label class="f-semibold text-[15px] whitespace-nowrap" th:text="${ch}"></span>
           </button>
         </div>
+        <input name="customChannelName" th:value="${cs.customChannelName}" data-channel-name maxlength="20"
+               placeholder="기타 선택시 채널명을 입력해주세요 (예: 네이버 스마트플레이스)" aria-label="기타 채널명"
+               class="f-regular w-full rounded-[12px] border border-[#e5eaf1] bg-[#f7f9fc] px-[16px] py-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb] disabled:cursor-not-allowed">
         <input name="customChannelNote" th:value="${cs.customChannelNote}" data-channel-note
                placeholder="기타 선택시 예 : 캐주얼하고 유쾌한 분위기로 작성해주세요" aria-label="기타 채널 요청 사항"
                class="f-regular w-full rounded-[12px] border border-[#e5eaf1] bg-[#f7f9fc] px-[16px] py-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb] disabled:cursor-not-allowed">
@@ -114,11 +117,15 @@
       const label = btn.querySelector("[data-channel-label]");
       label.className = "f-semibold text-[15px] whitespace-nowrap " + (on ? "text-white" : full ? "text-[#98a2b3]" : "text-[#667085]");
     });
-    form.querySelector("[data-channel-note]").disabled = !channels.includes("기타");
+    const custom = channels.includes("기타");
+    const nameInput = form.querySelector("[data-channel-name]");
+    nameInput.disabled = !custom;
+    form.querySelector("[data-channel-note]").disabled = !custom;
 
     const imageOn = flag("imageOn").value === "true";
     const next = form.querySelector("[data-next-button]");
-    next.disabled = channels.length === 0;
+    // 기타 채널은 채널명이 있어야 넘어갈 수 있다.
+    next.disabled = channels.length === 0 || (custom && !nameInput.value.trim());
     form.querySelector("[data-next-label]").textContent = imageOn ? "다음: 이미지 설정" : "다음: 시안 비교";
     next.dataset.confirmTitle = imageOn ? "이미지 설정으로 넘어갈까요?" : "시안을 만들까요?";
     next.dataset.confirmBody = imageOn
@@ -166,6 +173,7 @@
     render();
   });
 
+  form.querySelector("[data-channel-name]").addEventListener("input", render);
   form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
   render();
 })();

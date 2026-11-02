@@ -36,6 +36,7 @@ public class PerformanceController {
         model.addAttribute("period", p);
         model.addAttribute("view", analysisService.analyze(p));
         model.addAttribute("openUpload", "open".equals(upload));
+        model.addAttribute("uploads", salesService.uploadHistory());
         model.addAttribute("productOptions", storeService.get().getProducts().stream()
                 .map(pr -> Map.of("id", pr.getProductId(), "name", pr.getProductName(), "price", pr.getPrice())).toList());
         return "performance";

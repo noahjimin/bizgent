@@ -80,7 +80,10 @@
           <th:block th:each="f, s : ${ { {'월 캠페인 이용 횟수 확대', null}, {'AI 기획 재분석: 원하는 방향을 적으면 AI가 다시 기획해줘요', '새 기능'}, {'AI 문구 대안 제안', null}, {'AI 이미지 수정', null}, {'참고 이미지로 더 정확한 이미지 생성', null} } }"><li th:replace="~{:: feature(${f[0]}, ${s.index < 1 ? '758e8.svg' : '02f42.svg'}, 'bg-[#ddf8f3]', ${f[1]})}"></li></th:block>
         </ul>
         <div class="min-h-px w-full flex-1"></div>
-        <button type="button" data-subscribe class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[16px] text-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">구독하기</button>
+        <form th:if="${me.free}" method="post" th:action="@{/subscription}" data-confirm="월 9,900원 구독 플랜으로 전환할까요? 시연 버전에서는 실제 결제가 이루어지지 않아요." data-confirm-label="구독하기">
+          <button type="submit" class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[16px] text-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">구독하기</button>
+        </form>
+        <button th:unless="${me.free}" type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#98a2b3]">현재 이용 중</button>
       </div>
     </div>
   </section>

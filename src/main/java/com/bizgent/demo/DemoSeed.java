@@ -3,9 +3,11 @@ package com.bizgent.demo;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.bizgent.domain.AiPlan;
 import com.bizgent.domain.Campaign;
@@ -17,6 +19,7 @@ import com.bizgent.domain.Plan;
 import com.bizgent.domain.Post;
 import com.bizgent.domain.Product;
 import com.bizgent.domain.Sale;
+import com.bizgent.domain.SalesUpload;
 import com.bizgent.domain.Store;
 
 /** 시연용 가상 매장·캠페인·매출 데이터 (프로토타입 seed.ts 이식) */
@@ -37,7 +40,7 @@ final class DemoSeed {
         Member member = new Member();
         member.setMemberId(1L);
         member.setMemberName("김사장");
-        member.setEmail("jieun@example.com");
+        member.setEmail(DemoSession.DEMO_EMAIL);
         member.setPlan(Plan.FREE);
         member.setCredits(12);
         member.setCampaignsUsedThisMonth(1);
@@ -47,6 +50,7 @@ final class DemoSeed {
         Store store = new Store();
         store.setStoreId(1L);
         store.setStoreName("모먼트 카페");
+        store.setBrandColor("#8b5e3c");
         store.setCategory("카페·디저트");
         store.setDescription("성수동 골목에서 제철 재료로 만든 음료와 디저트를 선보이는 작은 카페입니다.");
         store.setTargetCustomer("20대, 30대, 직장인");
@@ -61,6 +65,7 @@ final class DemoSeed {
 
         s.setCampaigns(new ArrayList<>(campaigns()));
         s.setSales(sales(store.getProducts()));
+        s.setSalesUploads(uploads(s.getSales()));
 
         LocalDateTime tomorrow = LocalDate.now().plusDays(1).atTime(10, 0);
         s.setNotifications(new ArrayList<>(List.of(new Notification(1L, 3L,
@@ -139,6 +144,24 @@ final class DemoSeed {
         c.getImage().setComposition(composition);
         c.setSelectedDraftKeys(new ArrayList<>(List.of("A")));
         return c;
+    }
+
+    /** 시드 매출을 주 단위·입력 방식별로 묶어 업로드 기록으로 만든다 (그 주 마지막 날 21시 업로드). */
+    private static List<SalesUpload> uploads(List<Sale> sales) {
+        LocalDate start = LocalDate.of(2025, 9, 1);
+        Map<String, Integer> counts = new TreeMap<>();
+        for (Sale sale : sales) {
+            long week = ChronoUnit.DAYS.between(start, sale.getSaleDate()) / 7;
+            counts.merge(week + ":" + sale.getSource(), 1, Integer::sum);
+        }
+        List<SalesUpload> uploads = new ArrayList<>();
+        long id = 1;
+        for (Map.Entry<String, Integer> e : counts.entrySet()) {
+            String[] key = e.getKey().split(":");
+            LocalDate last = start.plusDays(Long.parseLong(key[0]) * 7 + 6);
+            uploads.add(new SalesUpload(id++, last.atTime(21, 0), key[1], e.getValue()));
+        }
+        return uploads;
     }
 
     private record Lift(long productId, int from, int days, double factor) {

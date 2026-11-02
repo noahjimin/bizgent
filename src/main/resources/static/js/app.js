@@ -51,6 +51,7 @@
     const open = Array.from(document.querySelectorAll("[data-modal]")).filter((m) => !m.hidden && m.dataset.escape !== "off");
     if (open.length) BG.closeModal(open[open.length - 1]);
     closeSettingsMenu();
+    closeNotificationMenu();
   });
 
   /* ---------- 토스트 ---------- */
@@ -65,9 +66,9 @@
   };
 
   /* ---------- 구독 ---------- */
-  // 모든 "구독하기"·"플랜 업그레이드" 버튼의 단일 진입점. 결제 흐름이 생기면 여기만 바꾼다.
+  // 모든 "플랜 업그레이드" 버튼의 단일 진입점: 구독 관리 화면(SCR-U-010)으로 보낸다. 실제 전환은 그 화면의 구독하기 폼이 한다.
   BG.requestSubscribe = function () {
-    BG.toast("구독 기능은 곧 열릴 예정이에요");
+    location.href = "/subscription";
   };
 
   let hintTimer;
@@ -202,6 +203,56 @@
     else if (e.target.closest("[role=menuitem]") && menu.contains(e.target) && !e.target.closest("[data-settings-sub]")) toggleSubmenu(false);
   });
   window.addEventListener("resize", closeSettingsMenu);
+
+  /* ---------- 알림 목록 ---------- */
+  // 사이드바와 상단바의 알림 버튼이 같은 목록 하나를 공유한다.
+  const NOTIFICATION_W = 320;
+  let notificationAnchor = null;
+
+  function closeNotificationMenu() {
+    const menu = document.getElementById("notification-menu");
+    if (!menu) return;
+    menu.hidden = true;
+    notificationAnchor = null;
+  }
+
+  function openNotificationMenu(anchor) {
+    const menu = document.getElementById("notification-menu");
+    if (!menu) return;
+    if (notificationAnchor === anchor) return closeNotificationMenu();
+    notificationAnchor = anchor;
+    const r = anchor.getBoundingClientRect();
+    menu.style.top = menu.style.bottom = "";
+    if (anchor.dataset.notificationMenu === "above") {
+      menu.style.left = r.left + "px";
+      menu.style.bottom = window.innerHeight - r.top + 8 + "px";
+    } else {
+      menu.style.left = Math.max(8, r.right - NOTIFICATION_W) + "px";
+      menu.style.top = r.bottom + 8 + "px";
+    }
+    menu.hidden = false;
+  }
+
+  document.addEventListener("click", async (e) => {
+    const anchor = e.target.closest("[data-notification-menu]");
+    if (anchor) {
+      e.preventDefault();
+      openNotificationMenu(anchor);
+      return;
+    }
+    const menu = document.getElementById("notification-menu");
+    if (!menu || menu.hidden) return;
+    if (!menu.contains(e.target)) return closeNotificationMenu();
+    const item = e.target.closest("[data-notification-id]");
+    if (!item) return;
+    try {
+      await BG.postJson(`/api/notifications/${item.dataset.notificationId}/read`);
+      location.href = "/performance?upload=open";
+    } catch {
+      BG.toast("알림을 열지 못했어요. 다시 시도해 주세요");
+    }
+  });
+  window.addEventListener("resize", closeNotificationMenu);
 
   /* ---------- 선택 칩 ---------- */
   // <button data-chip aria-pressed="true|false"> 의 선택 모양을 바꾼다. (체크 아이콘은 [data-chip-check])

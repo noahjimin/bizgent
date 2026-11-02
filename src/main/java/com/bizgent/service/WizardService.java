@@ -102,7 +102,8 @@ public class WizardService {
         draft.setProductIds(ids);
         draft.setTargetCustomers(Tags.split(targetCustomers));
         draft.setToneManners(Tags.split(toneManners));
-        draft.setExtraNote(extraNote == null ? "" : extraNote.trim());
+        String note = extraNote == null ? "" : extraNote.trim();
+        draft.setExtraNote(note.length() > 300 ? note.substring(0, 300) : note);
         // 1단계가 바뀌면 AI 기획을 새로 만든다.
         AiPlan reset = new AiPlan();
         reset.setTargetCustomer(String.join(", ", draft.getTargetCustomers()));
@@ -112,7 +113,7 @@ public class WizardService {
 
     /** 3-1단계 콘텐츠 설정 저장. 채널 수는 무료 2개, 구독 3개까지 */
     public void saveContent(Campaign draft, List<String> channels, boolean hashtagOn, boolean captionOn,
-            boolean imageOn, String customChannelNote) {
+            boolean imageOn, String customChannelName, String customChannelNote) {
         int limit = session.getMember().isFree() ? 2 : 3;
         List<String> allowed = channels.stream().filter(CHANNELS::contains).distinct().limit(limit).toList();
         ContentSetting cs = draft.getContent();
@@ -120,7 +121,10 @@ public class WizardService {
         cs.setHashtagOn(hashtagOn);
         cs.setCaptionOn(captionOn);
         cs.setImageOn(imageOn);
-        cs.setCustomChannelNote(allowed.contains("기타") && customChannelNote != null ? customChannelNote.trim() : "");
+        boolean custom = allowed.contains("기타");
+        String name = custom && customChannelName != null ? customChannelName.trim() : "";
+        cs.setCustomChannelName(name.length() > 20 ? name.substring(0, 20) : name);
+        cs.setCustomChannelNote(custom && customChannelNote != null ? customChannelNote.trim() : "");
         // 채널이 바뀌면 시안을 새로 만든다.
         draft.setDrafts(new ArrayList<>());
         draft.setSelectedDraftKeys(new ArrayList<>());
@@ -164,7 +168,8 @@ public class WizardService {
         if (referenceImageUrl != null && !session.getMember().isFree()) {
             s.setReferenceImageUrl(referenceImageUrl);
         }
-        s.setExtraRequest(extraRequest == null ? "" : extraRequest.trim());
+        String extra = extraRequest == null ? "" : extraRequest.trim();
+        s.setExtraRequest(extra.length() > 300 ? extra.substring(0, 300) : extra);
         draft.setDrafts(new ArrayList<>());
         draft.setSelectedDraftKeys(new ArrayList<>());
         lock(draft, "3-2");

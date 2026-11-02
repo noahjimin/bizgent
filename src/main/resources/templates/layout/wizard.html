@@ -10,7 +10,7 @@
      th:with="showSummary=${step == '2' or step == '3-1' or step == '3-2' or step == '4'}">
   <header class="sticky top-0 z-20 flex h-[104px] shrink-0 items-center justify-between border-b border-[#e5eaf1] bg-white px-[40px]">
     <div class="flex h-[42px] w-[147px] items-center gap-[10px]">
-      <a th:href="@{/}" aria-label="캠페인 만들기 닫기" class="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-[#f7f9fc] hover:bg-[#eef1f5]">
+      <a th:href="@{/}" aria-label="캠페인 만들기 닫기" data-wizard-close class="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-[#f7f9fc] hover:bg-[#eef1f5]">
         <img alt="" th:src="@{/assets/ee41f.svg}" class="size-[20px]">
       </a>
       <a th:href="@{/}" class="flex items-center gap-[7px]">

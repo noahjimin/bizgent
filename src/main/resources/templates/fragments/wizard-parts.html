@@ -60,7 +60,7 @@
         <p class="f-bold w-full text-[12px] text-[#14b8a6]">콘텐츠 설정</p>
         <div class="f-medium flex w-full flex-col gap-[7px] text-[13px] leading-[21px] text-[#172033]">
           <p th:each="c, s : ${cs.channels}" class="w-full whitespace-pre-wrap"
-             th:text="|${@fmt.circled(s.index)} ${c}${c == '기타' and !#strings.isEmpty(cs.customChannelNote) ? ' · ' + cs.customChannelNote : ''}|"></p>
+             th:text="|${@fmt.circled(s.index)} ${c == '기타' and !#strings.isEmpty(cs.customChannelName) ? '기타(' + cs.customChannelName + ')' : c}${c == '기타' and !#strings.isEmpty(cs.customChannelNote) ? ' · ' + cs.customChannelNote : ''}|"></p>
         </div>
         <div class="flex w-full flex-col gap-[8px] border-t border-[#e5eaf1] pt-[12px]">
           <p class="f-regular w-full text-[12px] text-[#667085]">광고 이미지 사용</p>

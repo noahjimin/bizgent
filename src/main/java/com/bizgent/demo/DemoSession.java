@@ -12,6 +12,7 @@ import com.bizgent.domain.Campaign;
 import com.bizgent.domain.Member;
 import com.bizgent.domain.Notification;
 import com.bizgent.domain.Sale;
+import com.bizgent.domain.SalesUpload;
 import com.bizgent.domain.Store;
 
 import lombok.Getter;
@@ -27,6 +28,9 @@ import lombok.Setter;
 @SessionScope
 public class DemoSession implements Serializable {
 
+    /** 시연 계정 이메일. 회원 테이블이 없는 동안 '이미 가입된 이메일'로 본다. */
+    public static final String DEMO_EMAIL = "jieun@example.com";
+
     private boolean loggedIn;
     private boolean termsAgreed;
     /** 랜딩에서 누른 버튼: start / heroImage */
@@ -40,6 +44,7 @@ public class DemoSession implements Serializable {
     private Store store;
     private List<Campaign> campaigns = new ArrayList<>();
     private List<Sale> sales = new ArrayList<>();
+    private List<SalesUpload> salesUploads = new ArrayList<>();
     private List<Notification> notifications = new ArrayList<>();
 
     private final AtomicLong sequence = new AtomicLong(1000);

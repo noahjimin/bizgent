@@ -51,6 +51,15 @@ public class Fmt {
     }
 
     /** ①②③ */
+    /** 매출 입력 방식 라벨 */
+    public String inputType(String type) {
+        return switch (type == null ? "" : type) {
+            case "excel" -> "엑셀/CSV";
+            case "receipt" -> "영수증 사진";
+            default -> "직접 입력";
+        };
+    }
+
     public String circled(int index) {
         return index < 3 ? String.valueOf("①②③".charAt(index)) : String.valueOf(index + 1);
     }

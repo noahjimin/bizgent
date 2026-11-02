@@ -331,10 +331,22 @@
     if (state.receipt?.preview === preview) state.receipt.rows = rows;
     render();
   }
+  // 형식·용량 검사 (SCR-U-008-P01 ③⑧). 오류는 업로드 영역 아래에 표시한다.
+  const RULES = {
+    excel: { ext: /\.(xlsx|xls|csv)$/i, label: "xlsx, xls, csv 파일만 올릴 수 있어요" },
+    receipt: { ext: /\.(jpe?g|png)$/i, label: "jpg, png 사진만 올릴 수 있어요" },
+  };
+  function accept(kind, f) {
+    const message = !RULES[kind].ext.test(f.name) ? RULES[kind].label : f.size > 10 * 1024 * 1024 ? "10MB 이하 파일만 올릴 수 있어요" : "";
+    const error = $(`[data-su-tab-panel="${kind}"] [data-su-error]`);
+    error.textContent = message;
+    error.hidden = !message;
+    if (!message) (kind === "excel" ? onExcel : onReceipt)(f);
+  }
   $$("[data-su-file]").forEach((input) =>
     input.addEventListener("change", () => {
       const f = input.files[0];
-      if (f) (input.dataset.suFile === "excel" ? onExcel : onReceipt)(f);
+      if (f) accept(input.dataset.suFile, f);
       input.value = "";
     }));
   $$("[data-su-drop]").forEach((zone) => {
@@ -345,7 +357,7 @@
       e.preventDefault();
       zone.classList.remove("border-[#2563eb]", "bg-[#eff5ff]");
       const f = e.dataTransfer.files?.[0];
-      if (f) (input.dataset.suFile === "excel" ? onExcel : onReceipt)(f);
+      if (f) accept(input.dataset.suFile, f);
     });
   });
   $("[data-su-template]").addEventListener("click", () => {
@@ -423,6 +435,7 @@
   // 열 때마다 처음 단계부터
   modal.addEventListener("modal:open", () => {
     Object.assign(state, { step: 1, tab: "excel", file: null, receipt: null, manual: [], rows: [], rowsSource: "", busy: null, committed: 0, dirtyCommit: false });
+    $$("[data-su-error]").forEach((p) => (p.hidden = true));
     renderManual();
     render();
   });

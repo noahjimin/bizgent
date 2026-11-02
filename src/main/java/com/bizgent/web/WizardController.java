@@ -85,13 +85,14 @@ public class WizardController {
     @PostMapping("/campaigns/new/3-1")
     public String saveContent(@RequestParam(defaultValue = "") String channels,
             @RequestParam(defaultValue = "false") boolean hashtagOn, @RequestParam(defaultValue = "true") boolean captionOn,
-            @RequestParam(defaultValue = "false") boolean imageOn, @RequestParam(defaultValue = "") String customChannelNote) {
-        Campaign draft = requireDraft();
+            @RequestParam(defaultValue = "false") boolean imageOn, @RequestParam(defaultValue = "") String customChannelName,
+            @RequestParam(defaultValue = "") String customChannelNote) {
+        Campaign draft = requireDraft("3-1");
         List<String> list = Arrays.stream(channels.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
-        if (list.isEmpty()) {
+        if (list.isEmpty() || (list.contains("기타") && customChannelName.isBlank())) {
             return "redirect:/campaigns/new/3-1";
         }
-        wizardService.saveContent(draft, list, hashtagOn, captionOn, imageOn, customChannelNote);
+        wizardService.saveContent(draft, list, hashtagOn, captionOn, imageOn, customChannelName, customChannelNote);
         return "redirect:/campaigns/new/" + (draft.getContent().isImageOn() ? "3-2" : "4");
     }
 
@@ -102,7 +103,7 @@ public class WizardController {
             @RequestParam(defaultValue = "") String composition, @RequestParam(defaultValue = "") String mood,
             @RequestParam(defaultValue = "true") boolean brandColorOn, @RequestParam(defaultValue = "") String extraRequest,
             @RequestParam(required = false) MultipartFile referenceImageFile, HttpServletRequest request) {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("3-2");
         if (composition.isBlank() || mood.isBlank()) {
             return "redirect:/campaigns/new/3-2";
         }
@@ -120,7 +121,7 @@ public class WizardController {
     @PostMapping("/api/wizard/drafts")
     @ResponseBody
     public List<Draft> generateDrafts() {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("4");
         if (draft.getDrafts().isEmpty()) {
             draft.setDrafts(new ArrayList<>(aiService.generateDrafts(storeService.get(), draft)));
             draft.setSelectedDraftKeys(new ArrayList<>());
@@ -135,7 +136,7 @@ public class WizardController {
     @PostMapping("/api/wizard/drafts/{key}")
     @ResponseBody
     public Draft updateDraft(@PathVariable String key, @RequestBody DraftUpdate body) {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("4");
         return wizardService.updateDraft(draft, key, body.text(),
                 body.hashtags() == null ? List.of() : body.hashtags(), body.imageUrl());
     }
@@ -148,7 +149,7 @@ public class WizardController {
     @ResponseBody
     public List<String> alternatives(@PathVariable String key, @RequestBody TextRequest body) {
         requirePro();
-        Draft d = requireDraft().findDraft(key);
+        Draft d = requireDraft("4").findDraft(key);
         Draft current = new Draft(d.getKey(), d.getChannel(), body.text(), d.getHashtags(), d.getImageUrl());
         return aiService.suggestCopyAlternatives(storeService.get(), current);
     }
@@ -161,13 +162,13 @@ public class WizardController {
     @ResponseBody
     public AiService.EditedImage editImage(@PathVariable String key, @RequestBody ImageEditRequest body) {
         requirePro();
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("4");
         return aiService.editImage(body.imageUrl(), body.instruction(), draft.getImage().getMood());
     }
 
     @PostMapping("/campaigns/new/4")
     public String saveSelection(@RequestParam(defaultValue = "") String selectedKeys) {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("4");
         boolean ok = wizardService.saveSelection(draft, Arrays.stream(selectedKeys.split(",")).map(String::trim).toList());
         return "redirect:/campaigns/new/" + (ok ? "5" : "4");
     }
@@ -177,7 +178,7 @@ public class WizardController {
     @PostMapping("/api/wizard/publish")
     @ResponseBody
     public Map<String, Long> publish() {
-        Campaign campaign = wizardService.publish(requireDraft());
+        Campaign campaign = wizardService.publish(requireDraft("5"));
         return Map.of("campaignId", campaign.getCampaignId());
     }
 
@@ -213,12 +214,18 @@ public class WizardController {
     public String saveGoal(@RequestParam(defaultValue = "") String goalOption,
             @RequestParam(defaultValue = "") String customGoal, @RequestParam(defaultValue = "") String productIds,
             @RequestParam(defaultValue = "") String newMenuNames, @RequestParam(defaultValue = "") String targetCustomers,
-            @RequestParam(defaultValue = "") String toneManners, @RequestParam(defaultValue = "") String extraNote) {
+            @RequestParam(defaultValue = "") String toneManners, @RequestParam(defaultValue = "") String extraNote,
+            @RequestParam(defaultValue = "false") boolean exit) {
         Campaign draft = requireDraft();
         List<Long> ids = Arrays.stream(productIds.split(",")).map(String::trim).filter(s -> !s.isEmpty())
                 .map(Long::valueOf).toList();
         List<String> newMenus = Arrays.stream(newMenuNames.split("\\|")).toList();
         wizardService.saveGoal(draft, goalOption, customGoal, ids, newMenus, targetCustomers, toneManners, extraNote);
+        // SCR-U-004-1 ⑧: ✕로 나가면 입력값만 작성 중 상태로 저장하고 1단계는 잠그지 않는다.
+        if (exit) {
+            draft.setLockedStep(null);
+            return "redirect:/";
+        }
         if (draft.getGoal().isEmpty() || draft.getProductIds().isEmpty()) {
             draft.setLockedStep(null);
             return "redirect:/campaigns/new/1";
@@ -232,7 +239,7 @@ public class WizardController {
     @PostMapping("/api/wizard/plan")
     @ResponseBody
     public AiPlan generatePlan() {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("2");
         if (draft.getPlan().isEmpty()) {
             draft.setPlan(aiService.generatePlan(storeService.get(), draft));
             wizardService.touch(draft);
@@ -247,7 +254,7 @@ public class WizardController {
     @PostMapping("/api/wizard/plan/reanalyze")
     @ResponseBody
     public AiPlan reanalyzePlan(@RequestBody ReanalyzeRequest request) {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("2");
         if (memberService.current().isFree()) {
             throw new ForbiddenException("구독 플랜에서 사용할 수 있어요");
         }
@@ -261,7 +268,7 @@ public class WizardController {
     public String savePlan(@RequestParam(defaultValue = "") String ageGroup,
             @RequestParam(defaultValue = "") String targetCustomer, @RequestParam(defaultValue = "") String strategy,
             @RequestParam(defaultValue = "") String tones, @RequestParam(defaultValue = "") String channels) {
-        Campaign draft = requireDraft();
+        Campaign draft = requireDraft("2");
         AiPlan plan = draft.getPlan();
         if (plan.isEmpty()) {
             return "redirect:/campaigns/new/2";
@@ -281,6 +288,15 @@ public class WizardController {
         if (memberService.current().isFree()) {
             throw new ForbiddenException("구독 플랜에서 사용할 수 있어요");
         }
+    }
+
+    /** 앞 단계를 마치지 않은 캠페인에는 이 단계의 요청을 받지 않는다 (화면을 거치지 않은 API 호출 방지). */
+    private Campaign requireDraft(String step) {
+        Campaign draft = requireDraft();
+        if (Campaign.STEPS.indexOf(draft.getResumeStep()) < Campaign.STEPS.indexOf(step)) {
+            throw new ForbiddenException("이전 단계를 먼저 완료해 주세요");
+        }
+        return draft;
     }
 
     private Campaign requireDraft() {

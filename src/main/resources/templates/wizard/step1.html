@@ -76,8 +76,9 @@
 
       <section class="flex w-full flex-col gap-[12px]">
         <h2 class="f-bold text-[20px] text-[#172033]">추가로 전달하고 싶은 내용이 있다면 적어주세요 (선택)</h2>
-        <textarea name="extraNote" th:text="${draft.extraNote}" placeholder="예: 20-30대 여성 고객을 타겟으로 하고 싶어요" aria-label="추가 내용 입력"
+        <textarea name="extraNote" maxlength="300" th:text="${draft.extraNote}" oninput="this.nextElementSibling.textContent = this.value.length + '/300'" placeholder="예: 20-30대 여성 고객을 타겟으로 하고 싶어요" aria-label="추가 내용 입력"
                   class="f-regular h-[108px] w-full resize-none rounded-[14px] border border-[#d0d7e2] bg-white p-[18px] text-[17px] leading-[1.6] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+        <p class="f-regular -mt-[4px] w-full text-right text-[12px] text-[#98a2b3]" th:text="|${#strings.length(draft.extraNote)}/300|">0/300</p>
       </section>
     </div>
   </div>
@@ -261,6 +262,12 @@
   });
 
   form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
+  // ✕: 입력하던 내용을 작성 중 상태로 저장하고 홈으로 (SCR-U-004-1 ⑧)
+  document.querySelector("[data-wizard-close]").addEventListener("click", (e) => {
+    e.preventDefault();
+    form.insertAdjacentHTML("beforeend", '<input type="hidden" name="exit" value="true">');
+    form.submit();
+  });
   validate();
 })();
 </script>

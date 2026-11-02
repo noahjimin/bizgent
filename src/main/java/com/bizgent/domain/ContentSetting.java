@@ -15,5 +15,7 @@ public class ContentSetting {
     private boolean hashtagOn;
     private boolean imageOn;
     private boolean captionOn = true;
+    /** 기타 채널 이름 (SCR-U-005-1 ③) */
+    private String customChannelName = "";
     private String customChannelNote = "";
 }

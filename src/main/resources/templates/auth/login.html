@@ -24,7 +24,11 @@
   <div class="relative z-10 flex flex-col items-center gap-[32px]">
     <div th:replace="~{fragments/common :: entryBrand(true, true)}"></div>
     <form method="post" th:action="@{/login}" novalidate
-          class="flex w-[480px] flex-col gap-[28px] rounded-[24px] bg-white/97 p-[40px] shadow-[0px_12px_32px_rgba(15,23,42,0.05),0px_20px_60px_rgba(0,0,0,0.35)]">
+          class="relative flex w-[480px] flex-col gap-[28px] rounded-[24px] bg-white/97 p-[40px] shadow-[0px_12px_32px_rgba(15,23,42,0.05),0px_20px_60px_rgba(0,0,0,0.35)]">
+      <a th:href="@{/landing}" aria-label="닫기" data-login-close
+         class="absolute top-[20px] right-[20px] flex size-[40px] items-center justify-center rounded-[20px] bg-[#f1f5f9] transition-colors duration-150 hover:bg-[#e2e8f0]">
+        <img alt="" th:src="@{/assets/9c9d5.svg}" class="size-[16px]">
+      </a>
       <div class="text-center">
         <h2 class="text-[34px] leading-[36px] font-extrabold text-[#0f172a]">로그인</h2>
         <p class="mt-[8px] text-[18px] leading-[22px] font-medium text-[#64748b]">BizGent와 함께 매장 마케팅을 시작하세요</p>
@@ -42,5 +46,11 @@
 </div>
 <div th:replace="~{fragments/common :: hosts}"></div>
 <script th:replace="~{auth/signup :: clearErrorScript}"></script>
+<script>
+  // Esc도 ✕와 같이 랜딩으로 돌아간다.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.querySelector("[data-login-close]").click();
+  });
+</script>
 </body>
 </html>

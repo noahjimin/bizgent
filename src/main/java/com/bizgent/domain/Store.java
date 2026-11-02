@@ -24,6 +24,8 @@ public class Store {
     private String targetDescription;
     private String toneDescription;
     private String heroImageUrl;
+    /** 브랜드 색 #rrggbb (3-2단계 브랜드 컬러 반영). 화면설계서 SCR-U-003·ERD에 없는 팀 결정 추가 항목 */
+    private String brandColor;
     private List<Product> products = new ArrayList<>();
 
     public Product findProduct(Long productId) {

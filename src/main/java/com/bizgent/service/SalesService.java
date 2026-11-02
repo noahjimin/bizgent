@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bizgent.demo.DemoSession;
 import com.bizgent.domain.Product;
 import com.bizgent.domain.Sale;
+import com.bizgent.domain.SalesUpload;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +52,12 @@ public class SalesService {
         return sampleRows(6, List.of("딸기케잌"));
     }
 
+    /** 매출 업로드 기록, 최근 순 (SCR-U-008 ③ 자세히 보기) */
+    public List<SalesUpload> uploadHistory() {
+        return session.getSalesUploads().stream()
+                .sorted(Comparator.comparing(SalesUpload::uploadedAt).reversed()).toList();
+    }
+
     /** @return 반영한 건수 */
     public int commit(String source, List<ConfirmedRow> rows) {
         String inputType = switch (source == null ? "" : source) {
@@ -64,6 +73,9 @@ public class SalesService {
             session.getSales().add(new Sale(session.nextId(), LocalDate.parse(r.date()), product.getProductId(),
                     r.quantity(), r.amount(), inputType));
             count++;
+        }
+        if (count > 0) {
+            session.getSalesUploads().add(new SalesUpload(session.nextId(), LocalDateTime.now(), inputType, count));
         }
         return count;
     }

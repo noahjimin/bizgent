@@ -39,7 +39,7 @@
                   <span class="f-regular text-[12px] text-[#98a2b3]">권장 크기 1200 × 800</span>
                 </span>
               </span>
-              <input type="file" name="heroImageFile" accept="image/*" class="hidden" data-hero-file>
+              <input type="file" name="heroImageFile" accept=".jpg,.jpeg,.png,.gif,.webp" class="hidden" data-hero-file>
             </label>
             <input type="hidden" name="heroImageUrl" th:value="${store.heroImageUrl}" data-hero-url>
             <button type="button" data-modal-open="store-image-modal"
@@ -51,8 +51,9 @@
           <div class="flex min-w-[240px] flex-1 flex-col gap-[14px] px-[clamp(0px,8vw,125px)]">
             <label class="flex w-full flex-col gap-[8px]">
               <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">매장명</span>
-              <input name="storeName" th:value="${store.storeName}" placeholder="매장명을 입력해주세요" data-store-name
-                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+              <input name="storeName" th:value="${store.storeName}" placeholder="매장명을 입력해주세요" data-store-name aria-describedby="store-name-error"
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb] aria-[invalid=true]:border-[#ef4444]">
+              <p id="store-name-error" data-store-name-error hidden class="f-medium text-[13px] text-[#ef4444]">매장명을 입력해주세요</p>
             </label>
             <label class="flex w-full flex-col gap-[8px]">
               <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">업종</span>
@@ -71,6 +72,18 @@
               </span>
               <input name="phone" th:value="${store.phone}" placeholder="연락처를 입력해주세요" inputmode="tel"
                      class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+            </label>
+            <!-- 3-2단계 '우리 브랜드 컬러 반영하기'에 쓰는 색 -->
+            <label class="flex w-full flex-col gap-[8px]">
+              <span class="flex items-center gap-[6px]">
+                <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">브랜드 색</span>
+                <span class="f-regular text-[12px] text-[#98a2b3]">광고 이미지에 반영돼요</span>
+              </span>
+              <span class="flex items-center gap-[10px]">
+                <input type="color" name="brandColor" th:value="${store.brandColor != null ? store.brandColor : '#2563eb'}" aria-label="브랜드 색 선택"
+                       class="h-[46px] w-[64px] cursor-pointer rounded-[12px] border border-[#d5dce7] bg-white p-[4px]">
+                <span class="f-regular text-[13px] text-[#667085]">로고나 매장 간판의 대표 색을 골라 주세요</span>
+              </span>
             </label>
           </div>
         </div>
@@ -145,7 +158,7 @@
         </span>
         <span class="f-semibold text-[12px] text-[#667085]">사진 업로드</span>
       </span>
-      <input type="file" accept="image/*" class="hidden" data-field="imageFile" data-menu-file>
+      <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" class="hidden" data-field="imageFile" data-menu-file>
     </label>
     <div class="flex min-w-0 flex-1 flex-col gap-[14px]">
       <div class="flex w-full items-start gap-[14px]">
@@ -257,8 +270,10 @@
         </div>
         <div class="flex w-full flex-col gap-[10px]">
           <p class="f-semibold text-[14px] text-[#172033]">추가 요청 (선택)</p>
-          <textarea data-si-extra placeholder="예: 창가 자리에 햇살이 들어오는 느낌"
+          <textarea data-si-extra maxlength="300" placeholder="예: 창가 자리에 햇살이 들어오는 느낌" aria-label="추가 요청 내용"
+                    oninput="this.nextElementSibling.textContent = this.value.length + '/300'"
                     class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+          <p class="f-regular w-full text-right text-[12px] text-[#98a2b3]">0/300</p>
         </div>
       </div>
 
@@ -317,9 +332,26 @@
   const readFile = (file) => new Promise((resolve) => { const r = new FileReader(); r.onload = () => resolve(r.result); r.readAsDataURL(file); });
   const showPreview = (img, empty, src) => { img.src = src; img.hidden = !src; empty.hidden = !!src; };
 
+  // 사진 형식·용량 검사 (SCR-U-003 ④). 기준은 서버 FileStorage 확장자와 application.yml 업로드 한도와 같게 유지한다.
+  const PHOTO_EXT = /\.(jpe?g|png|gif|webp)$/i;
+  const MB = 1024 * 1024;
+  const checkPhoto = (input) => {
+    const f = input.files[0];
+    if (!f) return null;
+    const message = !PHOTO_EXT.test(f.name) ? "JPG, PNG, GIF, WEBP 사진만 올릴 수 있어요"
+      : f.size > 10 * MB ? "10MB 이하 사진만 올릴 수 있어요" : "";
+    if (!message) return (input.okFile = f);
+    BG.toast(message);
+    // 잘못 고른 파일은 버리고, 썸네일과 맞도록 직전에 고른 사진을 되돌린다.
+    const dt = new DataTransfer();
+    if (input.okFile) dt.items.add(input.okFile);
+    input.files = dt.files;
+    return null;
+  };
+
   /* ---------- 기본 정보 ---------- */
   form.querySelector("[data-hero-file]").addEventListener("change", async (e) => {
-    const f = e.target.files[0];
+    const f = checkPhoto(e.target);
     if (f) showPreview(form.querySelector("[data-hero-preview]"), form.querySelector("[data-hero-empty]"), await readFile(f));
   });
 
@@ -340,7 +372,7 @@
   });
   list.addEventListener("change", async (e) => {
     if (!e.target.matches("[data-menu-file]")) return;
-    const f = e.target.files[0];
+    const f = checkPhoto(e.target);
     if (!f) return;
     const card = e.target.closest("[data-menu-card]");
     showPreview(card.querySelector("[data-menu-preview]"), card.querySelector("[data-menu-empty]"), await readFile(f));
@@ -395,7 +427,28 @@
   /* ---------- 저장 / 취소 / 나가기 확인 ---------- */
   form.addEventListener("input", markDirty);
   form.addEventListener("change", markDirty);
-  form.addEventListener("submit", () => {
+  // 매장명 필수값 검사 (SCR-U-003 ③)
+  const nameInput = form.querySelector("[data-store-name]");
+  const nameError = form.querySelector("[data-store-name-error]");
+  const setNameError = (on) => {
+    nameInput.setAttribute("aria-invalid", String(on));
+    nameError.hidden = !on;
+  };
+  nameInput.addEventListener("input", () => { if (nameInput.value.trim()) setNameError(false); });
+  form.addEventListener("submit", (e) => {
+    if (!nameInput.value.trim()) {
+      e.preventDefault();
+      setNameError(true);
+      nameInput.scrollIntoView({ block: "center", behavior: "smooth" });
+      nameInput.focus({ preventScroll: true });
+      return;
+    }
+    const total = Array.from(form.querySelectorAll('input[type="file"]')).reduce((sum, i) => sum + (i.files[0]?.size || 0), 0);
+    if (total > 20 * MB) {
+      e.preventDefault();
+      BG.toast("사진 전체 용량은 20MB 이하여야 해요");
+      return;
+    }
     // 상품 카드 입력에 products[i].필드 이름을 붙인다.
     list.querySelectorAll("[data-menu-card]").forEach((card, i) =>
       card.querySelectorAll("[data-field]").forEach((el) => (el.name = `products[${i}].${el.dataset.field}`)));

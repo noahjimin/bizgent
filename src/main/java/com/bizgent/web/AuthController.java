@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bizgent.service.MemberService;
 
@@ -44,6 +45,7 @@ public class AuthController {
             Model model) {
         Map<String, String> errors = new LinkedHashMap<>();
         if (email.isBlank()) errors.put("email", "이메일을 입력해주세요");
+        else if (!MemberService.isValidEmail(email)) errors.put("email", "이메일 형식을 확인해주세요");
         if (password.isBlank()) errors.put("password", "비밀번호를 입력해주세요");
         if (!errors.isEmpty()) {
             model.addAttribute("errors", errors);
@@ -65,6 +67,8 @@ public class AuthController {
             Model model) {
         Map<String, String> errors = new LinkedHashMap<>();
         if (email.isBlank()) errors.put("email", "이메일을 입력해주세요");
+        else if (!MemberService.isValidEmail(email)) errors.put("email", "이메일 형식을 확인해주세요");
+        else if (memberService.isRegistered(email)) errors.put("email", "이미 가입된 이메일입니다");
         if (password.isEmpty()) errors.put("password", "비밀번호를 입력해주세요");
         if (passwordCheck.isEmpty()) errors.put("passwordCheck", "비밀번호 확인을 입력해주세요");
         else if (!password.equals(passwordCheck)) errors.put("passwordCheck", "비밀번호가 일치하지 않습니다");
@@ -82,6 +86,14 @@ public class AuthController {
     @PostMapping("/logout")
     public String logout() {
         memberService.logout();
+        return "redirect:/landing";
+    }
+
+    /** 회원 탈퇴 (SCR-U-COM 비고: 확인 팝업 후 처리) */
+    @PostMapping("/account/withdraw")
+    public String withdraw(RedirectAttributes redirect) {
+        memberService.withdraw();
+        redirect.addFlashAttribute("toast", "탈퇴가 완료되었어요");
         return "redirect:/landing";
     }
 }

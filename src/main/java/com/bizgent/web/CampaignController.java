@@ -26,6 +26,7 @@ public class CampaignController {
             @RequestParam(defaultValue = "newest") String sort, @RequestParam(defaultValue = "grid") String view,
             @RequestParam(required = false) Long campaign, Model model) {
         model.addAttribute("campaigns", campaignService.search(q, status, sort));
+        model.addAttribute("noCampaignYet", campaignService.findAll().isEmpty());
         model.addAttribute("q", q);
         model.addAttribute("status", status);
         model.addAttribute("sort", sort);

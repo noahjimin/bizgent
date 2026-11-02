@@ -69,8 +69,9 @@ public class CampaignService {
         if (prefill != null && !prefill.isEmpty()) {
             String goal = prefill.goal() == null ? "" : prefill.goal();
             campaign.setGoalOption(goal);
-            campaign.setGoal(goal);
-            if (!goal.isEmpty()) {
+            // '기타 (직접 입력)'은 선택만 해 두고 목표 문구는 1단계에서 직접 입력받는다.
+            if (!goal.isEmpty() && !CUSTOM_GOAL.equals(goal)) {
+                campaign.setGoal(goal);
                 campaign.setTitle(goal);
             }
             if (prefill.productId() != null) {

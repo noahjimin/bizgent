@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- 랜딩 (SCR-U-000): 히어로, AI 제작 예시 갤러리, 푸터 -->
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<!-- 랜딩 (SCR-U-000): 히어로, AI 제작 예시 갤러리, 요금제, 푸터와 푸터 안내 팝업 -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko" class="scroll-smooth motion-reduce:scroll-auto">
 <head th:replace="~{fragments/common :: head('AI 마케팅 에이전트')}"></head>
 <body>
 <div class="pd-scope relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#2563eb_0%,#1a8cd9_15%,#14b8a6_45%,#8ce0d9_70%,#d9f2f2_85%,#f5fafc_100%)]">
@@ -8,7 +8,7 @@
     <div th:replace="~{fragments/common :: entryBrand(true, false)}"></div>
     <nav class="flex items-center gap-[32px] text-[15px] font-medium text-white">
       <a href="#showcase" class="nav-link">기능 소개</a>
-      <button type="button" class="nav-link">요금제</button>
+      <a href="#pricing" class="nav-link">요금제</a>
       <button type="button" data-open-terms="start"
               class="btn-outline h-[44px] rounded-[12px] border border-white px-[20px] text-[15px] font-semibold">무료로 시작하기</button>
     </nav>
@@ -44,8 +44,6 @@
       <div class="mt-[28px] flex items-center gap-[12px]">
         <button type="button" data-open-terms="start"
                 class="btn-primary h-[44px] rounded-full bg-[#2563eb] px-[24px] text-[15px] font-semibold text-white shadow-[0px_10px_24px_0px_rgba(37,99,235,0.2)]">무료로 시작하기</button>
-        <button type="button" data-showcase-next
-                class="btn-outline h-[44px] rounded-full border border-[#d0d7e2] bg-white px-[24px] text-[15px] font-semibold text-[#172033]">예시 더 보기</button>
       </div>
     </div>
 
@@ -82,26 +80,80 @@
         </div>
       </div>
       <div class="pointer-events-none absolute inset-y-0 right-0 w-[160px] bg-gradient-to-l from-white to-transparent"></div>
-      <button type="button" data-showcase-next aria-label="예시 더 보기"
+      <button type="button" data-showcase-next aria-label="다음 예시"
               class="absolute top-1/2 right-[40px] z-30 flex size-[52px] -translate-y-1/2 items-center justify-center carousel-arrow rounded-full border border-[#e5eaf1] bg-white/90 shadow-[0px_10px_24px_0px_rgba(16,24,40,0.12)]">
         <img alt="" th:src="@{/assets/5ad06.svg}" class="size-[20px]">
       </button>
     </div>
   </section>
 
-  <footer class="border-t border-[#e5eaf1] bg-[#f7f9fc]">
+  <!-- 요금제: 구독 관리 화면(SCR-U-010)의 플랜 카드와 같은 내용 -->
+  <section id="pricing" aria-labelledby="pricing-title" class="border-t border-[#eef1f5] bg-[#f7f9fc] py-[96px]">
+    <div class="mx-auto flex max-w-[960px] flex-col items-center px-[24px] text-center">
+      <span class="font-semibold rounded-full bg-[#eaf2ff] px-[12px] py-[6px] text-[13px] text-[#2563eb]">요금제</span>
+      <h2 id="pricing-title" class="font-bold mt-[14px] text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
+        무료로 시작하고, 필요할 때 구독하세요
+      </h2>
+      <p class="font-normal mt-[12px] text-[16px] leading-[1.6] text-[#667085]">
+        직접 하는 작업은 무료, AI를 더 많이 쓰고 싶을 때만 구독하면 돼요.
+      </p>
+
+      <div class="mt-[40px] grid w-full grid-cols-2 gap-[20px] text-left">
+        <div class="flex flex-col gap-[20px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <h3 class="font-bold text-[20px] text-[#172033]">무료 플랜</h3>
+          <p class="font-bold text-[32px] text-[#172033]">0원</p>
+          <div class="h-px w-full bg-[#eef1f5]"></div>
+          <ul class="flex flex-col gap-[14px]">
+            <li th:each="f : ${ {'월 3회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 2개 선택'} }"
+                class="flex items-center gap-[10px]">
+              <span class="flex size-[24px] shrink-0 items-center justify-center rounded-full bg-[#eaf2ff]"><img alt="" th:src="@{/assets/443d1.svg}" class="size-[13px]"></span>
+              <span class="font-medium text-[15px] text-[#172033]" th:text="${f}"></span>
+            </li>
+          </ul>
+        </div>
+        <div class="relative flex flex-col gap-[20px] overflow-hidden rounded-[20px] border-2 border-[#2563eb] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+          <div class="absolute top-0 right-0 left-0 h-[6px] bg-[linear-gradient(90deg,#2563eb_25%,#14b8a6_75%)]" aria-hidden="true"></div>
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-[20px] text-[#172033]">구독 플랜</h3>
+            <span class="font-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] text-[#0f8f82]">추천</span>
+          </div>
+          <p class="font-bold text-[32px] text-[#172033]">월 9,900원</p>
+          <div class="h-px w-full bg-[#dcebff]"></div>
+          <ul class="flex flex-col gap-[14px]">
+            <li th:each="f : ${ {'월 캠페인 이용 횟수 확대', 'AI 기획 재분석', 'AI 문구 대안 제안', 'AI 이미지 수정', '참고 이미지로 더 정확한 이미지 생성'} }"
+                class="flex items-center gap-[10px]">
+              <span class="flex size-[24px] shrink-0 items-center justify-center rounded-full bg-[#ddf8f3]"><img alt="" th:src="@{/assets/02f42.svg}" class="size-[13px]"></span>
+              <span class="font-medium text-[15px] text-[#172033]" th:text="${f}"></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <button type="button" data-open-terms="start"
+              class="btn-primary mt-[32px] h-[48px] rounded-full bg-[#2563eb] px-[28px] text-[16px] font-semibold text-white shadow-[0px_10px_24px_0px_rgba(37,99,235,0.2)]">무료로 시작하기</button>
+      <p class="font-normal mt-[14px] text-[13px] text-[#98a2b3]">가입 후 구독 관리 화면에서 언제든 플랜을 바꿀 수 있어요. 시연 버전에서는 실제 결제가 이루어지지 않아요.</p>
+    </div>
+  </section>
+
+  <footer class="border-t border-[#e5eaf1] bg-white">
     <div class="mx-auto flex max-w-[1200px] justify-between gap-[48px] px-[24px] pt-[64px] pb-[48px]">
       <div class="flex max-w-[320px] flex-col gap-[14px]">
         <div th:replace="~{fragments/common :: entryBrand(false, false)}"></div>
         <p class="font-normal text-[14px] leading-[1.6] text-[#667085]">소상공인을 위한 AI 마케팅 에이전트</p>
       </div>
+      <!-- 링크: {이름, 스크롤할 위치, 열 팝업 id} 중 하나 -->
       <nav aria-label="사이트 링크" class="flex gap-[80px]">
-        <div th:each="col : ${ { {'서비스', '기능 소개', 'AI 캠페인 기획', '매출 분석', '요금제'}, {'고객지원', '도움말', '자주 묻는 질문', '문의하기'}, {'회사', '팀 사계절 소개', '공지사항'} } }"
+        <div th:each="col : ${ {
+               {'서비스', { {'기능 소개', '#showcase', ''}, {'AI 캠페인 기획', '', 'info-campaign'}, {'매출 분석', '', 'info-sales'}, {'요금제', '#pricing', ''} } },
+               {'고객지원', { {'도움말', '', 'info-help'}, {'자주 묻는 질문', '', 'info-faq'}, {'문의하기', '', 'info-contact'} } },
+               {'회사', { {'팀 사계절 소개', '', 'info-team'}, {'공지사항', '', 'info-notice'} } }
+             } }"
              class="flex min-w-[120px] flex-col gap-[14px]">
           <p class="font-medium text-[14px] text-[#172033]" th:text="${col[0]}">서비스</p>
           <ul class="flex flex-col gap-[10px]">
-            <li th:each="link, s : ${col}" th:unless="${s.first}">
-              <a href="#" class="link-hover font-normal text-[14px] text-[#667085]" th:text="${link}">링크</a>
+            <li th:each="link : ${col[1]}">
+              <a th:href="${link[1] == '' ? '#' : link[1]}" th:attr="data-modal-open=${link[2] == '' ? null : link[2]}"
+                 class="link-hover font-normal text-[14px] text-[#667085]" th:text="${link[0]}">링크</a>
             </li>
           </ul>
         </div>
@@ -112,19 +164,235 @@
         <p class="font-medium text-[#667085]">
           <a href="#" data-open-terms="start" class="link-hover">이용약관</a>
           <span class="mx-[8px] text-[#d0d7e2]">·</span>
-          <a href="#" class="link-hover font-medium text-[#172033]">개인정보처리방침</a>
+          <a href="#" data-terms-doc="privacy" class="link-hover font-medium text-[#172033]">개인정보처리방침</a>
         </p>
         <p class="font-normal text-[#98a2b3]">© 2026 BizGent · 팀 사계절 (한남대학교 캡스톤디자인)</p>
       </div>
     </div>
   </footer>
 
+  <!-- 푸터 안내 팝업 (SCR-U-000 ⑧) -->
+  <div id="info-campaign" th:replace="~{:: infoModal('info-campaign', '서비스', 'AI 캠페인 기획', '목표만 고르면 AI가 기획부터 게시물 시안까지 만들어요.', ~{:: #info-campaign-body})}"></div>
+  <div id="info-sales" th:replace="~{:: infoModal('info-sales', '서비스', '매출 분석', '게시 후 매출 데이터를 올리면 캠페인 효과를 분석하고 다음 캠페인 방향을 제안해요.', ~{:: #info-sales-body})}"></div>
+  <div id="info-help" th:replace="~{:: infoModal('info-help', '고객지원', '도움말', '처음 사용하신다면 이 순서대로 시작해 보세요.', ~{:: #info-help-body})}"></div>
+  <div id="info-faq" th:replace="~{:: infoModal('info-faq', '고객지원', '자주 묻는 질문', '궁금한 질문을 누르면 답변이 열려요.', ~{:: #info-faq-body})}"></div>
+  <div id="info-contact" th:replace="~{:: infoModal('info-contact', '고객지원', '문의하기', '궁금한 점이나 불편한 점을 남겨 주세요.', ~{:: #info-contact-body})}"></div>
+  <div id="info-team" th:replace="~{:: infoModal('info-team', '회사', '팀 사계절 소개', '한남대학교 정보시스템 캡스톤디자인 프로젝트로 BizGent를 만들고 있어요.', ~{:: #info-team-body})}"></div>
+  <div id="info-notice" th:replace="~{:: infoModal('info-notice', '회사', '공지사항', 'BizGent 소식을 알려 드려요.', ~{:: #info-notice-body})}"></div>
+
   <div th:replace="~{fragments/auth-parts :: termsModal('/login', false, null)}"></div>
+  <div th:replace="~{fragments/auth-parts :: termsDocModal}"></div>
 </div>
 <div th:replace="~{fragments/common :: hosts}"></div>
 <script>
   document.querySelectorAll("[data-showcase-next]").forEach((btn) =>
     btn.addEventListener("click", () => document.querySelector("[data-showcase]").scrollBy({ left: 640, behavior: "smooth" })));
+
+  // 안내 팝업 안의 '무료로 시작하기'는 팝업을 닫고 약관 동의로 넘어간다.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-open-terms]");
+    const info = btn && btn.closest("[data-info-modal]");
+    if (info) BG.closeModal(info);
+  });
+
+  // 문의하기: 목업 단계라 실제로 보내지 않고 접수 안내만 띄운다.
+  (function () {
+    const form = document.querySelector("[data-contact-form]");
+    const error = form.querySelector("[data-contact-error]");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const f = form.elements;
+      const name = f.name.value.trim();
+      const email = f.email.value.trim();
+      const content = f.content.value.trim();
+      let message = "";
+      if (!name || !email || !f.type.value || !content) message = "모든 항목을 입력해 주세요.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) message = "이메일 형식을 확인해 주세요.";
+      error.textContent = message;
+      error.hidden = !message;
+      if (message) return;
+      form.reset();
+      BG.closeModal("info-contact");
+      BG.toast("문의가 접수되었어요");
+    });
+    document.getElementById("info-contact").addEventListener("modal:close", () => (error.hidden = true));
+  })();
 </script>
+
+<!-- ===== 아래는 화면에 직접 나오지 않는 조각 ===== -->
+<th:block th:remove="all">
+
+<!-- 안내 팝업 틀: id, 분류, 제목, 설명, 본문 -->
+<div th:fragment="infoModal(id, category, title, desc, body)" th:id="${id}" data-modal data-info-modal data-backdrop-close role="presentation" hidden
+     class="pd-scope fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] p-[24px] backdrop-blur-[8px]">
+  <section role="dialog" aria-modal="true" th:attr="aria-labelledby=${id + '-title'}"
+           class="relative flex max-h-full w-[720px] flex-col gap-[24px] overflow-y-auto rounded-[24px] bg-white p-[36px] text-left shadow-[0px_24px_48px_0px_rgba(15,23,42,0.25)]">
+    <button type="button" data-modal-close aria-label="닫기"
+            class="absolute top-[24px] right-[24px] flex size-[40px] items-center justify-center rounded-[20px] bg-[#f1f5f9] transition-colors duration-150 hover:bg-[#e2e8f0]">
+      <img alt="" th:src="@{/assets/9c9d5.svg}" class="size-[16px]">
+    </button>
+    <div class="flex flex-col gap-[8px] pr-[48px]">
+      <span class="font-semibold w-fit rounded-full bg-[#eaf2ff] px-[10px] py-[4px] text-[12px] text-[#2563eb]" th:text="${category}">분류</span>
+      <h2 th:id="${id + '-title'}" class="font-bold text-[26px] text-[#172033]" th:text="${title}">제목</h2>
+      <p class="font-normal text-[15px] leading-[1.6] text-[#667085]" th:text="${desc}">설명</p>
+    </div>
+    <th:block th:replace="${body}"></th:block>
+  </section>
+</div>
+
+<!-- AI 캠페인 기획: 캠페인 생성 5단계 -->
+<div id="info-campaign-body" class="flex flex-col gap-[24px]">
+  <ol class="grid grid-cols-5 gap-[8px]">
+    <li th:each="s, st : ${ {
+          {'목표 설정', '홍보 목표와 대상 메뉴를 골라요'},
+          {'AI 기획', 'AI가 타겟 고객과 홍보 방향을 분석해요'},
+          {'콘텐츠·이미지 설정', '채널과 문구·이미지 옵션을 정해요'},
+          {'시안 비교', 'A/B 2종 시안을 비교하고 골라요'},
+          {'게시', '고른 시안을 채널에 올려요'}
+        } }" class="relative flex flex-col items-center gap-[10px] text-center">
+      <span class="font-bold relative z-10 flex size-[44px] items-center justify-center rounded-full bg-[#2563eb] text-[16px] text-white shadow-[0_8px_18px_rgba(37,99,235,0.25)]" th:text="${st.count}">1</span>
+      <span th:unless="${st.last}" class="absolute top-[22px] left-[calc(50%+26px)] h-[2px] w-[calc(100%-44px)] bg-[#bfdbfe]" aria-hidden="true"></span>
+      <span class="font-bold text-[15px] text-[#172033]" th:text="${s[0]}"></span>
+      <span class="font-normal text-[13px] leading-[1.5] text-[#667085]" th:text="${s[1]}"></span>
+    </li>
+  </ol>
+  <button type="button" data-open-terms="start"
+          class="btn-primary h-[48px] w-fit self-center rounded-full bg-[#2563eb] px-[28px] text-[16px] font-semibold text-white shadow-[0px_10px_24px_0px_rgba(37,99,235,0.2)]">무료로 시작하기</button>
+</div>
+
+<!-- 매출 분석: 업로드 3방식 → 성과분석 → AI 개선 방향 -->
+<div id="info-sales-body" class="flex flex-col gap-[24px]">
+  <div class="flex items-stretch gap-[12px]">
+    <div class="grid flex-1 grid-cols-3 gap-[8px]">
+      <div th:each="m : ${ { {'엑셀/CSV', '판매 내역 파일 올리기'}, {'영수증 사진', '사진으로 찍어 올리기'}, {'직접 입력', '날짜·메뉴별로 입력'} } }"
+           class="flex flex-col gap-[4px] rounded-[14px] border border-[#e5eaf1] bg-[#f8fafc] p-[14px]">
+        <span class="font-bold text-[14px] text-[#172033]" th:text="${m[0]}"></span>
+        <span class="font-normal text-[12px] leading-[1.5] text-[#667085]" th:text="${m[1]}"></span>
+      </div>
+    </div>
+    <span class="font-bold flex items-center text-[20px] text-[#98a2b3]" aria-hidden="true">→</span>
+    <div class="flex w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#eaf2ff] p-[14px]">
+      <span class="font-bold text-[14px] text-[#1d4ed8]">성과분석</span>
+      <span class="font-normal text-[12px] leading-[1.5] text-[#475569]">캠페인 전후 매출 비교</span>
+    </div>
+    <span class="font-bold flex items-center text-[20px] text-[#98a2b3]" aria-hidden="true">→</span>
+    <div class="flex w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#ddf8f3] p-[14px]">
+      <span class="font-bold text-[14px] text-[#0f766e]">AI 개선 방향</span>
+      <span class="font-normal text-[12px] leading-[1.5] text-[#475569]">다음 캠페인 제안</span>
+    </div>
+  </div>
+  <!-- 성과분석 화면 예시 (그림) -->
+  <figure class="flex flex-col gap-[10px]">
+    <div class="flex flex-col gap-[16px] rounded-[16px] border border-[#e5eaf1] bg-white p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]" aria-hidden="true">
+      <div class="flex gap-[12px]">
+        <div th:each="k : ${ { {'캠페인 기간 매출', '+18%', '#2563eb'}, {'대상 메뉴 판매', '+32%', '#0e9384'}, {'객단가', '+6%', '#7c3aed'} } }"
+             class="flex flex-1 flex-col gap-[4px] rounded-[12px] bg-[#f8fafc] px-[14px] py-[10px]">
+          <span class="font-medium text-[12px] text-[#667085]" th:text="${k[0]}"></span>
+          <span class="font-bold text-[20px]" th:style="|color:${k[2]}|" th:text="${k[1]}"></span>
+        </div>
+      </div>
+      <div class="flex h-[96px] items-end gap-[10px] border-b border-[#e5eaf1] px-[4px]">
+        <span th:each="h, st : ${ {40, 46, 42, 50, 72, 84, 78} }" class="flex-1 rounded-t-[6px]"
+              th:classappend="${st.index >= 4 ? 'bg-[#2563eb]' : 'bg-[#cbd5e1]'}" th:style="|height:${h}%|"></span>
+      </div>
+    </div>
+    <figcaption class="font-normal text-[12px] text-[#98a2b3]">성과분석 화면 예시입니다. 실제 매장 성과가 아니에요.</figcaption>
+  </figure>
+</div>
+
+<!-- 도움말: 처음 사용하는 순서 -->
+<ol id="info-help-body" class="flex flex-col gap-[12px]">
+  <li th:each="s, st : ${ {
+        {'회원가입', '‘무료로 시작하기’를 누르고 약관에 동의한 뒤 가입해요.'},
+        {'매장 정보 등록', '매장 정보 관리에서 업종, 메뉴·상품, 타겟 고객, 브랜드 톤앤매너를 입력해요.'},
+        {'첫 캠페인 만들기', '홈의 ‘만들기’ 버튼으로 목표를 고르면 AI가 기획과 시안을 만들어요.'},
+        {'매출 올리기', '게시 후 성과분석에서 매출 데이터를 올리면 성과와 개선 방향을 볼 수 있어요.'}
+      } }" class="flex items-start gap-[14px] rounded-[14px] border border-[#e5eaf1] bg-[#f8fafc] p-[16px]">
+    <span class="font-bold flex size-[32px] shrink-0 items-center justify-center rounded-full bg-[#2563eb] text-[14px] text-white" th:text="${st.count}">1</span>
+    <div class="flex flex-col gap-[4px]">
+      <span class="font-bold text-[16px] text-[#172033]" th:text="${s[0]}"></span>
+      <span class="font-normal text-[14px] leading-[1.5] text-[#667085]" th:text="${s[1]}"></span>
+    </div>
+  </li>
+</ol>
+
+<!-- 자주 묻는 질문: PROJECT.md 확정 값만 사용 (구독 시 채널 한도는 검토 중이라 제외) -->
+<div id="info-faq-body" class="flex flex-col gap-[10px]">
+  <details th:each="q, st : ${ {
+        {'무료로 몇 번 이용할 수 있나요?', '매달 캠페인 3회까지 무료로 이용할 수 있어요. 새 캠페인을 시작할 때 1회씩 차감돼요.'},
+        {'채널은 몇 개까지 선택할 수 있나요?', '무료 플랜은 캠페인마다 게시 채널을 최대 2개까지 고를 수 있어요. 인스타그램, 블로그, 당근마켓, 카카오톡 채널 등에서 선택해요.'},
+        {'시안은 몇 개 받을 수 있나요?', '무료·구독 모두 A/B 2종 시안을 받아요. 여러 시안을 함께 골라 게시할 수 있고, 문구·해시태그를 직접 고치거나 이미지를 내려받을 수 있어요.'},
+        {'매출 데이터는 어떻게 올리나요?', '성과분석 화면에서 엑셀/CSV 파일, 영수증 사진, 직접 입력 중 편한 방법으로 올리면 돼요.'},
+        {'구독하면 무엇이 달라지나요?', '월 9,900원 구독 플랜에서는 월 캠페인 이용 횟수가 늘어나고, AI 기획 재분석, AI 문구 대안, AI 이미지 수정, 참고 이미지 활용을 쓸 수 있어요.'}
+      } }" class="group rounded-[14px] border border-[#e5eaf1] bg-white open:border-[#bfdbfe] open:bg-[#f8fbff]" th:open="${st.first}">
+    <summary class="font-bold flex cursor-pointer list-none items-center justify-between gap-[12px] px-[18px] py-[16px] text-[16px] text-[#172033] [&::-webkit-details-marker]:hidden">
+      <span th:text="${q[0]}"></span>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="shrink-0 text-[#667085] transition-transform duration-150 group-open:rotate-180" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </summary>
+    <p class="font-normal px-[18px] pb-[16px] text-[14px] leading-[1.6] text-[#475569]" th:text="${q[1]}"></p>
+  </details>
+</div>
+
+<!-- 문의하기: 실제 전송 없음 -->
+<form id="info-contact-body" data-contact-form novalidate class="flex flex-col gap-[16px]">
+  <div class="grid grid-cols-2 gap-[12px]">
+    <label class="flex flex-col gap-[8px]">
+      <span class="font-semibold text-[14px] text-[#172033]">이름</span>
+      <input name="name" maxlength="30" placeholder="이름을 입력하세요"
+             class="h-[48px] rounded-[10px] border border-[#d0d7e2] px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+    </label>
+    <label class="flex flex-col gap-[8px]">
+      <span class="font-semibold text-[14px] text-[#172033]">이메일</span>
+      <input name="email" type="email" maxlength="100" placeholder="답변 받을 이메일"
+             class="h-[48px] rounded-[10px] border border-[#d0d7e2] px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+    </label>
+  </div>
+  <label class="flex flex-col gap-[8px]">
+    <span class="font-semibold text-[14px] text-[#172033]">문의 유형</span>
+    <select name="type" class="h-[48px] rounded-[10px] border border-[#d0d7e2] bg-white px-[12px] text-[15px] text-[#172033] outline-none focus:border-[#2563eb]">
+      <option value="">선택하세요</option>
+      <option th:each="t : ${ {'서비스 이용', '요금제·구독', '오류 신고', '기타'} }" th:value="${t}" th:text="${t}"></option>
+    </select>
+  </label>
+  <label class="flex flex-col gap-[8px]">
+    <span class="font-semibold text-[14px] text-[#172033]">내용</span>
+    <textarea name="content" rows="5" maxlength="1000" placeholder="문의 내용을 입력하세요"
+              class="resize-none rounded-[10px] border border-[#d0d7e2] px-[14px] py-[12px] text-[15px] leading-[1.5] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+  </label>
+  <p data-contact-error role="alert" hidden class="font-medium text-[14px] text-[#dc2626]"></p>
+  <button type="submit"
+          class="btn-primary h-[48px] rounded-[12px] bg-[#2563eb] text-[16px] font-semibold text-white">문의 보내기</button>
+</form>
+
+<!-- 팀 사계절 소개: PROJECT.md 1장·8장 -->
+<div id="info-team-body" class="flex flex-col gap-[20px]">
+  <ul class="grid grid-cols-3 gap-[12px]">
+    <li th:each="m : ${ {
+          {'정지민', '팀장 / PM·기획', '일정 관리, 요구사항 정리, UX 기획, 테스트 관리'},
+          {'엄지훈', 'Backend / Database', 'Spring Boot, AI 기획·시안·개선 방향 로직, 매출 데이터 처리, DB 개발'},
+          {'황아현', 'Frontend / UI', '화면설계, View 개발, 대시보드·성과 시각화, 매출 업로드·보관함 화면'}
+        } }" class="flex flex-col gap-[6px] rounded-[14px] border border-[#e5eaf1] bg-[#f8fafc] p-[16px]">
+      <span class="font-bold text-[17px] text-[#172033]" th:text="${m[0]}"></span>
+      <span class="font-semibold w-fit rounded-full bg-[#eaf2ff] px-[8px] py-[3px] text-[12px] text-[#2563eb]" th:text="${m[1]}"></span>
+      <span class="font-normal text-[13px] leading-[1.5] text-[#667085]" th:text="${m[2]}"></span>
+    </li>
+  </ul>
+  <a href="https://github.com/noahjimin/bizgent" target="_blank" rel="noopener noreferrer"
+     class="btn-outline font-semibold flex h-[44px] w-fit items-center gap-[8px] self-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#172033]">GitHub 저장소 보기</a>
+</div>
+
+<!-- 공지사항 -->
+<ul id="info-notice-body" class="flex flex-col gap-[10px]">
+  <li th:each="n : ${ {
+        {'BizGent 시연 버전 오픈 안내', 'BizGent 시연 버전을 열었어요. 가입 후 매장 정보 등록부터 캠페인 생성, 게시, 성과분석, AI 개선 방향까지 전체 흐름을 체험해 볼 수 있어요.'},
+        {'현재 SNS 게시와 결제는 모의 기능입니다', '시연 버전에서는 게시해도 실제 SNS·블로그에 올라가지 않고, 구독도 실제 결제 없이 플랜 상태만 바뀌어요.'}
+      } }" class="flex flex-col gap-[6px] rounded-[14px] border border-[#e5eaf1] bg-white p-[18px]">
+    <span class="font-bold text-[16px] text-[#172033]" th:text="${n[0]}"></span>
+    <span class="font-normal text-[14px] leading-[1.6] text-[#667085]" th:text="${n[1]}"></span>
+  </li>
+</ul>
+
+</th:block>
 </body>
 </html>

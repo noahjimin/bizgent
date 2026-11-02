@@ -58,6 +58,24 @@
   </form>
 </div>
 
+<!-- 알림 목록 (SCR-U-COM ⑧): 항목을 누르면 읽음 처리 후 매출 데이터 올리기로 이동 -->
+<div th:fragment="notificationMenu" id="notification-menu" role="menu" aria-label="알림" hidden
+     class="fixed z-[55] flex max-h-[420px] w-[320px] flex-col rounded-[12px] border border-[#e5eaf1] bg-white p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.18)]">
+  <p class="f-bold px-[12px] py-[8px] text-[15px] text-[#172033]">알림</p>
+  <p th:if="${notifications.isEmpty()}" class="f-regular px-[12px] py-[24px] text-center text-[13px] text-[#98a2b3]">아직 알림이 없어요</p>
+  <div th:unless="${notifications.isEmpty()}" class="flex min-h-0 flex-col overflow-y-auto">
+    <button th:each="n : ${notifications}" type="button" role="menuitem" th:attr="data-notification-id=${n.notificationId}"
+            class="flex w-full items-start gap-[8px] rounded-[8px] px-[12px] py-[10px] text-left outline-none hover:bg-[#f7f9fc] focus-visible:bg-[#f7f9fc]">
+      <span class="mt-[6px] size-[6px] shrink-0 rounded-full" th:classappend="${n.read ? 'bg-transparent' : 'bg-[#2563eb]'}" th:attr="aria-label=${n.read ? null : '안 읽음'}"></span>
+      <span class="flex min-w-0 flex-1 flex-col gap-[3px]">
+        <span class="f-bold truncate text-[14px] text-[#172033]" th:text="${n.campaignTitle}">캠페인</span>
+        <span class="f-regular text-[13px] leading-[1.45] text-[#667085]" th:text="${n.message}">알림 문구</span>
+        <span class="f-semibold text-[12px]" th:classappend="${n.due ? 'text-[#2563eb]' : 'text-[#98a2b3]'}" th:text="${n.dueLabel}">예정</span>
+      </span>
+    </button>
+  </div>
+</div>
+
 <!-- 계정 관리 모달 -->
 <div th:fragment="accountModal" id="account-modal" data-modal data-backdrop-close role="presentation" hidden
      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(23,32,51,0.4)]">
@@ -117,7 +135,7 @@
     </div>
 
     <div class="flex w-full items-center justify-between border-t border-[#e5eaf1] pt-[16px]">
-      <button type="button" data-withdraw class="f-regular text-[13px] text-[#98a2b3] underline-offset-2 hover:underline">회원 탈퇴</button>
+      <button type="submit" form="withdraw-form" class="f-regular text-[13px] text-[#98a2b3] underline-offset-2 hover:underline">회원 탈퇴</button>
       <div class="flex gap-[10px]">
         <button type="button" data-modal-close class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">취소</button>
         <button type="submit" data-account-save class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">저장하기</button>
@@ -149,10 +167,11 @@
         if (e.target.matches("[data-digits-dash]")) e.target.value = e.target.value.replace(/[^0-9-]/g, "");
         validate();
       });
-      form.querySelector("[data-withdraw]").addEventListener("click", () =>
-        BG.confirm("정말 탈퇴하시겠어요? 탈퇴하면 매장 정보와 캠페인 기록을 다시 볼 수 없어요.", "탈퇴하기", () => {}));
     })();
   </script>
+  <!-- 계정 카드 폼 안에 폼을 둘 수 없어 따로 두고, 탈퇴 버튼이 form 속성으로 제출한다. -->
+  <form id="withdraw-form" method="post" th:action="@{/account/withdraw}" hidden
+        data-confirm="정말 탈퇴하시겠어요? 탈퇴하면 매장 정보와 캠페인 기록을 다시 볼 수 없어요." data-confirm-label="탈퇴하기"></form>
 </div>
 
 <!-- 무료 캠페인 횟수 소진 안내 -->
@@ -242,8 +261,9 @@
   <div class="flex items-center gap-[10px]">
     <button type="button" data-subscribe
             class="f-bold flex h-[38px] items-center rounded-full bg-white px-[16px] text-[14px] whitespace-nowrap text-[#2563eb] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">플랜 업그레이드</button>
-    <button type="button" aria-label="알림" class="size-[38px]">
+    <button type="button" aria-haspopup="menu" aria-label="알림" data-notification-menu="below" class="relative size-[38px]">
       <img alt="" th:src="@{/assets/c0a13.svg}" class="size-[38px]">
+      <span th:if="${hasDueNotification}" data-notification-dot class="absolute top-[6px] right-[6px] size-[8px] rounded-full bg-[#ef4444] ring-2 ring-white"></span>
     </button>
     <button type="button" aria-haspopup="menu" aria-label="계정 메뉴" data-settings-menu="below"
             class="f-bold flex size-[38px] items-center justify-center rounded-full border-2 border-white bg-[#eaf2ff] text-[13px] text-[#2563eb] hover:bg-[#dbe8ff]"

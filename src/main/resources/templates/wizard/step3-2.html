@@ -36,10 +36,10 @@
               <img alt="" th:src="@{/assets/dcaf8.svg}" class="size-[13px]" data-brand-icon th:hidden="${!s.brandColorOn}">
             </span>
             <span class="f-bold min-w-0 flex-1 text-[14px] text-[#172033]">우리 브랜드 컬러 반영하기</span>
-            <span class="flex items-start">
-              <span class="mr-[-4px] size-[20px] rounded-full border-2 border-white bg-[#2563eb]"></span>
-              <span class="size-[20px] rounded-full border-2 border-white bg-[#14b8a6]"></span>
-            </span>
+            <!-- 매장 정보 관리에서 등록한 브랜드 색 -->
+            <span th:if="${store.brandColor != null}" class="size-[22px] shrink-0 rounded-full border-2 border-white shadow-[0_0_0_1px_#d0d7e2]"
+                  th:style="|background-color:${store.brandColor}|" th:title="${store.brandColor}"></span>
+            <span th:if="${store.brandColor == null}" class="f-regular shrink-0 text-[12px] text-[#98a2b3]">매장 정보에서 브랜드 색을 등록해 주세요</span>
           </button>
         </section>
 

@@ -74,7 +74,19 @@
           모두 보기 <svg th:replace="~{fragments/common :: icon('chevron', 16, 2)}"></svg>
         </a>
       </div>
-      <div class="-mx-[8px] flex snap-x gap-[16px] overflow-x-auto px-[8px] pt-[4px] pb-[16px] [scrollbar-width:thin]">
+      <div class="relative" data-recent>
+      <!-- SCR-U-002 ⑥: 화살표로 카드 슬라이드 -->
+      <th:block th:unless="${#lists.isEmpty(recent)}">
+        <button th:each="dir : ${ {-1, 1} }" type="button" th:aria-label="${dir < 0 ? '이전 캠페인' : '다음 캠페인'}"
+                th:attr="data-dir=${dir}" onclick="this.closest('[data-recent]').querySelector('[data-recent-scroller]').scrollBy({ left: this.dataset.dir * 432, behavior: 'smooth' })"
+                class="absolute top-[118px] z-10 flex size-[40px] items-center justify-center rounded-full border border-[#e5eaf1] bg-white/95 text-[#334155] shadow-[0_8px_20px_rgba(15,23,42,0.12)] hover:text-[#2563eb]"
+                th:classappend="${dir < 0 ? '-left-[16px]' : '-right-[16px]'}">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path th:attr="d=${dir < 0 ? 'm15 18-6-6 6-6' : 'm9 18 6-6-6-6'}"/>
+          </svg>
+        </button>
+      </th:block>
+      <div data-recent-scroller class="-mx-[8px] flex snap-x gap-[16px] overflow-x-auto scroll-smooth px-[8px] pt-[4px] pb-[16px] [scrollbar-width:thin]">
         <button type="button" data-new-campaign
                 class="flex h-[260px] w-[200px] shrink-0 snap-start flex-col items-center justify-center gap-[10px] rounded-[20px] border-2 border-dashed border-[#bfd3f5] bg-white/60 text-[#2563eb] transition-colors duration-150 hover:border-[#2563eb] hover:bg-[#eff6ff]">
           <span class="flex size-[44px] items-center justify-center rounded-full bg-[#eff6ff]"><svg th:replace="~{fragments/common :: icon('plus', 22, 2.2)}"></svg></span>
@@ -101,35 +113,43 @@
                th:text="${c.published and c.publishedAt != null} ? |${c.firstChannel} · ${@fmt.monthDay(c.publishedAt)} 게시| : |마지막 수정 ${@fmt.monthDay(c.timestamp)}|"></p>
           </div>
         </a>
+        <!-- SCR-U-002 비고: 캠페인이 없을 때 안내 -->
+        <div th:if="${#lists.isEmpty(recent)}" class="flex h-[260px] flex-col justify-center gap-[8px] px-[16px]">
+          <p class="text-[20px] font-bold text-[#172033]">첫 캠페인을 만들어보세요</p>
+          <p class="text-[15px] leading-[1.6] text-[#667085]">목표만 고르면 AI가 기획부터 홍보 시안까지 만들어 드려요.</p>
+        </div>
+      </div>
       </div>
     </section>
 
     <section class="flex flex-col gap-[16px]">
       <h2 class="text-[22px] font-bold text-[#172033]">추천 콘텐츠 유형</h2>
-      <!-- {제목, 배경색, 강조색, 이미지, 줄 수, 해시태그 여부} -->
+      <!-- 캠페인 생성 1단계 목표와 같은 항목. 누르면 그 목표가 선택된 채로 새 캠페인을 시작한다.
+           {목표, 배경색, 강조색, 이미지, 줄 수, 해시태그 여부} -->
       <div class="grid grid-cols-4 gap-[16px]">
-        <article th:each="t : ${ {
-            {'SNS 게시물 캡션', '#fdecf3', '#db2777', '93c88.png', 2, false},
-            {'홍보 문구', '#eaf2ff', '#2563eb', '', 4, false},
-            {'해시태그 세트', '#ddf8f3', '#0e9384', '', 0, true},
-            {'AI 광고 이미지', '#fff7d6', '#b7791f', '77d12.png', 0, false},
-            {'블로그 포스팅', '#f1ebff', '#7c3aed', 'afdbb.png', 3, false},
-            {'당근 소식', '#fff0e7', '#ea580c', 'a299e.png', 1, false},
-            {'카카오톡 채널 공지', '#fef9c3', '#a16207', '', 3, false},
-            {'이벤트 포스터', '#e0f2fe', '#0369a1', '2cbe7.png', 1, false}
+        <button type="button" data-new-campaign data-source="quick" th:each="t : ${ {
+            {'신메뉴/신상품 홍보', '#fdecf3', '#db2777', '93c88.png', 2, false},
+            {'재방문 유도', '#eaf2ff', '#2563eb', '', 4, false},
+            {'매장 인지도 확대', '#ddf8f3', '#0e9384', '', 0, true},
+            {'할인/이벤트 홍보', '#e0f2fe', '#0369a1', '2cbe7.png', 1, false},
+            {'신규 고객 유치', '#fff0e7', '#ea580c', 'a299e.png', 1, false},
+            {'재고 소진 프로모션', '#fff7d6', '#b7791f', '77d12.png', 0, false},
+            {'비인기 메뉴 살리기', '#f1ebff', '#7c3aed', 'afdbb.png', 3, false},
+            {'기타 (직접 입력)', '#fef9c3', '#a16207', '', 3, false}
           } }"
-                 class="group relative h-[88px] overflow-hidden rounded-[16px] px-[18px] py-[16px]" th:style="'background-color:' + ${t[1]}">
-          <p class="relative z-10 max-w-[130px] text-[15px] leading-[1.35] font-bold text-[#172033]" th:text="${t[0]}"></p>
-          <div class="absolute right-[-14px] bottom-[-34px] flex w-[92px] rotate-[10deg] flex-col gap-[5px] rounded-[10px] bg-white p-[7px] shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-transform duration-200 ease-out group-hover:-translate-y-[8px] group-hover:rotate-[4deg] motion-reduce:transition-none">
+                th:attr="data-goal=${t[0]},aria-label=|${t[0]} 목표로 새 캠페인 시작|"
+                class="group relative h-[88px] cursor-pointer overflow-hidden rounded-[16px] px-[18px] py-[16px] text-left outline-none focus-visible:ring-2 focus-visible:ring-[#2563eb] focus-visible:ring-offset-2" th:style="'background-color:' + ${t[1]}">
+          <span class="relative z-10 block max-w-[130px] text-[15px] leading-[1.35] font-bold text-[#172033]" th:text="${t[0]}"></span>
+          <span class="absolute right-[-14px] bottom-[-34px] flex w-[92px] rotate-[10deg] flex-col gap-[5px] rounded-[10px] bg-white p-[7px] shadow-[0_8px_20px_rgba(15,23,42,0.14)] transition-transform duration-200 ease-out group-hover:-translate-y-[8px] group-hover:rotate-[4deg] motion-reduce:transition-none">
             <img th:if="${t[3] != ''}" alt="" th:src="@{'/assets/' + ${t[3]}}" class="h-[52px] w-full rounded-[6px] object-cover">
-            <div th:if="${t[5]}" class="flex flex-wrap gap-[3px] pb-[30px]">
+            <span th:if="${t[5]}" class="flex flex-wrap gap-[3px] pb-[30px]">
               <span th:each="tag : ${ {'#카페', '#신메뉴', '#라떼', '#데일리'} }" class="rounded-full px-[5px] py-[1px] text-[8px] font-semibold"
                     th:style="|color:${t[2]};background-color:${t[2]}14|" th:text="${tag}"></span>
-            </div>
-            <span th:each="i : ${t[4] > 0 ? #numbers.sequence(0, t[4] - 1) : {}}" class="h-[5px] rounded-full bg-[#e2e8f0]"
+            </span>
+            <span th:each="i : ${t[4] > 0 ? #numbers.sequence(0, t[4] - 1) : {}}" class="block h-[5px] rounded-full bg-[#e2e8f0]"
                   th:style="|width:${i % 2 == 1 ? 62 : 100}%;${i == 0 ? 'background-color:' + t[2] + '40' : ''}|"></span>
-          </div>
-        </article>
+          </span>
+        </button>
       </div>
     </section>
   </div>

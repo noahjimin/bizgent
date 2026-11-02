@@ -29,6 +29,7 @@
     </p>
   </form>
   <div th:replace="~{fragments/auth-parts :: termsModal('/signup', ${showTerms}, @{/landing})}"></div>
+  <div th:replace="~{fragments/auth-parts :: termsDocModal}"></div>
 </div>
 <div th:replace="~{fragments/common :: hosts}"></div>
 <!-- 입력을 시작하면 그 칸의 오류 문구를 지운다 -->
@@ -37,8 +38,18 @@
     if (!e.target.matches("[data-clear-error]")) return;
     e.target.classList.remove("border-[#dc2626]");
     e.target.classList.add("border-[#e2e8f0]");
-    const err = e.target.parentElement.querySelector("[data-error]");
+    const err = e.target.closest("label").querySelector("[data-error]");
     if (err) err.remove();
+  });
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-pw-toggle]");
+    if (!btn) return;
+    const input = btn.parentElement.querySelector("input");
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.setAttribute("aria-pressed", String(show));
+    btn.setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 보기");
+    btn.querySelector("[data-pw-slash]").style.display = show ? "" : "none";
   });
 </script>
 </body>

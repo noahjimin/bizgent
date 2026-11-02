@@ -47,9 +47,11 @@
 
   <th:block th:if="${view != null}" th:with="s=${view.summary}">
     <div class="flex w-full items-center justify-between gap-[12px] rounded-[12px] bg-[#eaf2ff] px-[14px] py-[10px]">
+      <!-- SCR-U-008 ③: 마지막 업로드 일자·방식, 자세히 → 업로드 기록 팝업 -->
       <p class="f-semibold min-w-0 truncate text-[13px] text-[#172033]"
-         th:text="|마지막 매출 데이터 업로드: ${@fmt.monthDay(view.lastUpload)} · 영수증, 엑셀 파일을 올리면 AI가 분석해요|"></p>
-      <a th:href="@{/insights}" class="f-bold shrink-0 text-[12px] text-[#2563eb] hover:underline" aria-label="AI 캠페인 개선 방향 자세히 보기">자세히</a>
+         th:text="${uploads.isEmpty()} ? |마지막 매출 데이터 업로드: ${@fmt.monthDay(view.lastUpload)}|
+                  : |마지막 매출 데이터 업로드: ${@fmt.monthDay(uploads[0].uploadedAt)} · ${@fmt.inputType(uploads[0].inputType)}|"></p>
+      <button type="button" data-modal-open="upload-history-modal" class="f-bold shrink-0 text-[12px] text-[#2563eb] hover:underline" aria-label="매출 데이터 업로드 기록 자세히 보기">자세히</button>
     </div>
 
     <!-- 요약 카드 -->
@@ -159,6 +161,33 @@
 </div>
 
 <div th:replace="~{fragments/sales-upload :: modal}"></div>
+
+<!-- 매출 데이터 업로드 기록 -->
+<div id="upload-history-modal" data-modal data-backdrop-close role="presentation" hidden
+     class="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/35 p-[24px]">
+  <section role="dialog" aria-modal="true" aria-labelledby="upload-history-title"
+           class="flex max-h-full w-[520px] flex-col gap-[16px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_20px_48px_0px_rgba(16,24,40,0.18)]">
+    <div class="flex items-center justify-between">
+      <h2 id="upload-history-title" class="f-bold text-[20px] text-[#172033]">매출 데이터 업로드 기록</h2>
+      <button type="button" data-modal-close aria-label="닫기" class="flex size-[32px] items-center justify-center rounded-[8px] text-[#667085] hover:bg-[#f7f9fc]">✕</button>
+    </div>
+    <p th:if="${uploads.isEmpty()}" class="f-regular py-[24px] text-center text-[14px] text-[#98a2b3]">아직 올린 매출 데이터가 없어요.</p>
+    <div th:unless="${uploads.isEmpty()}" class="min-h-0 overflow-y-auto rounded-[12px] border border-[#e5eaf1]">
+      <table class="w-full text-left text-[14px]">
+        <thead class="sticky top-0 bg-[#f7f9fc] text-[13px] text-[#667085]">
+          <tr><th scope="col" class="f-semibold px-[16px] py-[10px]">업로드 일시</th><th scope="col" class="f-semibold px-[16px] py-[10px]">방식</th><th scope="col" class="f-semibold px-[16px] py-[10px] text-right">건수</th></tr>
+        </thead>
+        <tbody>
+          <tr th:each="u : ${uploads}" class="border-t border-[#eef1f5] text-[#172033]">
+            <td class="f-regular px-[16px] py-[10px]" th:text="${@fmt.monthDayTime(u.uploadedAt)}"></td>
+            <td class="f-regular px-[16px] py-[10px]" th:text="${@fmt.inputType(u.inputType)}"></td>
+            <td class="f-regular px-[16px] py-[10px] text-right" th:text="|${u.rowCount}건|"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
 </th:block>
 
 <!-- 요약 카드. unit: '원' 또는 '건', extra: 'revenue'(증감 배지) / 'linked'(비중 문구) / null -->

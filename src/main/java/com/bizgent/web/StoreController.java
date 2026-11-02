@@ -50,6 +50,10 @@ public class StoreController {
 
     @PostMapping("/store")
     public String save(@ModelAttribute StoreForm form, RedirectAttributes redirect) {
+        if (form.getStoreName() == null || form.getStoreName().isBlank()) {
+            redirect.addFlashAttribute("toast", "매장명을 입력해주세요");
+            return "redirect:/store";
+        }
         storeService.save(form);
         redirect.addFlashAttribute("toast", "매장 정보가 저장되었어요");
         return "redirect:/store";
@@ -59,6 +63,10 @@ public class StoreController {
     @PostMapping("/api/store/hero-images")
     @ResponseBody
     public List<GeneratedImage> generateHeroImages(@RequestBody StoreImageRequest request) {
+        String extra = request.extraRequest() == null ? "" : request.extraRequest().trim();
+        if (extra.length() > 300) {
+            request = new StoreImageRequest(request.mood(), request.scene(), request.productId(), extra.substring(0, 300));
+        }
         return aiService.generateStoreImages(storeService.get(), request);
     }
 

@@ -21,6 +21,7 @@ public class StoreForm {
     private String targetDescription = "";
     private String toneDescription = "";
     private String heroImageUrl = "";
+    private String brandColor = "";
     private MultipartFile heroImageFile;
     private List<ProductForm> products = new ArrayList<>();
 
