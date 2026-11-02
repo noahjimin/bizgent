@@ -32,7 +32,7 @@
            class="h-[10px] w-full overflow-hidden rounded-full bg-[#cadaf7]">
         <div class="h-[10px] rounded-full bg-[#2563eb] transition-[width]" th:style="|width:${percent}%|"></div>
       </div>
-      <p class="f-regular text-[13px] text-[#667085]" th:text="|다음 리셋일: ${@fmt.monthDay(me.usageResetAt)}|"></p>
+      <p class="f-regular text-[13px] text-[#475569]" th:text="|다음 리셋일: ${@fmt.monthDay(me.usageResetAt)}|"></p>
     </div>
     <div th:if="${used >= limit}" role="alert" class="flex w-full items-center gap-[8px] rounded-[12px] bg-[#fff7d6] px-[14px] py-[10px]">
       <img alt="" th:src="@{/assets/5e774.svg}" class="size-[16px] shrink-0">
@@ -48,7 +48,7 @@
       </div>
       <p class="flex items-center gap-[6px]">
         <img alt="" th:src="@{/assets/40516.svg}" class="size-[15px]">
-        <span class="f-semibold text-[13px] whitespace-nowrap text-[#0f8f82]">언제든 플랜을 변경할 수 있어요</span>
+        <span class="f-semibold text-[13px] whitespace-nowrap text-[#0f766e]">언제든 플랜을 변경할 수 있어요</span>
       </p>
     </div>
 
@@ -64,15 +64,15 @@
           <th:block th:each="f, s : ${ {'월 3회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 2개 선택'} }"><li th:replace="~{:: feature(${f}, ${s.index < 3 ? '443d1.svg' : 'ac97e.svg'}, 'bg-[#eaf2ff]', null)}"></li></th:block>
         </ul>
         <div class="min-h-px w-full flex-1"></div>
-        <button type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#98a2b3]"
+        <button type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#667085]"
                 th:text="${me.free ? '현재 이용 중' : '무료 플랜'}">현재 이용 중</button>
       </div>
 
-      <div class="relative flex min-h-[470px] min-w-0 flex-col gap-[20px] overflow-hidden rounded-[16px] border-2 border-[#2563eb] bg-white px-[24px] pt-[28px] pb-[24px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
+      <div class="relative flex min-h-[470px] min-w-0 flex-col gap-[20px] overflow-hidden rounded-[16px] border-2 border-[#2563eb] bg-white p-[23px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
         <div class="absolute top-0 right-0 left-0 h-[6px] bg-[linear-gradient(90deg,#2563eb_25%,#14b8a6_75%)]" aria-hidden="true"></div>
         <div class="flex w-full items-center justify-between">
           <h3 class="f-bold text-[20px] text-[#172033]">구독 플랜</h3>
-          <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] whitespace-nowrap text-[#0f8f82]" th:text="${me.free ? '추천' : '현재 플랜'}">추천</span>
+          <span class="f-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] whitespace-nowrap text-[#0f766e]" th:text="${me.free ? '추천' : '현재 플랜'}">추천</span>
         </div>
         <p class="f-bold text-[32px] text-[#172033]">월 9,900원</p>
         <div class="h-px w-full bg-[#dcebff]"></div>
@@ -83,7 +83,7 @@
         <form th:if="${me.free}" method="post" th:action="@{/subscription}" data-confirm="월 9,900원 구독 플랜으로 전환할까요? 시연 버전에서는 실제 결제가 이루어지지 않아요." data-confirm-label="구독하기">
           <button type="submit" class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] bg-[#2563eb] text-[16px] text-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:bg-[#1d4ed8]">구독하기</button>
         </form>
-        <button th:unless="${me.free}" type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#98a2b3]">현재 이용 중</button>
+        <button th:unless="${me.free}" type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#667085]">현재 이용 중</button>
       </div>
     </div>
   </section>
@@ -95,7 +95,7 @@
     <img alt="" th:src="@{'/assets/' + ${icon}}" class="size-[13px]">
   </span>
   <span class="f-medium min-w-0 flex-1 text-[14px] text-[#172033]" th:text="${label}"></span>
-  <span th:if="${badge != null}" class="f-bold shrink-0 rounded-full bg-[#ddf8f3] px-[8px] py-[4px] text-[11px] whitespace-nowrap text-[#0f8f82]" th:text="${badge}"></span>
+  <span th:if="${badge != null}" class="f-bold shrink-0 rounded-full bg-[#ddf8f3] px-[8px] py-[4px] text-[11px] whitespace-nowrap text-[#0f766e]" th:text="${badge}"></span>
 </li>
 </body>
 </html>

@@ -15,7 +15,7 @@
       </div>
       <span class="flex items-center gap-[6px] rounded-full bg-[#ddf8f3] px-[11px] py-[7px]">
         <img alt="" th:src="@{/assets/09e00.svg}" class="size-[14px]">
-        <span class="f-semibold text-[12px] whitespace-nowrap text-[#14b8a6]">기본 정보부터 차근차근</span>
+        <span class="f-semibold text-[12px] whitespace-nowrap text-[#0f766e]">기본 정보부터 차근차근</span>
       </span>
     </div>
   </div>
@@ -36,7 +36,7 @@
                 </span>
                 <span class="flex flex-col items-center gap-[5px]">
                   <span class="f-bold text-[14px] text-[#172033]">매장 대표 이미지 등록</span>
-                  <span class="f-regular text-[12px] text-[#98a2b3]">권장 크기 1200 × 800</span>
+                  <span class="f-regular text-[12px] text-[#667085]">권장 크기 1200 × 800</span>
                 </span>
               </span>
               <input type="file" name="heroImageFile" accept=".jpg,.jpeg,.png,.gif,.webp" class="hidden" data-hero-file>
@@ -45,14 +45,14 @@
             <button type="button" data-modal-open="store-image-modal"
                     class="flex h-[36px] items-center gap-[4px] rounded-[12px] border border-[#14b8a6] bg-[#f4fffc] px-[8px] hover:bg-[#e6faf6]">
               <img alt="" th:src="@{/assets/16f99.svg}" class="size-[14px]">
-              <span class="f-bold text-[14px] whitespace-nowrap text-[#14b8a6]">AI로 대표 이미지 무료 생성</span>
+              <span class="f-bold text-[14px] whitespace-nowrap text-[#0f766e]">AI로 대표 이미지 무료 생성</span>
             </button>
           </div>
-          <div class="flex min-w-[240px] flex-1 flex-col gap-[14px] px-[clamp(0px,8vw,125px)]">
+          <div class="flex min-w-[240px] flex-1 flex-col gap-[14px] pl-[8px]">
             <label class="flex w-full flex-col gap-[8px]">
               <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">매장명</span>
               <input name="storeName" th:value="${store.storeName}" placeholder="매장명을 입력해주세요" data-store-name aria-describedby="store-name-error"
-                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb] aria-[invalid=true]:border-[#ef4444]">
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb] aria-[invalid=true]:border-[#ef4444]">
               <p id="store-name-error" data-store-name-error hidden class="f-medium text-[13px] text-[#ef4444]">매장명을 입력해주세요</p>
             </label>
             <label class="flex w-full flex-col gap-[8px]">
@@ -68,16 +68,16 @@
             <label class="flex w-full flex-col gap-[8px]">
               <span class="flex items-center gap-[6px]">
                 <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">연락처</span>
-                <span class="f-regular text-[12px] text-[#98a2b3]">선택</span>
+                <span class="f-regular text-[12px] text-[#667085]">선택</span>
               </span>
               <input name="phone" th:value="${store.phone}" placeholder="연락처를 입력해주세요" inputmode="tel"
-                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
             </label>
             <!-- 3-2단계 '우리 브랜드 컬러 반영하기'에 쓰는 색 -->
             <label class="flex w-full flex-col gap-[8px]">
               <span class="flex items-center gap-[6px]">
                 <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">브랜드 색</span>
-                <span class="f-regular text-[12px] text-[#98a2b3]">광고 이미지에 반영돼요</span>
+                <span class="f-regular text-[12px] text-[#667085]">광고 이미지에 반영돼요</span>
               </span>
               <span class="flex items-center gap-[10px]">
                 <input type="color" name="brandColor" th:value="${store.brandColor != null ? store.brandColor : '#2563eb'}" aria-label="브랜드 색 선택"
@@ -121,7 +121,7 @@
 
   <div class="sticky bottom-0 z-20 flex h-[86px] w-full items-center justify-center border-t border-[#e5eaf1] bg-white px-[36px] drop-shadow-[0px_-4px_9px_rgba(16,24,40,0.07)]">
     <div class="flex w-full max-w-[800px] items-center justify-between">
-      <p class="f-regular text-[13px] text-[#98a2b3]">입력한 정보는 언제든 수정할 수 있어요.</p>
+      <p class="f-regular text-[13px] text-[#667085]">입력한 정보는 언제든 수정할 수 있어요.</p>
       <div class="flex items-start gap-[10px]">
         <button type="button" data-store-cancel
                 class="f-bold flex h-[46px] w-[92px] items-center justify-center rounded-[12px] border border-[#d5dce7] bg-white text-[15px] text-[#667085] hover:bg-[#f7f9fc]">취소</button>
@@ -146,7 +146,7 @@
     </div>
     <button type="button" data-menu-remove class="flex items-center gap-[5px] rounded-[6px] hover:opacity-70" aria-label="등록 상품 삭제">
       <img alt="" th:src="@{/assets/b3b18.svg}" class="size-[16px]">
-      <span class="f-regular text-[13px] text-[#98a2b3]">삭제</span>
+      <span class="f-regular text-[13px] text-[#667085]">삭제</span>
     </button>
   </div>
   <div class="flex w-full items-start gap-[16px]">
@@ -165,27 +165,27 @@
         <label class="flex min-w-0 flex-1 flex-col gap-[8px]">
           <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">상품/메뉴명</span>
           <input data-field="productName" th:value="${p?.productName}" placeholder="예: 시그니처 크림 라떼"
-                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
         </label>
         <label class="flex w-[190px] shrink-0 flex-col gap-[8px]">
           <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">가격</span>
           <input data-field="price" inputmode="numeric" data-won th:with="priceText=${p != null and p.price > 0 ? @fmt.won(p.price) : ''}" th:value="${priceText}" placeholder="예: 6,500원"
-                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
         </label>
       </div>
       <div class="flex w-full items-start gap-[14px]">
         <label class="flex min-w-0 flex-1 flex-col gap-[8px]">
           <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">간단 설명</span>
           <input data-field="description" th:value="${p?.description}" placeholder="예: 부드러운 바닐라 크림을 올린 대표 라떼"
-                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
         </label>
         <label class="flex w-[190px] shrink-0 flex-col gap-[8px]">
           <span class="flex items-center gap-[6px]">
             <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">재고 수량</span>
-            <span class="f-regular text-[12px] text-[#98a2b3]">선택</span>
+            <span class="f-regular text-[12px] text-[#667085]">선택</span>
           </span>
           <input data-field="stockQty" inputmode="numeric" data-digits th:value="${p?.stockQty}" placeholder="예: 30"
-                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
         </label>
       </div>
     </div>
@@ -207,7 +207,7 @@
   <div class="flex w-full flex-col gap-[10px]">
     <div class="flex w-full items-center gap-[10px]">
       <input data-tag-input th:placeholder="${inputPlaceholder}" th:aria-label="|${title} 직접 추가|"
-             class="f-regular h-[46px] w-full min-w-0 flex-1 rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]">
+             class="f-regular h-[46px] w-full min-w-0 flex-1 rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
       <button type="button" data-tag-add
               class="f-bold flex h-[46px] w-[72px] shrink-0 items-center justify-center rounded-[12px] border border-[#2563eb] bg-[#2563eb] text-[14px] text-white shadow-[0px_6px_16px_0px_rgba(37,99,235,0.13)] hover:bg-[#1d4ed8]">추가</button>
     </div>
@@ -218,10 +218,10 @@
   <div class="flex w-full flex-col gap-[8px]">
     <p class="f-semibold text-[14px] text-[#172033]">직접 설명하기 (선택)</p>
     <textarea th:name="${descName}" th:text="${descValue}" th:placeholder="${descPlaceholder}" th:aria-label="|${title} 직접 설명|"
-              class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
+              class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]"></textarea>
     <div class="flex items-center gap-[6px]">
       <img alt="" th:src="@{/assets/c920c.svg}" class="size-[14px]">
-      <p class="f-regular text-[12px] text-[#98a2b3]">입력한 내용은 캠페인 생성 시 AI가 자동으로 참고해요</p>
+      <p class="f-regular text-[12px] text-[#667085]">입력한 내용은 캠페인 생성 시 AI가 자동으로 참고해요</p>
     </div>
   </div>
 </section>
@@ -272,8 +272,8 @@
           <p class="f-semibold text-[14px] text-[#172033]">추가 요청 (선택)</p>
           <textarea data-si-extra maxlength="300" placeholder="예: 창가 자리에 햇살이 들어오는 느낌" aria-label="추가 요청 내용"
                     oninput="this.nextElementSibling.textContent = this.value.length + '/300'"
-                    class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#98a2b3] focus:border-[#2563eb]"></textarea>
-          <p class="f-regular w-full text-right text-[12px] text-[#98a2b3]">0/300</p>
+                    class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]"></textarea>
+          <p class="f-regular w-full text-right text-[12px] text-[#667085]">0/300</p>
         </div>
       </div>
 
@@ -296,7 +296,7 @@
         <div class="flex w-full items-center justify-between">
           <p class="f-semibold text-[14px] text-[#172033]">마음에 드는 이미지를 골라주세요</p>
           <button type="button" data-si-regenerate class="f-semibold flex items-center gap-[6px] text-[14px] text-[#2563eb] hover:underline">
-            <span th:if="${me.free}" class="f-bold rounded-full bg-[#ddf8f3] px-[8px] py-[3px] text-[11px] text-[#14b8a6]">구독 전용</span>
+            <span th:if="${me.free}" class="f-bold rounded-full bg-[#ddf8f3] px-[8px] py-[3px] text-[11px] text-[#0f766e]">구독 전용</span>
             다시 만들기
           </button>
         </div>
