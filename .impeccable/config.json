@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "src/main/resources/templates/auth/landing.html"
+        ],
+        "createdAt": "2026-11-02T13:02:15.162Z",
+        "reason": "Claude triage: false positive. Font sizes come from the Tailwind browser build, which compiles at runtime, so the static scan only sees 16px. Rendered URL scans at 390/768/1280/1440 found no flat hierarchy (h1 48px, h2 32px, body 16-17px)."
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "src/main/resources/templates/auth/landing.html"
+        ],
+        "createdAt": "2026-11-02T13:19:11.494Z",
+        "reason": "Claude triage: false positive. Every img uses Thymeleaf th:src, which the static scan cannot resolve. Rendered URL scans report no broken images."
+      }
+    ]
+  }
+}

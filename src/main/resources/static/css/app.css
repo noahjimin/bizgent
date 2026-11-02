@@ -14,6 +14,10 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
+}
+/* 앱 화면은 데스크톱 고정 폭, 반응형으로 만든 화면(랜딩)은 body에 data-responsive */
+body:not([data-responsive]) {
   min-width: 1180px;
   min-height: 100vh;
   background: #ffffff;
@@ -50,7 +54,7 @@ html {
 .pd-scope :is(h1, h2, .pd-heading) { letter-spacing: -0.02em; }
 .pd-scope :is(button, a, summary, [role="button"]):not(:disabled),
 .pd-scope label:has(input) { cursor: pointer; }
-.pd-scope :is(button, a, input, [tabindex]):focus-visible {
+.pd-scope :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
@@ -105,6 +109,32 @@ html {
 .link-hover:hover { color: #2563eb; }
 
 /* 쇼케이스 카드: 4px 위로, 더 진한 그림자, 이미지 확대 */
+/* 랜딩 히어로 카드 5장 부채꼴: 아래가 잘린 카드, 가운데(c3)가 가장 크고 정면 */
+.hero-cards { position: relative; height: 360px; overflow: hidden; margin-inline: auto; max-width: 1200px; }
+.hero-card {
+  position: absolute; margin: 0; border: 6px solid #ffffff; border-radius: 22px; overflow: hidden;
+  background: #ffffff; box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.35);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15, 23, 42, 0) 30%, rgba(15, 23, 42, 0.28) 100%); }
+.hero-card.c1 { left: 0; width: 27%; height: 380px; bottom: -110px; transform: rotate(-4deg); z-index: 1; }
+.hero-card.c2 { left: 17%; width: 24%; height: 350px; bottom: -110px; transform: rotate(2deg); z-index: 2; }
+.hero-card.c3 { left: 34%; width: 32%; height: 400px; bottom: -80px; transform: none; z-index: 5; }
+.hero-card.c4 { left: 59%; width: 24%; height: 350px; bottom: -110px; transform: rotate(-2deg); z-index: 3; }
+.hero-card.c5 { left: 73%; width: 27%; height: 380px; bottom: -110px; transform: rotate(4deg); z-index: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-card:hover { transform: translateY(-8px) rotate(0deg); }
+}
+@media (max-width: 768px) {
+  .hero-cards { height: 300px; }
+  .hero-card { display: none; }
+  .hero-card.c3 { display: block; left: 50%; width: min(88%, 420px); height: 340px; transform: translateX(-50%); }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .hero-card.c3:hover { transform: translateX(-50%) translateY(-6px); }
+}
+
 .showcase-card:hover,
 .showcase-card:focus-within {
   transform: translateY(-4px);

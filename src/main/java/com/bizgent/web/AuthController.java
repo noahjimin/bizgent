@@ -24,6 +24,7 @@ public class AuthController {
     @GetMapping("/landing")
     public String landing(Model model) {
         model.addAttribute("showcaseRows", LandingShowcase.ROWS);
+        model.addAttribute("season", LandingSeason.of(java.time.LocalDate.now()));
         return "auth/landing";
     }
 

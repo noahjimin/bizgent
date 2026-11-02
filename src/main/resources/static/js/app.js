@@ -8,11 +8,18 @@
 
   /* ---------- 모달 ---------- */
   // data-modal-open="id" 버튼으로 열고, data-modal-close 버튼·배경 클릭·Esc로 닫는다.
+  // 열면 팝업 안으로 포커스를 옮기고 Tab을 팝업 안에 가두며, 닫으면 연 버튼으로 돌려준다.
+  const FOCUSABLE = 'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
+  const focusables = (el) => Array.from(el.querySelectorAll(FOCUSABLE)).filter((f) => f.offsetParent !== null);
+
   BG.openModal = function (id) {
     const el = document.getElementById(id);
     if (!el) return;
+    el._opener = document.activeElement;
     el.hidden = false;
     el.dispatchEvent(new CustomEvent("modal:open"));
+    const first = focusables(el)[0];
+    if (first) first.focus();
   };
 
   BG.closeModal = function (el) {
@@ -20,7 +27,27 @@
     if (!el || el.hidden) return;
     el.hidden = true;
     el.dispatchEvent(new CustomEvent("modal:close"));
+    if (el._opener && el._opener.isConnected) el._opener.focus();
+    el._opener = null;
   };
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const open = Array.from(document.querySelectorAll("[data-modal]")).filter((m) => !m.hidden);
+    const top = open[open.length - 1];
+    if (!top) return;
+    const items = focusables(top);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !top.contains(document.activeElement))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && (document.activeElement === last || !top.contains(document.activeElement))) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
 
   document.addEventListener("click", (e) => {
     const opener = e.target.closest("[data-modal-open]");

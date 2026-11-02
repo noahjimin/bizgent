@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/assets/**", "/css/**", "/js/**", "/uploads/**", "/favicon.ico", "/error");
+                .excludePathPatterns("/assets/**", "/images/**", "/css/**", "/js/**", "/uploads/**", "/favicon.ico", "/error");
     }
 
     /** 업로드한 이미지를 /uploads/** 경로로 보여준다. */

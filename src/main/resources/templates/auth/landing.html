@@ -2,40 +2,62 @@
 <!-- 랜딩 (SCR-U-000): 히어로, AI 제작 예시 갤러리, 요금제, 푸터와 푸터 안내 팝업 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko" class="scroll-smooth motion-reduce:scroll-auto">
 <head th:replace="~{fragments/common :: head('AI 마케팅 에이전트')}"></head>
-<body>
-<div class="pd-scope relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#2563eb_0%,#1a8cd9_15%,#14b8a6_45%,#8ce0d9_70%,#d9f2f2_85%,#f5fafc_100%)]">
-  <header class="flex h-[88px] items-center justify-between px-[120px] py-[20px]">
-    <div th:replace="~{fragments/common :: entryBrand(true, false)}"></div>
-    <nav class="flex items-center gap-[32px] text-[15px] font-medium text-white">
-      <a href="#showcase" class="nav-link">기능 소개</a>
-      <a href="#pricing" class="nav-link">요금제</a>
+<body data-responsive>
+<div class="pd-scope relative min-h-screen overflow-x-hidden bg-white">
+ <!-- 히어로: 배경은 접속한 달의 계절 색 (LandingSeason) -->
+ <div th:style="|background:linear-gradient(180deg, ${season.bgFrom} 0%, ${season.bgTo} 72%, #ffffff 100%)|">
+  <header class="flex h-[72px] items-center justify-between px-[16px] md:h-[88px] md:px-[40px] lg:px-[120px]">
+    <div th:replace="~{fragments/common :: entryBrand(false, false)}"></div>
+    <nav class="flex items-center gap-[32px] text-[15px] font-medium text-[#172033]">
+      <a href="#showcase" class="nav-link hidden md:inline">기능 소개</a>
+      <a href="#pricing" class="nav-link hidden md:inline">요금제</a>
       <button type="button" data-open-terms="start"
-              class="btn-outline h-[44px] rounded-[12px] border border-white px-[20px] text-[15px] font-semibold">무료로 시작하기</button>
+              class="btn-outline h-[44px] rounded-[12px] border border-[#d0d7e2] bg-white px-[16px] text-[15px] font-semibold text-[#172033] md:px-[20px]">무료로 시작하기</button>
     </nav>
   </header>
 
-  <main class="flex flex-col items-center px-[120px] pt-[26px] pb-[72px] text-center">
-    <p class="rounded-full bg-white/20 px-[14px] py-[8px] text-[13px] font-semibold text-white">소상공인을 위한 AI 마케팅 에이전트</p>
-    <h1 class="mt-[13px] text-[48px] leading-[1.25] font-extrabold text-white">
-      매장 마케팅을, <span class="text-[#ffd60a]">AI</span>가 기획하다
-    </h1>
-    <p class="mt-[8px] text-[16px] leading-[1.6] font-normal text-[#f0f5fa]">
-      타겟 고객 분석부터 콘텐츠 제작, 게시까지 AI가 한 번에 해결해드립니다.<br>
-      마케팅 전문가 없어도, 광고 문구 몰라도 BizGent가 함께 하겠습니다.
+  <main class="flex flex-col items-center px-[16px] pt-[24px] pb-0 text-center break-keep md:px-[40px] lg:px-[120px]">
+    <p class="flex items-center gap-[8px] rounded-full bg-white/85 px-[14px] py-[8px] text-[14px] font-semibold shadow-[0px_2px_8px_0px_rgba(16,24,40,0.06)]"
+       th:style="|color:${season.accent}|">
+      <span class="size-[8px] rounded-full" th:style="|background:${season.accent}|" aria-hidden="true"></span>
+      <span th:text="${season.phrase()}">11월 가을은 BizGent와 함께해요</span>
     </p>
-    <button type="button" data-open-terms="heroImage"
-            class="btn-outline mt-[26px] h-[44px] rounded-[14px] border border-white bg-white px-[24px] text-[15px] font-semibold text-[#0c1b3d]">
-      매장 대표 이미지 무료 생성하기
-    </button>
-    <img alt="AI 마케팅으로 성장하는 카페 매장" th:src="@{/assets/a6c40.png}"
-         class="mt-[25px] h-[384px] w-[1191px] rounded-[40px] object-cover opacity-81">
+    <h1 class="mt-[16px] text-balance text-[32px] leading-[1.25] font-extrabold text-[#172033] md:text-[48px]">
+      매장 마케팅을, <span th:style="|color:${season.accent}|">AI</span>가 기획하다
+    </h1>
+    <p class="mt-[12px] max-w-[560px] text-[16px] leading-[1.6] font-normal text-[#475569] md:text-[17px]">
+      가게 정보와 홍보 목표만 고르면 AI가 홍보 글과 이미지를 만들어 드려요.<br class="hidden md:inline">
+      올린 뒤엔 매출로 효과까지 알려 드려요.
+    </p>
+    <div class="mt-[28px] flex w-full flex-col items-center justify-center gap-[12px] sm:w-auto sm:flex-row">
+      <button type="button" data-open-terms="start"
+              class="btn-primary h-[48px] w-full rounded-full bg-[#2563eb] px-[28px] text-[16px] font-semibold text-white shadow-[0px_10px_24px_0px_rgba(37,99,235,0.2)] sm:w-auto">무료로 시작하기</button>
+      <button type="button" data-open-terms="heroImage"
+              class="btn-outline h-[48px] w-full rounded-full border border-[#d0d7e2] bg-white px-[24px] text-[16px] font-semibold text-[#172033] sm:w-auto">매장 대표 이미지 무료로 만들기</button>
+    </div>
+
+    <!-- 업종별 매장 카드 5장 부채꼴 (아래가 잘린 카드). 768px 이하는 가운데 카드만. 스타일은 app.css .hero-cards -->
+    <div class="hero-cards mt-[48px] w-full" aria-label="업종별 BizGent 사용 장면">
+      <figure th:each="c, st : ${ {
+                {'모먼트 카페', '카페 사장님이 노트북으로 캠페인 성과를 확인하는 모습'},
+                {'동네 꽃집', '꽃집 사장님이 노트북으로 SNS 게시물을 만드는 모습'},
+                {'베이커리', '빵집 사장님이 노트북으로 매출 성과 그래프를 보는 모습'},
+                {'네일숍', '네일숍 사장님이 노트북으로 후기와 게시물을 관리하는 모습'},
+                {'동네 식당', '식당 사장님이 노트북으로 신메뉴 홍보를 준비하는 모습'}
+              } }"
+              class="hero-card" th:classappend="${'c' + st.count}">
+        <img th:src="@{'/images/landing/hero-' + ${st.count} + '.svg'}" th:alt="${c[1]}">
+      </figure>
+    </div>
+    <p class="mt-[24px] text-[16px] leading-[1.6] font-normal text-[#475569] md:text-[17px]">카페부터 식당까지, 어떤 가게든 BizGent와 함께</p>
   </main>
+ </div>
 
   <!-- AI 제작 예시 갤러리 -->
-  <section id="showcase" aria-labelledby="showcase-title" class="bg-white py-[96px]">
-    <div class="mx-auto flex max-w-[1200px] flex-col items-center px-[24px] text-center">
-      <span class="font-semibold rounded-full bg-[#ddf8f3] px-[12px] py-[6px] text-[13px] text-[#0e9384]">AI 제작 예시</span>
-      <h2 id="showcase-title" class="font-bold mt-[14px] text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
+  <section id="showcase" aria-labelledby="showcase-title" class="bg-white py-[64px] md:py-[96px]">
+    <div class="mx-auto flex max-w-[1200px] flex-col items-center px-[16px] text-center md:px-[24px]">
+      <span class="font-semibold rounded-full bg-[#ddf8f3] px-[12px] py-[6px] text-[13px] text-[#0f766e]">AI 제작 예시</span>
+      <h2 id="showcase-title" class="text-balance font-bold mt-[14px] text-[26px] md:text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
         우리 가게 홍보물, <span class="text-[#2563eb]">AI</span>가 바로 만들어요
       </h2>
       <p class="font-normal mt-[12px] max-w-[620px] text-[16px] leading-[1.6] text-[#667085]">
@@ -49,7 +71,7 @@
 
     <div class="relative mt-[48px]">
       <div data-showcase aria-label="AI 제작 예시 갤러리"
-           class="flex snap-x flex-col gap-[12px] overflow-x-auto scroll-smooth px-[120px] pt-[8px] pb-[16px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+           class="flex snap-x flex-col gap-[12px] overflow-x-auto scroll-smooth px-[16px] pt-[8px] md:px-[40px] lg:px-[120px] motion-reduce:scroll-auto pb-[16px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div th:each="row, rowStat : ${showcaseRows}" class="flex w-max gap-[12px]" th:classappend="${rowStat.index == 1 ? 'pl-[80px]' : ''}">
           <div th:each="card : ${row}"
                class="showcase-card group relative h-[240px] shrink-0 cursor-pointer overflow-hidden rounded-[16px]"
@@ -60,16 +82,16 @@
               <img th:alt="${card.alt}" th:src="@{'/assets/' + ${card.image}}" class="absolute inset-0 size-full object-cover" loading="lazy">
               <div class="absolute inset-0 bg-gradient-to-t from-[rgba(12,27,61,0.72)] via-[rgba(12,27,61,0.12)] to-transparent"></div>
               <div class="absolute right-[18px] bottom-[18px] left-[18px] flex flex-col gap-[6px] text-left">
-                <span class="font-bold w-fit rounded-full bg-[#14b8a6] px-[8px] py-[3px] text-[13px] text-white" th:text="${card.eyebrow}"></span>
+                <span class="font-bold w-fit rounded-full bg-[#0f766e] px-[8px] py-[3px] text-[13px] text-white" th:text="${card.eyebrow}"></span>
                 <p class="font-bold text-[20px] leading-[1.3] whitespace-pre-line text-white" th:text="${card.headline}"></p>
               </div>
             </th:block>
             <div th:unless="${card.photo}" class="flex size-full flex-col justify-between p-[20px] text-left" th:classappend="${card.text}">
-              <span class="font-medium text-[13px] tracking-[0.12em] opacity-80" th:text="${card.eyebrow}"></span>
+              <span class="font-medium text-[13px] tracking-[0.12em]" th:text="${card.eyebrow}"></span>
               <div class="flex flex-col gap-[10px]">
                 <span class="h-[4px] w-[32px] rounded-full" th:classappend="${card.accent}"></span>
                 <p class="font-bold text-[26px] leading-[1.25] tracking-[-0.02em] whitespace-pre-line" th:text="${card.headline}"></p>
-                <p class="font-medium text-[13px] opacity-85" th:text="${card.sub}"></p>
+                <p class="font-medium text-[13px]" th:text="${card.sub}"></p>
               </div>
             </div>
             <div class="absolute inset-0 z-20 flex items-center justify-center bg-[rgba(12,27,61,0.28)] opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100">
@@ -79,26 +101,26 @@
           </div>
         </div>
       </div>
-      <div class="pointer-events-none absolute inset-y-0 right-0 w-[160px] bg-gradient-to-l from-white to-transparent"></div>
+      <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-[160px] md:block bg-gradient-to-l from-white to-transparent"></div>
       <button type="button" data-showcase-next aria-label="다음 예시"
-              class="absolute top-1/2 right-[40px] z-30 flex size-[52px] -translate-y-1/2 items-center justify-center carousel-arrow rounded-full border border-[#e5eaf1] bg-white/90 shadow-[0px_10px_24px_0px_rgba(16,24,40,0.12)]">
+              class="absolute top-1/2 right-[40px] z-30 hidden size-[52px] md:flex -translate-y-1/2 items-center justify-center carousel-arrow rounded-full border border-[#e5eaf1] bg-white/90 shadow-[0px_10px_24px_0px_rgba(16,24,40,0.12)]">
         <img alt="" th:src="@{/assets/5ad06.svg}" class="size-[20px]">
       </button>
     </div>
   </section>
 
   <!-- 요금제: 구독 관리 화면(SCR-U-010)의 플랜 카드와 같은 내용 -->
-  <section id="pricing" aria-labelledby="pricing-title" class="border-t border-[#eef1f5] bg-[#f7f9fc] py-[96px]">
-    <div class="mx-auto flex max-w-[960px] flex-col items-center px-[24px] text-center">
+  <section id="pricing" aria-labelledby="pricing-title" class="border-t border-[#eef1f5] bg-[#f7f9fc] py-[64px] md:py-[96px]">
+    <div class="mx-auto flex max-w-[960px] flex-col items-center px-[16px] text-center md:px-[24px]">
       <span class="font-semibold rounded-full bg-[#eaf2ff] px-[12px] py-[6px] text-[13px] text-[#2563eb]">요금제</span>
-      <h2 id="pricing-title" class="font-bold mt-[14px] text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
+      <h2 id="pricing-title" class="text-balance font-bold mt-[14px] text-[26px] md:text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
         무료로 시작하고, 필요할 때 구독하세요
       </h2>
       <p class="font-normal mt-[12px] text-[16px] leading-[1.6] text-[#667085]">
         직접 하는 작업은 무료, AI를 더 많이 쓰고 싶을 때만 구독하면 돼요.
       </p>
 
-      <div class="mt-[40px] grid w-full grid-cols-2 gap-[20px] text-left">
+      <div class="mt-[40px] grid w-full grid-cols-1 gap-[20px] text-left md:grid-cols-2">
         <div class="flex flex-col gap-[20px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
           <h3 class="font-bold text-[20px] text-[#172033]">무료 플랜</h3>
           <p class="font-bold text-[32px] text-[#172033]">0원</p>
@@ -115,7 +137,7 @@
           <div class="absolute top-0 right-0 left-0 h-[6px] bg-[linear-gradient(90deg,#2563eb_25%,#14b8a6_75%)]" aria-hidden="true"></div>
           <div class="flex items-center justify-between">
             <h3 class="font-bold text-[20px] text-[#172033]">구독 플랜</h3>
-            <span class="font-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] text-[#0f8f82]">추천</span>
+            <span class="font-bold rounded-full bg-[#ddf8f3] px-[10px] py-[6px] text-[12px] text-[#0f766e]">추천</span>
           </div>
           <p class="font-bold text-[32px] text-[#172033]">월 9,900원</p>
           <div class="h-px w-full bg-[#dcebff]"></div>
@@ -131,18 +153,18 @@
 
       <button type="button" data-open-terms="start"
               class="btn-primary mt-[32px] h-[48px] rounded-full bg-[#2563eb] px-[28px] text-[16px] font-semibold text-white shadow-[0px_10px_24px_0px_rgba(37,99,235,0.2)]">무료로 시작하기</button>
-      <p class="font-normal mt-[14px] text-[13px] text-[#98a2b3]">가입 후 구독 관리 화면에서 언제든 플랜을 바꿀 수 있어요. 시연 버전에서는 실제 결제가 이루어지지 않아요.</p>
+      <p class="font-normal mt-[14px] text-[13px] text-[#667085]">가입 후 구독 관리 화면에서 언제든 플랜을 바꿀 수 있어요. 시연 버전에서는 실제 결제가 이루어지지 않아요.</p>
     </div>
   </section>
 
   <footer class="border-t border-[#e5eaf1] bg-white">
-    <div class="mx-auto flex max-w-[1200px] justify-between gap-[48px] px-[24px] pt-[64px] pb-[48px]">
+    <div class="mx-auto flex max-w-[1200px] flex-col justify-between gap-[40px] px-[16px] pt-[48px] pb-[40px] md:flex-row md:gap-[48px] md:px-[24px] md:pt-[64px] md:pb-[48px]">
       <div class="flex max-w-[320px] flex-col gap-[14px]">
         <div th:replace="~{fragments/common :: entryBrand(false, false)}"></div>
         <p class="font-normal text-[14px] leading-[1.6] text-[#667085]">소상공인을 위한 AI 마케팅 에이전트</p>
       </div>
       <!-- 링크: {이름, 스크롤할 위치, 열 팝업 id} 중 하나 -->
-      <nav aria-label="사이트 링크" class="flex gap-[80px]">
+      <nav aria-label="사이트 링크" class="flex flex-wrap gap-x-[48px] gap-y-[32px] lg:gap-[80px]">
         <div th:each="col : ${ {
                {'서비스', { {'기능 소개', '#showcase', ''}, {'AI 캠페인 기획', '', 'info-campaign'}, {'매출 분석', '', 'info-sales'}, {'요금제', '#pricing', ''} } },
                {'고객지원', { {'도움말', '', 'info-help'}, {'자주 묻는 질문', '', 'info-faq'}, {'문의하기', '', 'info-contact'} } },
@@ -160,13 +182,13 @@
       </nav>
     </div>
     <div class="border-t border-[#e5eaf1]">
-      <div class="mx-auto flex max-w-[1200px] items-center justify-between px-[24px] py-[20px] text-[13px]">
+      <div class="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-[8px] px-[16px] py-[20px] text-[13px] md:flex-row md:items-center md:px-[24px]">
         <p class="font-medium text-[#667085]">
           <a href="#" data-open-terms="start" class="link-hover">이용약관</a>
           <span class="mx-[8px] text-[#d0d7e2]">·</span>
           <a href="#" data-terms-doc="privacy" class="link-hover font-medium text-[#172033]">개인정보처리방침</a>
         </p>
-        <p class="font-normal text-[#98a2b3]">© 2026 BizGent · 팀 사계절 (한남대학교 캡스톤디자인)</p>
+        <p class="font-normal text-[#667085]">© 2026 BizGent · 팀 사계절 (한남대학교 캡스톤디자인)</p>
       </div>
     </div>
   </footer>
@@ -224,9 +246,9 @@
 
 <!-- 안내 팝업 틀: id, 분류, 제목, 설명, 본문 -->
 <div th:fragment="infoModal(id, category, title, desc, body)" th:id="${id}" data-modal data-info-modal data-backdrop-close role="presentation" hidden
-     class="pd-scope fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] p-[24px] backdrop-blur-[8px]">
+     class="pd-scope fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.5)] p-[16px] md:p-[24px] backdrop-blur-[8px]">
   <section role="dialog" aria-modal="true" th:attr="aria-labelledby=${id + '-title'}"
-           class="relative flex max-h-full w-[720px] flex-col gap-[24px] overflow-y-auto rounded-[24px] bg-white p-[36px] text-left shadow-[0px_24px_48px_0px_rgba(15,23,42,0.25)]">
+           class="relative flex max-h-full w-full max-w-[720px] flex-col gap-[24px] overflow-y-auto rounded-[24px] bg-white p-[24px] md:p-[36px] text-left shadow-[0px_24px_48px_0px_rgba(15,23,42,0.25)]">
     <button type="button" data-modal-close aria-label="닫기"
             class="absolute top-[24px] right-[24px] flex size-[40px] items-center justify-center rounded-[20px] bg-[#f1f5f9] transition-colors duration-150 hover:bg-[#e2e8f0]">
       <img alt="" th:src="@{/assets/9c9d5.svg}" class="size-[16px]">
@@ -242,7 +264,7 @@
 
 <!-- AI 캠페인 기획: 캠페인 생성 5단계 -->
 <div id="info-campaign-body" class="flex flex-col gap-[24px]">
-  <ol class="grid grid-cols-5 gap-[8px]">
+  <ol class="grid grid-cols-1 gap-[16px] md:grid-cols-5 md:gap-[8px]">
     <li th:each="s, st : ${ {
           {'목표 설정', '홍보 목표와 대상 메뉴를 골라요'},
           {'AI 기획', 'AI가 타겟 고객과 홍보 방향을 분석해요'},
@@ -251,7 +273,7 @@
           {'게시', '고른 시안을 채널에 올려요'}
         } }" class="relative flex flex-col items-center gap-[10px] text-center">
       <span class="font-bold relative z-10 flex size-[44px] items-center justify-center rounded-full bg-[#2563eb] text-[16px] text-white shadow-[0_8px_18px_rgba(37,99,235,0.25)]" th:text="${st.count}">1</span>
-      <span th:unless="${st.last}" class="absolute top-[22px] left-[calc(50%+26px)] h-[2px] w-[calc(100%-44px)] bg-[#bfdbfe]" aria-hidden="true"></span>
+      <span th:unless="${st.last}" class="absolute top-[22px] hidden md:block left-[calc(50%+26px)] h-[2px] w-[calc(100%-44px)] bg-[#bfdbfe]" aria-hidden="true"></span>
       <span class="font-bold text-[15px] text-[#172033]" th:text="${s[0]}"></span>
       <span class="font-normal text-[13px] leading-[1.5] text-[#667085]" th:text="${s[1]}"></span>
     </li>
@@ -262,21 +284,21 @@
 
 <!-- 매출 분석: 업로드 3방식 → 성과분석 → AI 개선 방향 -->
 <div id="info-sales-body" class="flex flex-col gap-[24px]">
-  <div class="flex items-stretch gap-[12px]">
-    <div class="grid flex-1 grid-cols-3 gap-[8px]">
+  <div class="flex flex-col items-stretch gap-[12px] md:flex-row">
+    <div class="grid flex-1 grid-cols-1 gap-[8px] sm:grid-cols-3">
       <div th:each="m : ${ { {'엑셀/CSV', '판매 내역 파일 올리기'}, {'영수증 사진', '사진으로 찍어 올리기'}, {'직접 입력', '날짜·메뉴별로 입력'} } }"
            class="flex flex-col gap-[4px] rounded-[14px] border border-[#e5eaf1] bg-[#f8fafc] p-[14px]">
         <span class="font-bold text-[14px] text-[#172033]" th:text="${m[0]}"></span>
         <span class="font-normal text-[12px] leading-[1.5] text-[#667085]" th:text="${m[1]}"></span>
       </div>
     </div>
-    <span class="font-bold flex items-center text-[20px] text-[#98a2b3]" aria-hidden="true">→</span>
-    <div class="flex w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#eaf2ff] p-[14px]">
+    <span class="font-bold hidden items-center text-[20px] text-[#667085] md:flex" aria-hidden="true">→</span>
+    <div class="flex md:w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#eaf2ff] p-[14px]">
       <span class="font-bold text-[14px] text-[#1d4ed8]">성과분석</span>
       <span class="font-normal text-[12px] leading-[1.5] text-[#475569]">캠페인 전후 매출 비교</span>
     </div>
-    <span class="font-bold flex items-center text-[20px] text-[#98a2b3]" aria-hidden="true">→</span>
-    <div class="flex w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#ddf8f3] p-[14px]">
+    <span class="font-bold hidden items-center text-[20px] text-[#667085] md:flex" aria-hidden="true">→</span>
+    <div class="flex md:w-[130px] flex-col justify-center gap-[4px] rounded-[14px] bg-[#ddf8f3] p-[14px]">
       <span class="font-bold text-[14px] text-[#0f766e]">AI 개선 방향</span>
       <span class="font-normal text-[12px] leading-[1.5] text-[#475569]">다음 캠페인 제안</span>
     </div>
@@ -296,7 +318,7 @@
               th:classappend="${st.index >= 4 ? 'bg-[#2563eb]' : 'bg-[#cbd5e1]'}" th:style="|height:${h}%|"></span>
       </div>
     </div>
-    <figcaption class="font-normal text-[12px] text-[#98a2b3]">성과분석 화면 예시입니다. 실제 매장 성과가 아니에요.</figcaption>
+    <figcaption class="font-normal text-[12px] text-[#667085]">성과분석 화면 예시입니다. 실제 매장 성과가 아니에요.</figcaption>
   </figure>
 </div>
 
@@ -336,7 +358,7 @@
 
 <!-- 문의하기: 실제 전송 없음 -->
 <form id="info-contact-body" data-contact-form novalidate class="flex flex-col gap-[16px]">
-  <div class="grid grid-cols-2 gap-[12px]">
+  <div class="grid grid-cols-1 gap-[12px] sm:grid-cols-2">
     <label class="flex flex-col gap-[8px]">
       <span class="font-semibold text-[14px] text-[#172033]">이름</span>
       <input name="name" maxlength="30" placeholder="이름을 입력하세요"
@@ -367,7 +389,7 @@
 
 <!-- 팀 사계절 소개: PROJECT.md 1장·8장 -->
 <div id="info-team-body" class="flex flex-col gap-[20px]">
-  <ul class="grid grid-cols-3 gap-[12px]">
+  <ul class="grid grid-cols-1 gap-[12px] md:grid-cols-3">
     <li th:each="m : ${ {
           {'정지민', '팀장 / PM·기획', '일정 관리, 요구사항 정리, UX 기획, 테스트 관리'},
           {'엄지훈', 'Backend / Database', 'Spring Boot, AI 기획·시안·개선 방향 로직, 매출 데이터 처리, DB 개발'},
