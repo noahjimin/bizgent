@@ -61,9 +61,9 @@
       dot.classList.toggle("border-[#e5eaf1]", !on); dot.classList.toggle("bg-[#f0f3f8]", !on);
       const num = el.querySelector("[data-su-num]");
       num.textContent = state.step > n ? "✓" : n;
-      num.classList.toggle("text-white", on); num.classList.toggle("text-[#98a2b3]", !on);
+      num.classList.toggle("text-white", on); num.classList.toggle("text-[#667085]", !on);
       const label = el.querySelector("[data-su-label]");
-      label.classList.toggle("text-[#2563eb]", on); label.classList.toggle("text-[#98a2b3]", !on);
+      label.classList.toggle("text-[#2563eb]", on); label.classList.toggle("text-[#667085]", !on);
       label.classList.toggle("f-bold", state.step === n); label.classList.toggle("f-medium", state.step !== n);
     });
     $$("[data-su-line]").forEach((el) => {
