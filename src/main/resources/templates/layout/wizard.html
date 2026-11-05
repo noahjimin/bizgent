@@ -13,7 +13,7 @@
       <a th:href="@{/}" aria-label="캠페인 만들기 닫기" data-wizard-close class="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-[#f7f9fc] hover:bg-[#eef1f5]">
         <img alt="" th:src="@{/assets/ee41f.svg}" class="size-[20px]">
       </a>
-      <a th:href="@{/}" class="flex items-center gap-[7px]">
+      <a th:href="@{/}" data-wizard-close class="flex items-center gap-[7px]">
         <span th:replace="~{fragments/common :: logoMark('size-[26px] rounded-[8px]', 'f-bold text-[18px]')}"></span>
         <span class="f-bold text-[16px] text-[#172033]">BizGent</span>
       </a>
@@ -47,6 +47,66 @@
   <div th:replace="~{fragments/wizard-parts :: confirmNext}"></div>
   <div th:replace="~{fragments/common :: hosts}"></div>
 </div>
+<!--
+  생성 중 나가기 방지 (게시 완료 화면 제외). 캠페인은 생성 횟수로 과금되므로 실수로 떠나지 않게 한다.
+  ✕·로고·브라우저 뒤로가기 → 확인 팝업, [나가기]는 보던 단계 입력값을 '작성 중'으로 저장 후 홈으로.
+  '요금제 보기' → 저장 후 요금제 화면(돌아가기 버튼으로 복귀). 새로고침·탭 닫기 → 브라우저 기본 확인창(문구는 바꿀 수 없음).
+-->
+<script th:unless="${published}" th:inline="javascript">
+(() => {
+  const step = /*[[${step}]]*/ "1";
+  const MESSAGE = "캠페인 생성을 중단하시겠어요? 작성 중인 내용은 보관함에 임시 저장되며, 언제든 이어서 작성할 수 있어요.";
+  let leaving = false;
+  // 기획·시안 생성 후 새로고침, 게시 완료 이동처럼 정상적인 이동 직전에 부른다.
+  BG.allowLeave = () => { leaving = true; };
+
+  // 다음 단계 제출(확인 팝업의 form.submit() 포함)은 막지 않는다.
+  const nativeSubmit = HTMLFormElement.prototype.submit;
+  HTMLFormElement.prototype.submit = function () { leaving = true; return nativeSubmit.call(this); };
+  window.addEventListener("submit", (e) => { if (!e.defaultPrevented) leaving = true; });
+  window.addEventListener("beforeunload", (e) => {
+    if (leaving) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+  // exit: home(홈으로) | plans(요금제 화면으로). 5단계처럼 입력 폼이 없으면 빈 폼으로 보낸다.
+  const saveAndLeave = (exit) => {
+    let form = document.getElementById("step-form");
+    if (!form) {
+      form = document.createElement("form");
+      form.method = "post";
+      form.action = `/campaigns/new/${step}`;
+      document.body.appendChild(form);
+    }
+    form.insertAdjacentHTML("beforeend", `<input type="hidden" name="exit" value="${exit}">`);
+    form.dispatchEvent(new CustomEvent("step:submit"));
+    form.submit();
+  };
+  const askLeave = () => BG.confirm(MESSAGE, "나가기", () => saveAndLeave("home"), "계속 작성하기");
+
+  document.querySelectorAll("[data-wizard-close]").forEach((a) => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    askLeave();
+  }));
+
+  // 뒤로가기: 기록을 하나 쌓아 두고, 뒤로 가면 다시 쌓은 뒤 팝업을 띄운다 (계속 작성하면 그대로 머문다).
+  history.pushState({ wizardGuard: true }, "");
+  window.addEventListener("popstate", () => {
+    history.pushState({ wizardGuard: true }, "");
+    askLeave();
+  });
+
+  // 구독 안내의 '요금제 보기' 링크와 구독 버튼: 저장한 뒤 요금제 화면으로
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest('a[href$="/subscription"]')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    saveAndLeave("plans");
+  }, true);
+  BG.requestSubscribe = () => saveAndLeave("plans");
+})();
+</script>
 <th:block th:replace="${scripts}"></th:block>
 </body>
 </html>

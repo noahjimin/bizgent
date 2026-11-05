@@ -173,7 +173,7 @@
 (() => {
   if (!HAS_DRAFTS) {
     Promise.all([BG.postJson("/api/wizard/drafts"), new Promise((r) => setTimeout(r, 1500))])
-      .then(() => location.reload())
+      .then(() => { BG.allowLeave?.(); location.reload(); })
       .catch(() => BG.toast("시안을 만들지 못했어요. 새로고침해 주세요"));
     return;
   }

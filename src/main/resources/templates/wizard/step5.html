@@ -212,6 +212,7 @@
     });
     try {
       const { campaignId } = await request;
+      BG.allowLeave?.();
       location.href = `/campaigns/new/done?campaign=${campaignId}`;
     } catch {
       BG.toast("게시하지 못했어요. 다시 시도해 주세요");

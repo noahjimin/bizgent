@@ -85,7 +85,7 @@
 
   <footer class="sticky bottom-0 z-10 flex h-[88px] shrink-0 items-center justify-center border-t border-[#e5eaf1] bg-white px-[48px]">
     <div class="flex w-[700px] items-center justify-between">
-      <a th:href="@{/}" class="f-semibold flex h-[52px] items-center px-[18px] text-[18px] text-[#667085]">취소</a>
+      <a th:href="@{/}" data-wizard-close class="f-semibold flex h-[52px] items-center px-[18px] text-[18px] text-[#667085]">취소</a>
       <button type="button" data-confirm-next data-next-button disabled
               data-confirm-title="AI 기획 단계로 넘어갈까요?"
               data-confirm-body="선택한 목표와 대상 메뉴로 AI가 캠페인을 기획해요. 다음 단계로 넘어가면 1단계 내용은 다시 수정할 수 없어요."
@@ -262,12 +262,7 @@
   });
 
   form.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); });
-  // ✕: 입력하던 내용을 작성 중 상태로 저장하고 홈으로 (SCR-U-004-1 ⑧)
-  document.querySelector("[data-wizard-close]").addEventListener("click", (e) => {
-    e.preventDefault();
-    form.insertAdjacentHTML("beforeend", '<input type="hidden" name="exit" value="true">');
-    form.submit();
-  });
+  // ✕: 확인 팝업 후 입력하던 내용을 작성 중 상태로 저장하고 홈으로 (SCR-U-004-1 ⑧) — layout/wizard.html 공통 처리
   validate();
 })();
 </script>

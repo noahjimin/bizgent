@@ -44,6 +44,6 @@ public class CampaignController {
     @PostMapping("/campaigns/{id}/resume")
     public String resume(@PathVariable Long id) {
         Campaign campaign = campaignService.resume(id);
-        return "redirect:/campaigns/new/" + campaign.getResumeStep();
+        return "redirect:/campaigns/new/" + campaign.getContinueStep();
     }
 }

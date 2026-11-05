@@ -1,5 +1,6 @@
 package com.bizgent.service;
 
+import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
@@ -19,12 +20,18 @@ public class MemberService {
     public static final String INTENT_HERO_IMAGE = "heroImage";
 
     private static final Pattern EMAIL = Pattern.compile("[^\\s@]+@[^\\s@]+\\.[^\\s@]+");
+    private static final Pattern PHONE = Pattern.compile("010-\\d{4}-\\d{4}");
 
     private final DemoSession session;
 
     /** 이메일 형식 검사 (SCR-U-001 ①⑤) */
     public static boolean isValidEmail(String email) {
         return EMAIL.matcher(email.trim()).matches();
+    }
+
+    /** 연락처 형식 검사: 010-0000-0000 */
+    public static boolean isValidPhone(String phone) {
+        return PHONE.matcher(phone.trim()).matches();
     }
 
     /** 이미 가입된 이메일인지 (SCR-U-001 ⑤) */
@@ -43,6 +50,7 @@ public class MemberService {
 
     public void agreeTerms(String intent) {
         session.setTermsAgreed(true);
+        session.setTermsAgreedAt(LocalDateTime.now());
         if (intent != null && !intent.isBlank()) {
             session.setStartIntent(intent);
         } else if (session.getStartIntent() == null) {
@@ -57,11 +65,17 @@ public class MemberService {
         return consumeStartPath();
     }
 
-    public String signup(String email, String storeName) {
-        session.setLoggedIn(true);
-        session.getMember().setEmail(email.trim());
-        session.getMember().setMemberName(storeName.trim());
+    /** 이름·연락처·약관 동의는 회원 정보에, 매장명·업종은 매장 정보에 저장한다. 약관 동의 여부는 컨트롤러가 먼저 확인한다. */
+    public String signup(String memberName, String email, String storeName, String category, String phone) {
+        Member member = session.getMember();
+        member.setMemberName(memberName.trim());
+        member.setEmail(email.trim());
+        member.setPhone(phone.isBlank() ? null : phone.trim());
+        member.setTermsAgreed(true);
+        member.setTermsAgreedAt(session.getTermsAgreedAt());
         session.getStore().setStoreName(storeName.trim());
+        session.getStore().setCategory(category);
+        session.setLoggedIn(true);
         return consumeStartPath();
     }
 

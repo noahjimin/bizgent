@@ -9,7 +9,7 @@
   <header class="flex h-[72px] items-center justify-between px-[16px] md:h-[88px] md:px-[40px] lg:px-[120px]">
     <div th:replace="~{fragments/common :: entryBrand(false, false)}"></div>
     <nav class="flex items-center gap-[32px] text-[15px] font-medium text-[#172033]">
-      <a href="#showcase" class="nav-link hidden md:inline">기능 소개</a>
+      <a href="#features" class="nav-link hidden md:inline">기능 소개</a>
       <a href="#pricing" class="nav-link hidden md:inline">요금제</a>
       <button type="button" data-open-terms="start"
               class="btn-outline h-[44px] rounded-[12px] border border-[#d0d7e2] bg-white px-[16px] text-[15px] font-semibold text-[#172033] md:px-[20px]">무료로 시작하기</button>
@@ -52,6 +52,46 @@
     <p class="mt-[24px] text-[16px] leading-[1.6] font-normal text-[#475569] md:text-[17px]">카페부터 식당까지, 어떤 가게든 BizGent와 함께</p>
   </main>
  </div>
+
+  <!-- 기능 소개 (화면설계서 범위 밖으로 팀이 추가한 섹션). 상단 메뉴·푸터의 "기능 소개"가 여기로 스크롤된다 -->
+  <section id="features" aria-labelledby="features-title" class="bg-white px-[16px] pt-[72px] pb-[88px]">
+    <div class="mx-auto max-w-[1180px]">
+      <div class="flex flex-col items-center text-center">
+        <span class="font-semibold rounded-full bg-[#ddf8f3] px-[12px] py-[6px] text-[13px] text-[#0f766e]">BizGent 소개</span>
+        <h2 id="features-title" class="text-balance break-keep font-bold mt-[14px] text-[26px] md:text-[32px] leading-[1.3] tracking-[-0.02em] text-[#172033]">
+          우리 가게 마케팅을 위한 올인원 AI 에이전트
+        </h2>
+        <p class="font-normal mt-[12px] max-w-[620px] break-keep text-[16px] leading-[1.6] text-[#667085]">
+          매장 정보와 홍보 목표만 입력하면 캠페인 기획부터 콘텐츠 제작, 게시 후 매출 분석까지 BizGent가 이어서 도와드려요.
+        </p>
+        <div class="mt-[22px] flex flex-wrap justify-center gap-[8px]">
+          <button type="button" data-modal-open="info-campaign"
+                  class="inline-flex items-center gap-[6px] rounded-full bg-[#f1f5f9] px-[18px] py-[11px] text-[15px] font-medium text-[#172033] underline-offset-[3px] hover:underline">
+            자세히 알아보기 <span aria-hidden="true">↗</span>
+          </button>
+          <button type="button" data-open-terms="start"
+                  class="inline-flex items-center gap-[6px] rounded-full px-[18px] py-[11px] text-[15px] font-medium text-[#172033] underline-offset-[3px] hover:underline">
+            무료로 시작하기 <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </div>
+      <div class="mx-auto mt-[44px] grid max-w-[480px] grid-cols-1 gap-[24px] min-[861px]:max-w-none min-[861px]:grid-cols-3">
+        <article th:each="f : ${ {
+                   {'plan', '기획', '홍보 목표와 대상 메뉴를 고르면 AI가 타겟 고객과 캠페인 방향, 기대 효과까지 정리해 드려요.', '캠페인 생성 단계와 AI 기획 결과가 보이는 BizGent 화면'},
+                   {'create', '제작', '선택한 채널에 맞는 홍보 문구, 해시태그, 광고 이미지 시안을 A/B로 받아 보고 직접 고쳐 쓸 수 있어요.', '인스타그램용 홍보 문구와 해시태그가 담긴 광고 이미지 시안, 캠페인 보관함 카드가 보이는 BizGent 화면'},
+                   {'improve', '분석·개선', '게시 후 엑셀, 영수증 사진, 직접 입력으로 매출을 올리면 캠페인 효과를 분석하고 다음 캠페인 방향을 제안해요.', '캠페인 기간이 표시된 일별 매출 추이 그래프와 AI 개선 제안 카드가 보이는 BizGent 화면'}
+                 } }"
+                 class="grid min-w-0 content-start gap-[14px]">
+          <div class="aspect-square max-w-full overflow-hidden rounded-[6px] bg-[#4c8df6]">
+            <img th:src="@{'/images/landing/feature-' + ${f[0]} + '.png'}" th:alt="${f[3]}" width="880" height="880" loading="lazy"
+                 class="block size-full object-cover">
+          </div>
+          <h3 class="mt-[6px] text-[22px] font-bold tracking-[-0.01em] text-[#172033]" th:text="${f[1]}">기획</h3>
+          <p class="break-keep text-[16px] leading-[1.7] text-[#172033]/86" th:text="${f[2]}"></p>
+        </article>
+      </div>
+    </div>
+  </section>
 
   <!-- AI 제작 예시 갤러리 -->
   <section id="showcase" aria-labelledby="showcase-title" class="bg-white py-[64px] md:py-[96px]">
@@ -166,7 +206,7 @@
       <!-- 링크: {이름, 스크롤할 위치, 열 팝업 id} 중 하나 -->
       <nav aria-label="사이트 링크" class="flex flex-wrap gap-x-[48px] gap-y-[32px] lg:gap-[80px]">
         <div th:each="col : ${ {
-               {'서비스', { {'기능 소개', '#showcase', ''}, {'AI 캠페인 기획', '', 'info-campaign'}, {'매출 분석', '', 'info-sales'}, {'요금제', '#pricing', ''} } },
+               {'서비스', { {'기능 소개', '#features', ''}, {'AI 캠페인 기획', '', 'info-campaign'}, {'매출 분석', '', 'info-sales'}, {'요금제', '#pricing', ''} } },
                {'고객지원', { {'도움말', '', 'info-help'}, {'자주 묻는 질문', '', 'info-faq'}, {'문의하기', '', 'info-contact'} } },
                {'회사', { {'팀 사계절 소개', '', 'info-team'}, {'공지사항', '', 'info-notice'} } }
              } }"
@@ -204,9 +244,25 @@
 
   <div th:replace="~{fragments/auth-parts :: termsModal('/login', false, null)}"></div>
   <div th:replace="~{fragments/auth-parts :: termsDocModal}"></div>
+  <div th:replace="~{fragments/auth-parts :: loginModal(${showLogin})}"></div>
 </div>
 <div th:replace="~{fragments/common :: hosts}"></div>
+<script th:replace="~{auth/signup :: clearErrorScript}"></script>
 <script>
+  // 약관 동의 → 로그인 팝업(SCR-U-001): 동의를 서버에 기록한 뒤 랜딩을 다시 불러오지 않고 그 자리에서 연다.
+  document.querySelector("[data-terms-form]").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    try {
+      const res = await fetch(form.action, { method: "POST", body: new URLSearchParams(new FormData(form)) });
+      if (!res.ok) throw new Error(res.status);
+      BG.closeModal("terms-modal");
+      BG.openModal("login-modal");
+    } catch {
+      BG.toast("동의 내용을 저장하지 못했어요. 다시 시도해 주세요");
+    }
+  });
+
   document.querySelectorAll("[data-showcase-next]").forEach((btn) =>
     btn.addEventListener("click", () => document.querySelector("[data-showcase]").scrollBy({ left: 640, behavior: "smooth" })));
 

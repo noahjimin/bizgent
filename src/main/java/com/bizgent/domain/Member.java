@@ -1,6 +1,7 @@
 package com.bizgent.domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class Member {
     private String memberName;
     private String phone;
     private boolean termsAgreed;
+    private LocalDateTime termsAgreedAt;
     private Plan plan = Plan.FREE;
     private int credits;
     private int campaignsUsedThisMonth;

@@ -1,27 +1,24 @@
 <!DOCTYPE html>
-<!-- 회원가입 (SCR-U-002). 약관에 동의하지 않고 들어오면 약관 카드가 먼저 열린다. -->
+<!-- 회원가입 (SCR-U-001). 약관 동의 기록이 없으면 가입 양식 대신 약관 카드만 보여 주고, 동의하면 이 화면으로 다시 온다. -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{fragments/common :: head('회원가입')}"></head>
 <body data-responsive>
 <div class="pd-scope flex min-h-screen flex-col items-center justify-center gap-[32px] bg-[#eff6ff] px-[16px] py-[40px] md:py-[72px]">
   <div th:replace="~{fragments/common :: entryBrand(false, false)}"></div>
-  <form method="post" th:action="@{/signup}" novalidate
+  <form th:unless="${showTerms}" method="post" th:action="@{/signup}" novalidate
         class="flex w-full max-w-[480px] flex-col gap-[28px] rounded-[24px] bg-white p-[24px] md:p-[40px] shadow-[0px_12px_16px_rgba(15,23,42,0.05)]">
     <div class="text-center">
       <h1 class="text-[34px] leading-[36px] font-extrabold text-[#0f172a]">회원가입</h1>
       <p class="mt-[8px] text-[16px] leading-[22px] font-medium text-[#64748b]">몇 가지 정보만 입력하면 바로 시작할 수 있어요</p>
     </div>
     <div class="flex flex-col gap-[20px]">
+      <label th:replace="~{fragments/auth-parts :: authField('이름', 'memberName', 'text', ${memberName}, '이름을 입력하세요 (2~20자)', true, ${errors?.get('memberName')})}"></label>
       <label th:replace="~{fragments/auth-parts :: authField('이메일', 'email', 'email', ${email}, '이메일을 입력하세요', true, ${errors?.get('email')})}"></label>
       <label th:replace="~{fragments/auth-parts :: authField('비밀번호', 'password', 'password', '', '비밀번호를 입력하세요', true, ${errors?.get('password')})}"></label>
       <label th:replace="~{fragments/auth-parts :: authField('비밀번호 확인', 'passwordCheck', 'password', '', '비밀번호를 다시 입력하세요', true, ${errors?.get('passwordCheck')})}"></label>
       <label th:replace="~{fragments/auth-parts :: authField('매장명', 'storeName', 'text', ${storeName}, '매장명을 입력하세요', true, ${errors?.get('storeName')})}"></label>
-    </div>
-    <div class="flex items-center gap-[10px]">
-      <span class="flex size-[20px] items-center justify-center rounded-[4px] border-2 border-[#059669] bg-[#eff6ff]">
-        <img alt="" th:src="@{/assets/62ab4.svg}" class="size-[12px]">
-      </span>
-      <p class="text-[14px] font-medium text-[#64748b]">이용약관 및 개인정보처리방침에 동의합니다</p>
+      <label th:replace="~{fragments/auth-parts :: authSelect('업종', 'category', ${categories}, ${category}, '업종을 선택하세요', true, ${errors?.get('category')})}"></label>
+      <label th:replace="~{fragments/auth-parts :: authField('연락처 (선택)', 'phone', 'tel', ${phone}, '010-0000-0000', true, ${errors?.get('phone')})}"></label>
     </div>
     <button type="submit" class="btn-primary h-[56px] rounded-[12px] bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-[20px] font-bold text-white">가입하기</button>
     <p class="text-center text-[16px] font-medium text-[#64748b]">

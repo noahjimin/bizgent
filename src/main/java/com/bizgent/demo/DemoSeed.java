@@ -33,6 +33,7 @@ final class DemoSeed {
     static void fill(DemoSession s) {
         s.setLoggedIn(false);
         s.setTermsAgreed(false);
+        s.setTermsAgreedAt(null);
         s.setStartIntent(null);
         s.setInsightsView("early");
         s.setActiveDraftId(null);

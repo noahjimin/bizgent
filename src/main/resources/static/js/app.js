@@ -338,6 +338,24 @@
     form.submit();
   });
 
+  /* ---------- POST로 이동 ---------- */
+  // 작성 중 캠페인 이어서 작성하기처럼 상태를 바꾸는 이동은 POST로 보낸다. <a href="(JS 없을 때 갈 곳)" data-post-href="/campaigns/7/resume">
+  BG.postTo = function (url) {
+    const form = document.createElement("form");
+    form.method = "post";
+    form.action = url;
+    document.body.appendChild(form);
+    form.submit();
+  };
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("[data-post-href]");
+    // 카드 안의 다른 버튼·링크·폼을 누른 경우는 그 동작에 맡긴다.
+    const inner = e.target.closest("a, button, form");
+    if (!link || (inner && inner !== link && link.contains(inner))) return;
+    e.preventDefault();
+    BG.postTo(link.dataset.postHref);
+  });
+
   /* ---------- 서버에서 전달한 토스트 ---------- */
   document.addEventListener("DOMContentLoaded", () => {
     const flash = document.querySelector("[data-flash-toast]");

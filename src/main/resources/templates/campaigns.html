@@ -68,7 +68,7 @@
   <!-- 카드 보기 -->
   <div th:if="${!campaigns.isEmpty() and view != 'list'}" class="grid w-full grid-cols-3 gap-[20px]">
     <article th:each="c : ${campaigns}" th:with="openUrl=@{/campaigns(q=${q}, status=${status}, sort=${sort}, view=${view}, campaign=${c.campaignId})}"
-             th:attr="data-href=${openUrl}"
+             th:attr="data-href=${c.published ? openUrl : null},data-post-href=${c.published ? null : '/campaigns/' + c.campaignId + '/resume'}"
              class="flex h-[335px] min-w-0 cursor-pointer flex-col overflow-hidden rounded-[16px] border border-[#e5eaf1] bg-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] transition-shadow hover:shadow-[0px_10px_24px_0px_rgba(16,24,40,0.1)]">
       <div th:replace="~{:: collage(${c}, 'h-[202px]')}"></div>
       <div class="flex w-full flex-col gap-[10px] px-[18px] pt-[18px] pb-[14px]">
@@ -90,7 +90,7 @@
   <!-- 목록 보기 -->
   <div th:if="${!campaigns.isEmpty() and view == 'list'}" class="flex w-full flex-col gap-[12px]">
     <article th:each="c : ${campaigns}" th:with="openUrl=@{/campaigns(q=${q}, status=${status}, sort=${sort}, view=${view}, campaign=${c.campaignId})}"
-             th:attr="data-href=${openUrl}"
+             th:attr="data-href=${c.published ? openUrl : null},data-post-href=${c.published ? null : '/campaigns/' + c.campaignId + '/resume'}"
              class="flex h-[112px] w-full cursor-pointer items-center gap-[18px] overflow-hidden rounded-[16px] border border-[#e5eaf1] bg-white pr-[18px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)] hover:shadow-[0px_10px_24px_0px_rgba(16,24,40,0.1)]">
       <div class="h-full w-[220px] shrink-0">
         <div th:replace="~{:: collage(${c}, 'h-full')}"></div>
@@ -253,7 +253,7 @@
 <th:block th:fragment="scripts">
 <script>
 (() => {
-  // 카드 아무 곳이나 누르면 상세 패널을 연다 (버튼·폼 제외).
+  // 카드 아무 곳이나 누르면 상세 패널을 연다 (버튼·폼 제외). 작성 중 카드는 data-post-href로 이어서 작성한다(app.js).
   document.addEventListener("click", (e) => {
     const card = e.target.closest("[data-href]");
     if (card && !e.target.closest("a, button, form")) location.href = card.dataset.href;

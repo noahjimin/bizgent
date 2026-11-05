@@ -39,14 +39,10 @@
       <div aria-hidden="true" class="h-[12px]"></div>
     </section>
 
-    <!-- 빠른 작업: 링크 이동 또는 채널을 미리 고른 새 캠페인 -->
+    <!-- 빠른 작업: 고유 기능이 있는 화면으로 바로 이동 (일반 캠페인 생성과 같은 버튼은 두지 않는다) -->
     <nav aria-label="빠른 작업" class="flex justify-center gap-[28px]">
       <th:block th:each="q : ${ {
-          {'새 캠페인', 'plus', '#2563eb', '', ''},
           {'대표 이미지', 'image', '#14b8a6', '/store?imageCard=open', ''},
-          {'인스타 게시물', 'instagram', '#ec4899', '', '인스타그램'},
-          {'블로그 글', 'blog', '#22c55e', '', '블로그'},
-          {'당근 홍보', 'carrot', '#f97316', '', '당근마켓'},
           {'매출 올리기', 'upload', '#8b5cf6', '/performance?upload=open', ''},
           {'성과 보기', 'chart', '#4f46e5', '/performance', ''},
           {'개선 방향', 'bulb', '#f59e0b', '/insights', ''}
@@ -92,6 +88,7 @@
         </button>
         <a th:each="c : ${recent}" th:href="@{/campaigns(campaign=${c.campaignId})}"
            th:with="draftCount=${c.publishedDraftKeys.size()}"
+           th:attr="data-post-href=${c.published ? null : '/campaigns/' + c.campaignId + '/resume'}"
            class="relative h-[260px] w-[200px] shrink-0 snap-start overflow-hidden rounded-[20px] shadow-[0_4px_20px_rgba(15,23,42,0.06)]">
           <img th:if="${!#strings.isEmpty(c.thumbnail)}" alt="" th:src="${c.thumbnail}" class="absolute inset-0 size-full object-cover">
           <div th:if="${#strings.isEmpty(c.thumbnail)}" class="absolute inset-0 flex items-center justify-center"

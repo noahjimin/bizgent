@@ -134,6 +134,45 @@
   </script>
 </div>
 
+<!--
+  로그인 팝업 (SCR-U-001). 랜딩 위에 뜬다. open: 처음부터 열지 여부(/login 직접 접속, 로그인 오류)
+  ✕·Esc로 닫으면 랜딩에 그대로 머문다. 입력 중 실수로 닫히지 않게 배경 클릭으로는 닫지 않는다.
+-->
+<div th:fragment="loginModal(open)" id="login-modal" data-modal th:hidden="${!open}"
+     class="pd-scope fixed inset-0 z-50 flex flex-col items-center gap-[32px] overflow-y-auto bg-[rgba(15,23,42,0.5)] px-[16px] py-[24px] backdrop-blur-[8px] [justify-content:safe_center]">
+  <div th:replace="~{fragments/common :: entryBrand(true, true)}"></div>
+  <form method="post" th:action="@{/login}" novalidate role="dialog" aria-modal="true" aria-labelledby="login-title"
+        class="relative flex w-full max-w-[480px] shrink-0 flex-col gap-[28px] rounded-[24px] bg-white/97 p-[24px] md:p-[40px] shadow-[0px_12px_32px_rgba(15,23,42,0.05),0px_20px_60px_rgba(0,0,0,0.35)]">
+    <div class="text-center">
+      <h2 id="login-title" class="text-[34px] leading-[36px] font-extrabold text-[#0f172a]">로그인</h2>
+      <p class="mt-[8px] text-[18px] leading-[22px] font-medium text-[#64748b]">BizGent와 함께 매장 마케팅을 시작하세요</p>
+    </div>
+    <div class="flex flex-col gap-[16px]">
+      <label th:replace="~{fragments/auth-parts :: authField('이메일', 'email', 'email', ${email}, '이메일을 입력하세요', false, ${errors?.get('email')})}"></label>
+      <label th:replace="~{fragments/auth-parts :: authField('비밀번호', 'password', 'password', '', '비밀번호를 입력하세요', false, ${errors?.get('password')})}"></label>
+    </div>
+    <button type="submit" class="btn-primary h-[56px] rounded-[12px] bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-[20px] font-bold text-white">로그인</button>
+    <p class="text-center text-[17px] font-medium text-[#64748b]">
+      계정이 없으신가요? <a th:href="@{/signup}" class="link-hover font-bold text-[#047857]">회원가입</a>
+    </p>
+    <!-- 열 때 첫 포커스가 이메일 칸에 가도록 닫기 버튼은 맨 뒤에 둔다 (화면에서는 오른쪽 위) -->
+    <button type="button" data-modal-close aria-label="닫기"
+            class="absolute top-[20px] right-[20px] flex size-[40px] items-center justify-center rounded-[20px] bg-[#f1f5f9] transition-colors duration-150 hover:bg-[#e2e8f0]">
+      <img alt="" th:src="@{/assets/9c9d5.svg}" class="size-[16px]">
+    </button>
+  </form>
+  <script>
+    (function () {
+      const modal = document.getElementById("login-modal");
+      // /login으로 들어왔다가 닫으면 주소를 랜딩으로 바꿔 새로고침해도 다시 뜨지 않게 한다.
+      modal.addEventListener("modal:close", () => {
+        if (location.pathname.endsWith("/login")) history.replaceState(null, "", location.pathname.replace(/\/login$/, "/landing"));
+      });
+      if (!modal.hidden) (modal.querySelector('[aria-invalid="true"]') || modal.querySelector('[name="email"]')).focus();
+    })();
+  </script>
+</div>
+
 <!-- 로그인·회원가입 입력칸 -->
 <!-- 개인정보 수집·이용 표 (시연용 예시 문안). 항목은 현재 가입·계정·매장 정보·매출 화면에서 받는 값 -->
 <table th:fragment="privacyTable" class="w-full border-collapse text-left text-[12px] leading-[1.5] text-[#475569]">
@@ -250,6 +289,22 @@
         <path data-pw-slash d="M3 3l18 18" style="display:none"/>
       </svg>
     </button>
+  </span>
+  <span th:if="${error != null}" data-error class="text-[13px] font-medium text-[#dc2626]" th:text="${error}">오류</span>
+</label>
+
+<!-- 선택형 입력칸 (authField와 같은 모양·오류 표시). 고르기 전에는 안내 문구를 회색으로 보여 준다 -->
+<label th:fragment="authSelect(label, name, options, value, placeholder, compact, error)" class="flex flex-col gap-[8px]">
+  <span class="font-bold text-[#0f172a]" th:classappend="${compact ? 'text-[16px]' : 'text-[17px]'}" th:text="${label}">라벨</span>
+  <span class="relative flex">
+    <select th:name="${name}" required th:attr="aria-invalid=${error != null}" data-clear-error
+            class="h-[56px] w-full appearance-none rounded-[10px] border bg-white pr-[48px] pl-[16px] font-normal text-[#0f172a] outline-none invalid:text-[#64748b] focus:border-[#2563eb]"
+            th:classappend="${(error != null ? 'border-[#dc2626] ' : 'border-[#e2e8f0] ') + (compact ? 'text-[16px]' : 'text-[18px]')}">
+      <option value="" disabled th:selected="${#strings.isEmpty(value)}" th:text="${placeholder}">선택하세요</option>
+      <option th:each="o : ${options}" th:value="${o}" th:text="${o}" th:selected="${o == value}" class="text-[#0f172a]">항목</option>
+    </select>
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+         class="pointer-events-none absolute inset-y-0 right-[16px] my-auto text-[#64748b]"><path d="m6 9 6 6 6-6"/></svg>
   </span>
   <span th:if="${error != null}" data-error class="text-[13px] font-medium text-[#dc2626]" th:text="${error}">오류</span>
 </label>

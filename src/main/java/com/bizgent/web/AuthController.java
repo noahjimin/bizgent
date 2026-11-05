@@ -23,8 +23,14 @@ public class AuthController {
 
     @GetMapping("/landing")
     public String landing(Model model) {
+        return landingPage(model, false);
+    }
+
+    /** 랜딩 화면. 로그인(SCR-U-001)도 별도 화면이 아니라 랜딩 위의 팝업으로 띄운다. */
+    private String landingPage(Model model, boolean showLogin) {
         model.addAttribute("showcaseRows", LandingShowcase.ROWS);
         model.addAttribute("season", LandingSeason.of(java.time.LocalDate.now()));
+        model.addAttribute("showLogin", showLogin);
         return "auth/landing";
     }
 
@@ -37,8 +43,8 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String loginForm() {
-        return "auth/login";
+    public String loginForm(Model model) {
+        return landingPage(model, true);
     }
 
     @PostMapping("/login")
@@ -51,7 +57,7 @@ public class AuthController {
         if (!errors.isEmpty()) {
             model.addAttribute("errors", errors);
             model.addAttribute("email", email);
-            return "auth/login";
+            return landingPage(model, true);
         }
         return "redirect:" + memberService.login(email);
     }
@@ -59,14 +65,21 @@ public class AuthController {
     @GetMapping("/signup")
     public String signupForm(Model model) {
         model.addAttribute("showTerms", !memberService.isTermsAgreed());
+        model.addAttribute("categories", StoreController.CATEGORIES);
         return "auth/signup";
     }
 
     @PostMapping("/signup")
-    public String signup(@RequestParam(defaultValue = "") String email, @RequestParam(defaultValue = "") String password,
-            @RequestParam(defaultValue = "") String passwordCheck, @RequestParam(defaultValue = "") String storeName,
-            Model model) {
+    public String signup(@RequestParam(defaultValue = "") String memberName, @RequestParam(defaultValue = "") String email,
+            @RequestParam(defaultValue = "") String password, @RequestParam(defaultValue = "") String passwordCheck,
+            @RequestParam(defaultValue = "") String storeName, @RequestParam(defaultValue = "") String category,
+            @RequestParam(defaultValue = "") String phone, Model model) {
+        // 약관 동의 기록 없이 들어온 가입 요청은 처리하지 않고 약관 카드로 돌려보낸다.
+        if (!memberService.isTermsAgreed()) return "redirect:/signup";
         Map<String, String> errors = new LinkedHashMap<>();
+        int nameLength = memberName.trim().length();
+        if (nameLength == 0) errors.put("memberName", "이름을 입력해주세요");
+        else if (nameLength < 2 || nameLength > 20) errors.put("memberName", "이름은 2~20자로 입력해주세요");
         if (email.isBlank()) errors.put("email", "이메일을 입력해주세요");
         else if (!MemberService.isValidEmail(email)) errors.put("email", "이메일 형식을 확인해주세요");
         else if (memberService.isRegistered(email)) errors.put("email", "이미 가입된 이메일입니다");
@@ -74,14 +87,21 @@ public class AuthController {
         if (passwordCheck.isEmpty()) errors.put("passwordCheck", "비밀번호 확인을 입력해주세요");
         else if (!password.equals(passwordCheck)) errors.put("passwordCheck", "비밀번호가 일치하지 않습니다");
         if (storeName.isBlank()) errors.put("storeName", "매장명을 입력해주세요");
+        if (category.isBlank()) errors.put("category", "업종을 선택해주세요");
+        else if (!StoreController.CATEGORIES.contains(category)) errors.put("category", "목록에서 업종을 선택해주세요");
+        if (!phone.isBlank() && !MemberService.isValidPhone(phone)) errors.put("phone", "연락처는 010-0000-0000 형식으로 입력해주세요");
         if (!errors.isEmpty()) {
             model.addAttribute("errors", errors);
+            model.addAttribute("memberName", memberName);
             model.addAttribute("email", email);
             model.addAttribute("storeName", storeName);
-            model.addAttribute("showTerms", !memberService.isTermsAgreed());
+            model.addAttribute("category", category);
+            model.addAttribute("phone", phone);
+            model.addAttribute("categories", StoreController.CATEGORIES);
+            model.addAttribute("showTerms", false);
             return "auth/signup";
         }
-        return "redirect:" + memberService.signup(email, storeName);
+        return "redirect:" + memberService.signup(memberName, email, storeName, category, phone);
     }
 
     @PostMapping("/logout")

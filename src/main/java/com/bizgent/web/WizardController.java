@@ -67,6 +67,7 @@ public class WizardController {
         if ("3-2".equals(step) && !draft.getContent().isImageOn()) {
             return "redirect:/campaigns/new/4";
         }
+        draft.setCurrentStep(step);
         model.addAttribute("draft", draft);
         model.addAttribute("step", step);
         model.addAttribute("stepIndex", Campaign.STEPS.indexOf(step));
@@ -86,9 +87,13 @@ public class WizardController {
     public String saveContent(@RequestParam(defaultValue = "") String channels,
             @RequestParam(defaultValue = "false") boolean hashtagOn, @RequestParam(defaultValue = "true") boolean captionOn,
             @RequestParam(defaultValue = "false") boolean imageOn, @RequestParam(defaultValue = "") String customChannelName,
-            @RequestParam(defaultValue = "") String customChannelNote) {
+            @RequestParam(defaultValue = "") String customChannelNote, @RequestParam(defaultValue = "") String exit) {
         Campaign draft = requireDraft("3-1");
         List<String> list = Arrays.stream(channels.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
+        if (!exit.isEmpty()) {
+            return saveAndLeave(draft, "3-1", exit, () -> wizardService.saveContent(draft, list, hashtagOn, captionOn, imageOn,
+                    customChannelName, customChannelNote));
+        }
         if (list.isEmpty() || (list.contains("기타") && customChannelName.isBlank())) {
             return "redirect:/campaigns/new/3-1";
         }
@@ -102,9 +107,10 @@ public class WizardController {
     public String saveImage(@RequestParam(defaultValue = "") String purpose, @RequestParam(defaultValue = "") String product,
             @RequestParam(defaultValue = "") String composition, @RequestParam(defaultValue = "") String mood,
             @RequestParam(defaultValue = "true") boolean brandColorOn, @RequestParam(defaultValue = "") String extraRequest,
-            @RequestParam(required = false) MultipartFile referenceImageFile, HttpServletRequest request) {
+            @RequestParam(required = false) MultipartFile referenceImageFile, @RequestParam(defaultValue = "") String exit,
+            HttpServletRequest request) {
         Campaign draft = requireDraft("3-2");
-        if (composition.isBlank() || mood.isBlank()) {
+        if (exit.isEmpty() && (composition.isBlank() || mood.isBlank())) {
             return "redirect:/campaigns/new/3-2";
         }
         List<String> ratios = new ArrayList<>();
@@ -112,7 +118,12 @@ public class WizardController {
             ratios.add(request.getParameter("ratio_" + i));
         }
         String reference = fileStorage.saveImage(referenceImageFile, "reference");
-        wizardService.saveImage(draft, purpose, product, composition, mood, brandColorOn, ratios, reference, extraRequest);
+        Runnable save = () -> wizardService.saveImage(draft, purpose, product, composition, mood, brandColorOn, ratios,
+                reference, extraRequest);
+        if (!exit.isEmpty()) {
+            return saveAndLeave(draft, "3-2", exit, save);
+        }
+        save.run();
         return "redirect:/campaigns/new/4";
     }
 
@@ -167,13 +178,24 @@ public class WizardController {
     }
 
     @PostMapping("/campaigns/new/4")
-    public String saveSelection(@RequestParam(defaultValue = "") String selectedKeys) {
+    public String saveSelection(@RequestParam(defaultValue = "") String selectedKeys,
+            @RequestParam(defaultValue = "") String exit) {
         Campaign draft = requireDraft("4");
-        boolean ok = wizardService.saveSelection(draft, Arrays.stream(selectedKeys.split(",")).map(String::trim).toList());
+        List<String> keys = Arrays.stream(selectedKeys.split(",")).map(String::trim).toList();
+        if (!exit.isEmpty()) {
+            return saveAndLeave(draft, "4", exit, () -> wizardService.saveSelection(draft, keys));
+        }
+        boolean ok = wizardService.saveSelection(draft, keys);
         return "redirect:/campaigns/new/" + (ok ? "5" : "4");
     }
 
     /* ---------- 5단계: 게시 ---------- */
+
+    /** 5단계는 입력값이 없어 저장 없이 떠난다 (보던 단계는 화면을 열 때 기록됨). */
+    @PostMapping("/campaigns/new/5")
+    public String leaveStep5(@RequestParam(defaultValue = "home") String exit) {
+        return leave(requireDraft("5"), "5", exit);
+    }
 
     @PostMapping("/api/wizard/publish")
     @ResponseBody
@@ -215,17 +237,18 @@ public class WizardController {
             @RequestParam(defaultValue = "") String customGoal, @RequestParam(defaultValue = "") String productIds,
             @RequestParam(defaultValue = "") String newMenuNames, @RequestParam(defaultValue = "") String targetCustomers,
             @RequestParam(defaultValue = "") String toneManners, @RequestParam(defaultValue = "") String extraNote,
-            @RequestParam(defaultValue = "false") boolean exit) {
+            @RequestParam(defaultValue = "") String exit) {
         Campaign draft = requireDraft();
         List<Long> ids = Arrays.stream(productIds.split(",")).map(String::trim).filter(s -> !s.isEmpty())
                 .map(Long::valueOf).toList();
         List<String> newMenus = Arrays.stream(newMenuNames.split("\\|")).toList();
-        wizardService.saveGoal(draft, goalOption, customGoal, ids, newMenus, targetCustomers, toneManners, extraNote);
+        Runnable save = () -> wizardService.saveGoal(draft, goalOption, customGoal, ids, newMenus, targetCustomers,
+                toneManners, extraNote);
         // SCR-U-004-1 ⑧: ✕로 나가면 입력값만 작성 중 상태로 저장하고 1단계는 잠그지 않는다.
-        if (exit) {
-            draft.setLockedStep(null);
-            return "redirect:/";
+        if (!exit.isEmpty()) {
+            return saveAndLeave(draft, "1", exit, save);
         }
+        save.run();
         if (draft.getGoal().isEmpty() || draft.getProductIds().isEmpty()) {
             draft.setLockedStep(null);
             return "redirect:/campaigns/new/1";
@@ -267,11 +290,12 @@ public class WizardController {
     @PostMapping("/campaigns/new/2")
     public String savePlan(@RequestParam(defaultValue = "") String ageGroup,
             @RequestParam(defaultValue = "") String targetCustomer, @RequestParam(defaultValue = "") String strategy,
-            @RequestParam(defaultValue = "") String tones, @RequestParam(defaultValue = "") String channels) {
+            @RequestParam(defaultValue = "") String tones, @RequestParam(defaultValue = "") String channels,
+            @RequestParam(defaultValue = "") String exit) {
         Campaign draft = requireDraft("2");
         AiPlan plan = draft.getPlan();
         if (plan.isEmpty()) {
-            return "redirect:/campaigns/new/2";
+            return exit.isEmpty() ? "redirect:/campaigns/new/2" : leave(draft, "2", exit);
         }
         plan.setAgeGroup(ageGroup.trim());
         plan.setTargetCustomer(targetCustomer.trim());
@@ -280,8 +304,29 @@ public class WizardController {
         }
         plan.setTones(Tags.split(tones));
         plan.setChannels(Tags.split(channels));
+        if (!exit.isEmpty()) {
+            wizardService.touch(draft);
+            return leave(draft, "2", exit);
+        }
         wizardService.lock(draft, "2");
         return "redirect:/campaigns/new/3-1";
+    }
+
+    /**
+     * ✕·나가기·요금제 보기로 떠날 때: 보던 단계의 입력값을 저장하되 그 단계는 확정(잠금)하지 않는다.
+     * 캠페인은 '작성 중' 그대로 보관함에 남고, 이어서 작성하면 이 단계로 돌아온다.
+     */
+    private String saveAndLeave(Campaign draft, String step, String exit, Runnable save) {
+        String locked = draft.getLockedStep();
+        save.run();
+        draft.setLockedStep(locked);
+        return leave(draft, step, exit);
+    }
+
+    /** 떠나는 단계를 기록하고, exit=plans면 요금제 화면으로(돌아가기 버튼용 캠페인 ID 전달), 그 밖에는 홈으로 */
+    private String leave(Campaign draft, String step, String exit) {
+        draft.setCurrentStep(step);
+        return "plans".equals(exit) ? "redirect:/subscription?resume=" + draft.getCampaignId() : "redirect:/";
     }
 
     private void requirePro() {

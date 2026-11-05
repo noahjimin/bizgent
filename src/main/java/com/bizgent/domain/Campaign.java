@@ -45,6 +45,8 @@ public class Campaign {
     private boolean insightPrefill;
     /** 사용자가 확정한 가장 마지막 단계. 이 단계와 이전 단계는 다시 수정할 수 없다. */
     private String lockedStep;
+    /** 마지막으로 보던 위자드 단계 (CAMPAIGN.CURRENT_STEP). 이어서 작성할 때 이 단계로 돌아온다. */
+    private String currentStep;
 
     public boolean isPublished() {
         return status == CampaignStatus.PUBLISHED;
@@ -114,6 +116,11 @@ public class Campaign {
         if (content.isImageOn() && image.getPurpose() == null) return "3-2";
         if (drafts.isEmpty() || selectedDraftKeys.isEmpty()) return "4";
         return "5";
+    }
+
+    /** 이어서 작성하기로 열 단계: 마지막으로 보던 단계, 기록이 없으면 입력된 데이터 기준 (단계 화면이 다시 한 번 검사한다) */
+    public String getContinueStep() {
+        return currentStep != null ? currentStep : getResumeStep();
     }
 
     /** 확정된 단계 이후로 이동할 수 있는 다음 단계 (3-2는 이미지 생성을 켠 경우에만) */

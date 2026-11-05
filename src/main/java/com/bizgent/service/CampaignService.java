@@ -83,9 +83,7 @@ public class CampaignService {
             campaign.setInsightPrefill(!"quick".equals(prefill.source()));
         }
 
-        // 이전에 작성하던 캠페인은 새 캠페인으로 대체한다.
-        Long previous = session.getActiveDraftId();
-        session.getCampaigns().removeIf(c -> c.getCampaignId().equals(previous) && !c.isPublished());
+        // 작성하던 캠페인은 지우지 않고 '작성 중'으로 보관함에 남긴다. 이어서 작성할 때는 resume()이라 다시 차감하지 않는다.
         session.getCampaigns().add(campaign);
         session.setActiveDraftId(campaign.getCampaignId());
         return campaign;

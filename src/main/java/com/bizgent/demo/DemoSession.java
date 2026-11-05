@@ -1,6 +1,7 @@
 package com.bizgent.demo;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,6 +34,8 @@ public class DemoSession implements Serializable {
 
     private boolean loggedIn;
     private boolean termsAgreed;
+    /** 약관 동의 일시. 가입할 때 회원 정보(TERMS_AGREED_AT)로 옮긴다. */
+    private LocalDateTime termsAgreedAt;
     /** 랜딩에서 누른 버튼: start / heroImage */
     private String startIntent;
     /** AI 캠페인 개선 방향 화면의 데이터 양: early(적음) / enough(충분) */

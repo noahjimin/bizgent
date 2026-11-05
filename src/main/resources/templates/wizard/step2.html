@@ -148,7 +148,7 @@
   // 기획이 없으면 생성하고 다시 그린다 (분석 중 화면을 잠깐 보여준다).
   if (!HAS_PLAN) {
     Promise.all([BG.postJson("/api/wizard/plan"), new Promise((r) => setTimeout(r, 1500))])
-      .then(() => location.reload())
+      .then(() => { BG.allowLeave?.(); location.reload(); })
       .catch(() => BG.toast("AI 기획을 만들지 못했어요. 새로고침해 주세요"));
     return;
   }
@@ -222,6 +222,7 @@
       form.querySelector("[data-plan-loading]").hidden = false;
       form.querySelectorAll("section").forEach((s) => (s.hidden = true));
       await Promise.all([BG.postJson("/api/wizard/plan/reanalyze", { feedback: feedback.value.trim() }), new Promise((r) => setTimeout(r, 1500))]);
+      BG.allowLeave?.();
       location.reload();
     };
     btn.addEventListener("click", run);

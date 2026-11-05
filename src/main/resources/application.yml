@@ -17,6 +17,8 @@ server:
   servlet:
     session:
       timeout: 120m
+      # 첫 접속 때 주소에 ;jsessionid가 붙으면 LoginCheckInterceptor가 경로를 못 맞춰 랜딩으로 돌려보낸다
+      tracking-modes: cookie
 
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
