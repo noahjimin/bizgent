@@ -37,13 +37,15 @@ export JAVA_HOME="/c/Program Files/Java/jdk-17"   # PowerShell: $env:JAVA_HOME="
 
 ## 구조
 
-Spring Boot 4.0 + Thymeleaf. Figma Make의 React 프로토타입을 Thymeleaf로 옮긴 서버 렌더링 앱이다. DB는 Oracle(교수님 제공 서버)이며, 데이터 접근 방식(MyBatis 또는 JPA)은 팀에서 확정 전이다. 현재 코드의 MyBatis·ojdbc8 설정은 연동 준비용이다.
+Spring Boot 4.0 + Thymeleaf. Figma Make의 React 프로토타입을 Thymeleaf로 옮긴 서버 렌더링 앱이다. DB는 Oracle 11g XE(교수님 제공 서버)이고, 데이터 접근은 MyBatis로 확정했다(PROJECT.md v0.07). 테이블명은 `TBL_`, 시퀀스명은 `SEQ_` 규칙을 따른다. 11g라 IDENTITY 컬럼과 FETCH FIRST를 쓸 수 없으므로, PK는 시퀀스(`SEQ_xxx.NEXTVAL`)로 만들고 행 수 제한은 ROWNUM으로 작성한다. 현재 코드의 MyBatis·ojdbc8 설정은 연동 준비용이다.
 
 - **프로필**: 기본 `mock` 프로필은 DataSource·MyBatis 자동 설정을 끄고(`application-mock.yml`) DB 없이 동작한다. DB 연동 시 `db` 프로필 + gitignore된 `application-local.yml`을 쓴다. Boot 4에서 자동 설정 패키지는 `org.springframework.boot.jdbc.autoconfigure`다.
 - **데이터 계층**: 아직 DB가 없으므로 `demo/DemoSession`(@SessionScope)이 회원·매장·캠페인·매출·알림을 들고 있고 `DemoSeed`가 시연 데이터(모먼트 카페)를 채운다. 프로토타입의 localStorage 역할이다. 컨트롤러는 DemoSession을 직접 쓰지 말고 `service/`를 거친다 — 나중에 서비스 내부만 DB 접근 코드로 바꾸기 위해서다.
 - **도메인**: `domain/`은 ERD 테이블 기준이다. `Campaign`이 기획(AiPlan)·콘텐츠/이미지 설정·시안(Draft)·게시(Post)를 한 객체로 묶는다.
 - **AI**: `service/ai/AiService` 인터페이스와 `MockAiService` 구현. 실제 LLM·이미지 API는 이 인터페이스의 새 구현으로 붙인다.
-- **플랜 규칙**: 무료는 월 3회 캠페인(캠페인 시작 시 차감), 채널 최대 2개, 시안은 무료·구독 모두 A/B 2종. 구독은 재분석·문구 대안·이미지 수정·참고 이미지를 쓸 수 있다. 구독 시 채널 한도는 PROJECT.md상 검토 중이다. 구독 전용 API는 서버에서도 검사하고 `ForbiddenException`(403)을 던진다. 화면의 잠금 버튼은 `data-upgrade-feature-name`으로 구독 안내를 띄운다.
+- **AI 캠페인 개선 방향** (`InsightService`): 최근 게시한 캠페인 5개 중 게시 전후 매출 데이터가 있는 캠페인이 4개 이상이면 Good/Bad 비교를, 4개 미만이면 초기 분석을 보여 준다. Good/Bad 판정 기준은 대상 메뉴 매출 증가율(게시 전 7일 대비 게시 후 7일)이다. 분석 결과는 기록으로 저장하고, 데이터가 바뀌었을 때만 새로 분석한다.
+- **게시물 반응**(좋아요·댓글·공유·저장·도달): `Post`에 들어 있는 예시 데이터이고, 화면에 "예시 데이터"라고 표시한다. 인스타그램 연동(F12)은 추후 계획이다.
+- **플랜 규칙**: 무료는 월 3회 캠페인(캠페인 시작 시 차감), 채널 최대 2개, 시안은 무료·구독 모두 A/B 2종. 구독은 재분석·문구 대안·이미지 수정·참고 이미지를 쓸 수 있다. 구독 시 채널 한도는 PROJECT.md상 검토 중이다. 구독 전용 API는 서버에서도 검사하고 `ForbiddenException`(403)을 던진다. 화면의 잠금 버튼은 `data-upgrade-feature-name`으로 구독 안내를 띄운다. 무료 이용 횟수는 매월 1일에 초기화한다(PROJECT.md v0.07). 지금은 화면에 다음 리셋일만 표시하며, DB 연동 단계에서 월(YYYYMM)별 사용 횟수 구조로 구현한다.
 - **로그인**: `config/LoginCheckInterceptor`가 로그인 전 화면(/landing, /login, /signup, /terms/agree)과 나머지를 나눈다. 모의 인증이라 비밀번호를 검사하지 않는다.
 
 ### 캠페인 생성 위자드 (`WizardController`, `WizardService`)
@@ -70,4 +72,4 @@ Spring Boot 4.0 + Thymeleaf. Figma Make의 React 프로토타입을 Thymeleaf로
 
 ## 개발용 기능
 
-화면 오른쪽 아래 "개발 바로가기"(`app-parts :: devShortcuts`, `HomeController`의 `/dev/*`)로 무료 횟수 소진/초기화, 무료↔구독 전환(모의 결제), AI 개선 방향 데이터 양(early/enough), 시연 데이터 초기화를 할 수 있다. 시연·검증용이며 화면설계서 범위 밖이다.
+화면 오른쪽 아래 "개발 바로가기"(`app-parts :: devShortcuts`, `HomeController`의 `/dev/*`)로 무료 횟수 소진/초기화, 무료↔구독 전환(모의 결제), AI 개선 방향 데이터 양(early/enough. early는 비교 후보 중 가장 오래된 2개만 있는 것으로 계산해 초기 분석을 보여 준다), 시연 데이터 초기화를 할 수 있다. 시연·검증용이며 화면설계서 범위 밖이다.
