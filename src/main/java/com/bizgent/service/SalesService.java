@@ -65,17 +65,22 @@ public class SalesService {
             default -> "manual";
         };
         int count = 0;
+        LocalDate from = null;
+        LocalDate to = null;
         for (ConfirmedRow r : rows) {
             Product product = session.getStore().findProduct(r.productId());
             if (product == null || r.quantity() <= 0) {
                 continue;
             }
-            session.getSales().add(new Sale(session.nextId(), LocalDate.parse(r.date()), product.getProductId(),
+            LocalDate date = LocalDate.parse(r.date());
+            session.getSales().add(new Sale(session.nextId(), date, product.getProductId(),
                     r.quantity(), r.amount(), inputType));
+            from = from == null || date.isBefore(from) ? date : from;
+            to = to == null || date.isAfter(to) ? date : to;
             count++;
         }
         if (count > 0) {
-            session.getSalesUploads().add(new SalesUpload(session.nextId(), LocalDateTime.now(), inputType, count));
+            session.getSalesUploads().add(new SalesUpload(session.nextId(), LocalDateTime.now(), inputType, count, from, to));
         }
         return count;
     }
@@ -106,7 +111,7 @@ public class SalesService {
     private List<RawRow> sampleRows(int count, List<String> unknown) {
         List<Product> menus = session.getStore().getProducts();
         int n = Math.max(1, menus.size());
-        LocalDate base = LocalDate.of(2025, 10, 13);
+        LocalDate base = LocalDate.of(2026, 10, 13);
         List<RawRow> rows = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             Product menu = menus.isEmpty() ? null : menus.get(i % n);

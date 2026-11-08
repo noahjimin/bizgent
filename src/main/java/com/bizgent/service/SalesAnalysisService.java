@@ -26,22 +26,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SalesAnalysisService {
 
-    public static final Map<String, String> PERIOD_LABELS = Map.of("7", "최근 7일", "30", "최근 30일", "all", "전체 기간");
+    public static final Map<String, String> PERIOD_LABELS = Map.of("7", "최근 7일", "30", "최근 30일", "all", "전체 기간",
+            "custom", "직접 선택");
+    /** 직접 선택 기간의 최대 길이 */
+    public static final int MAX_CUSTOM_DAYS = 366;
 
     private final DemoSession session;
 
     public record Range(LocalDate start, LocalDate end) {
 
-        boolean contains(LocalDate d) {
+        public boolean contains(LocalDate d) {
             return !d.isBefore(start) && !d.isAfter(end);
         }
 
-        long days() {
+        public long days() {
             return ChronoUnit.DAYS.between(start, end) + 1;
         }
     }
 
-    public record Summary(long revenue, Integer revenueChange, long count, long avg, long linked, int linkedShare) {
+    /** compareLabel: 증감 배지가 무엇과 비교한 값인지 (예: "직전 30일 대비") */
+    public record Summary(long revenue, Integer revenueChange, String compareLabel, long count, long avg, long linked,
+            int linkedShare) {
     }
 
     public record DailyPoint(String key, String label, long amount) {
@@ -54,20 +59,35 @@ public class SalesAnalysisService {
     public record MenuRow(Product product, long quantity, long amount, int share, Integer change, String status) {
     }
 
-    /** result: 효과 좋음 / 효과 보통 / 효과 미미 */
-    public record CampaignRow(Campaign campaign, String menuNames, long before, long after, Integer change,
-            String result) {
+    /** 캠페인 성과 상세의 막대 그래프 데이터 (게시 전 7일 / 게시 후 7일 일별 대상 메뉴 매출) */
+    public record CompareChart(Long campaignId, long before, long after, List<Long> beforeDaily, List<Long> afterDaily,
+            List<String> beforeDates, List<String> afterDates) {
+    }
+
+    /**
+     * 캠페인별 성과. before·after는 게시 전 7일 / 게시 후 7일(게시일 포함) 대상 메뉴 매출, result: 좋음 / 보통 / 아쉬움.
+     * 캠페인 기간은 게시 후 7일이고, quantity·storeRevenue·share는 그 기간 기준이다.
+     */
+    public record CampaignRow(Campaign campaign, String menuNames, String channels, LocalDate periodEnd, long before,
+            long after, Integer change, String result, long quantity, long storeRevenue, int share,
+            CompareChart chart) {
     }
 
     public record WeekdayRow(String label, long quantity, long amount, int share, long dailyAvg, boolean top) {
     }
 
-    public record View(LocalDate lastUpload, Summary summary, List<DailyPoint> series, List<Band> bands,
-            List<MenuRow> menuRows, List<CampaignRow> campaignRows, List<WeekdayRow> weekdayRows) {
+    /** campaignRows: 선택 기간에 게시한 캠페인, campaignDetails: 게시한 모든 캠페인 (성과 상세 팝업용) */
+    public record View(LocalDate lastUpload, Range range, Summary summary, List<DailyPoint> series, List<Band> bands,
+            List<MenuRow> menuRows, List<CampaignRow> campaignRows, List<CampaignRow> campaignDetails,
+            List<WeekdayRow> weekdayRows) {
     }
 
-    /** @return 매출 데이터가 없으면 null */
-    public View analyze(String period) {
+    /**
+     * @param period 7 / 30 / all / custom
+     * @param custom period가 custom일 때의 기간 (검증된 값)
+     * @return 매출 데이터가 없으면 null
+     */
+    public View analyze(String period, Range custom) {
         List<Sale> sales = session.getSales();
         if (sales.isEmpty()) {
             return null;
@@ -78,7 +98,15 @@ public class SalesAnalysisService {
         // 기간은 마지막 매출일 기준으로 잡아 시연 데이터가 항상 꽉 찬 화면이 되게 한다.
         Range current;
         Range previous = null;
-        if ("all".equals(period)) {
+        String compareLabel = null;
+        if ("custom".equals(period)) {
+            current = custom;
+            LocalDate prevEnd = custom.start().minusDays(1);
+            if (!prevEnd.isBefore(first)) {
+                previous = new Range(custom.start().minusDays(custom.days()), prevEnd);
+            }
+            compareLabel = "직전 같은 기간(" + custom.days() + "일) 대비";
+        } else if ("all".equals(period)) {
             current = new Range(first, last);
         } else {
             int days = "7".equals(period) ? 7 : 30;
@@ -89,6 +117,7 @@ public class SalesAnalysisService {
                 LocalDate prevStart = start.minusDays(days);
                 previous = new Range(prevStart.isBefore(first) ? first : prevStart, prevEnd);
             }
+            compareLabel = "직전 " + days + "일 대비";
         }
 
         List<Campaign> published = session.getCampaigns().stream()
@@ -102,12 +131,15 @@ public class SalesAnalysisService {
             return !p.isBefore(cur.start().minusDays(1)) && !p.isAfter(cur.end().plusDays(1));
         }).toList();
 
-        return new View(last, summary(sales, untilEnd, current, previous), dailySeries(sales, current),
-                bands(published, current), menuRows(sales, current, previous), campaignRows(sales, inPeriod),
-                weekdayRows(sales, current));
+        List<CampaignRow> details = campaignRows(sales, published);
+        List<CampaignRow> rows = details.stream().filter(r -> inPeriod.contains(r.campaign())).toList();
+        return new View(last, current, summary(sales, untilEnd, current, previous, compareLabel),
+                dailySeries(sales, current), bands(published, current), menuRows(sales, current, previous), rows,
+                details, weekdayRows(sales, current));
     }
 
-    private Summary summary(List<Sale> sales, List<Campaign> campaigns, Range current, Range previous) {
+    private Summary summary(List<Sale> sales, List<Campaign> campaigns, Range current, Range previous,
+            String compareLabel) {
         List<Sale> cur = in(sales, current);
         long revenue = sum(cur, Sale::getAmount);
         long count = sum(cur, Sale::getQuantity);
@@ -119,7 +151,7 @@ public class SalesAnalysisService {
                     .toList(), Sale::getAmount);
         }
         Integer change = previous == null ? null : pct(revenue, sum(in(sales, previous), Sale::getAmount));
-        return new Summary(revenue, change, count, count == 0 ? 0 : Math.round((double) revenue / count), linked,
+        return new Summary(revenue, change, compareLabel, count, count == 0 ? 0 : Math.round((double) revenue / count), linked,
                 revenue == 0 ? 0 : (int) Math.round(linked * 100.0 / revenue));
     }
 
@@ -185,15 +217,36 @@ public class SalesAnalysisService {
                 .sorted(Comparator.comparing(Campaign::getPublishedAt).reversed())
                 .map(c -> {
                     LocalDate p = c.getPublishedAt().toLocalDate();
+                    Range beforeRange = new Range(p.minusDays(7), p.minusDays(1));
+                    Range afterRange = new Range(p, p.plusDays(6));
                     List<Sale> mine = sales.stream().filter(s -> c.getProductIds().contains(s.getProductId())).toList();
-                    long before = sum(in(mine, new Range(p.minusDays(7), p.minusDays(1))), Sale::getAmount);
-                    long after = sum(in(mine, new Range(p, p.plusDays(6))), Sale::getAmount);
-                    Integer change = pct(after, before);
-                    String result = change == null ? "효과 보통" : change >= 20 ? "효과 좋음" : change >= 5 ? "효과 보통" : "효과 미미";
+                    List<Sale> after = in(mine, afterRange);
+                    long beforeAmount = sum(in(mine, beforeRange), Sale::getAmount);
+                    long afterAmount = sum(after, Sale::getAmount);
+                    long storeRevenue = sum(in(sales, afterRange), Sale::getAmount);
+                    Integer change = pct(afterAmount, beforeAmount);
+                    String result = change == null ? "보통" : change >= 20 ? "좋음" : change >= 5 ? "보통" : "아쉬움";
                     String names = String.join(", ", c.getProductIds().stream().map(session.getStore()::productName)
                             .filter(n -> !n.isEmpty()).toList());
-                    return new CampaignRow(c, names.isEmpty() ? "-" : names, before, after, change, result);
+                    List<String> channels = c.getContent().getChannels();
+                    CompareChart chart = new CompareChart(c.getCampaignId(), beforeAmount, afterAmount,
+                            dailyAmounts(mine, beforeRange), dailyAmounts(mine, afterRange),
+                            dates(beforeRange), dates(afterRange));
+                    return new CampaignRow(c, names.isEmpty() ? "-" : names,
+                            channels.isEmpty() ? "-" : String.join(", ", channels), afterRange.end(), beforeAmount,
+                            afterAmount, change, result, sum(after, Sale::getQuantity), storeRevenue,
+                            storeRevenue == 0 ? 0 : (int) Math.round(afterAmount * 100.0 / storeRevenue), chart);
                 }).toList();
+    }
+
+    private static List<Long> dailyAmounts(List<Sale> sales, Range r) {
+        return r.start().datesUntil(r.end().plusDays(1))
+                .map(d -> sum(sales.stream().filter(s -> s.getSaleDate().equals(d)).toList(), Sale::getAmount))
+                .toList();
+    }
+
+    private static List<String> dates(Range r) {
+        return r.start().datesUntil(r.end().plusDays(1)).map(LocalDate::toString).toList();
     }
 
     private List<WeekdayRow> weekdayRows(List<Sale> sales, Range r) {

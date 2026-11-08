@@ -361,7 +361,7 @@
     });
   });
   $("[data-su-template]").addEventListener("click", () => {
-    const csv = "﻿date,menu,quantity,amount\n2025-10-13,아메리카노,3,13500\n2025-10-13,크루아상,2,8400\n";
+    const csv = "﻿date,menu,quantity,amount\n2026-10-13,아메리카노,3,13500\n2026-10-13,크루아상,2,8400\n";
     const href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = href;

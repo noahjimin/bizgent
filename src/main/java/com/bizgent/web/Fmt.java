@@ -33,7 +33,7 @@ public class Fmt {
         return String.format("%s %s %d:%02d", monthDay(dateTime), hour < 12 ? "오전" : "오후", h12, dateTime.getMinute());
     }
 
-    /** 2025.10.05 */
+    /** 2026.10.05 */
     public String dotDate(LocalDate date) {
         return date == null ? "" : date.format(DOT_DATE);
     }

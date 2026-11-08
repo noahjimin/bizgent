@@ -219,7 +219,12 @@ public class WizardService {
         selected.stream().map(Draft::getImageUrl).filter(u -> u != null && !u.isEmpty()).findFirst()
                 .ifPresent(draft::setThumbnailUrl);
         draft.setPosts(new ArrayList<>(selected.stream()
-                .map(d -> new Post(d.getChannel(), d.getKey(), "success", 0, 0, 0)).toList()));
+                // 반응 수치는 인스타그램 연동 전까지 캠페인 ID로 만든 예시 값
+                .map(d -> new Post(d.getChannel(), d.getKey(), "success").reactions(
+                        120 + (int) (draft.getCampaignId() % 7) * 17, 8 + (int) (draft.getCampaignId() % 5),
+                        5 + (int) (draft.getCampaignId() % 4), 14 + (int) (draft.getCampaignId() % 6) * 2,
+                        1800 + (int) (draft.getCampaignId() % 9) * 230))
+                .toList()));
         session.setActiveDraftId(null);
         setReminder(draft, true);
         return draft;
