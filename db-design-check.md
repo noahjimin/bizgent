@@ -4,6 +4,7 @@
 - 비교 기준: `04_DB설계/사계절_ERD_물리.pdf` (BizGent_ERD_20261012)
 - 코드 기준: `main` 브랜치 + 커밋 전 작업분(회원가입 이름·연락처·업종, 캠페인 이어서 작성하기)
 - 범위: 분석만. 코드·ERD 문서는 수정하지 않았다.
+- 2026-11-08 갱신: 팀 결정 사항을 반영한 **최신 ERD 수정안은 [7장](#7-결정-사항-반영-2026-11-08)**에 있다. 1~6장·부록은 처음 점검한 기록으로 남겨 둔다.
 
 > **전제** — 프로젝트에는 SQL 스키마, 마이그레이션, MyBatis 매퍼, JPA 엔티티가 없다. 모든 데이터는 `demo/DemoSession`(@SessionScope)에 들어 있고 `DemoSeed`가 시연 데이터를 채운다. 아래 "코드 모델"은 `domain/` 클래스와 그 클래스를 실제로 읽고 쓰는 service·controller·템플릿을 근거로 정리했다.
 
@@ -607,3 +608,376 @@ erDiagram
 
 - POST.CHANNEL_CODE는 DRAFT를 거치면 알 수 있어 이 초안에서 뺐다 (기존 ERD에는 있음 — 유지해도 무방).
 - 확인하지 못한 것: `.erwin` 원본은 열지 않고 PDF 글자만 보고 정리했다. PDF에 나오지 않는 인덱스·CHECK 제약은 반영하지 못했다.
+
+---
+
+## 7. 결정 사항 반영 (2026-11-08)
+
+> 이 장이 최신 ERD 수정안이다. 1~6장과 부록의 내용 중 이 장과 다른 부분은 이 장을 따른다.
+> 근거: 팀 결정(Q1·Q3·Q7·Q8·Q16·Q17, 성과분석·개선 방향 결정), PROJECT.md v0.07, 화면설계서.
+
+### 7-1. 결정 사항이 ERD에 있는지 확인
+
+| 결정 사항 | 기존 ERD | 수정안 |
+|---|---|---|
+| Q1 무료 이용 횟수: 매월 1일 초기화, 월(YYYYMM)별 사용 횟수 | ❌ (CREDIT_HISTORY로 셀 수만 있음) | **TBL_MONTHLY_USAGE** 신설 (MEMBER_ID + USAGE_MONTH CHAR(6) + USED_COUNT). 이중 차감 방지용 **CAMPAIGN.USAGE_MONTH** 추가 (권장 N2) |
+| Q3 회원당 매장 1개, 매장 테이블 분리 유지 | △ STORE.MEMBER_ID FK만 있음 | **UK_STORE_MEMBER (MEMBER_ID)** 추가 |
+| Q7 AI 기획 버전별 저장, 화면엔 최신(확정) 버전 | ✅ AI_PLAN.VERSION_NO, CONFIRMED_YN | 유지 + **UK (CAMPAIGN_ID, VERSION_NO)**. 2단계에서 수정·재분석할 수 있는 컬럼(연령대·톤·추천 채널·기대 효과 세부) 추가 |
+| Q8 개선 방향 결과 이력 저장, 매출을 새로 올렸을 때만 재생성, CAMPAIGN.INSIGHT_ID 유지 | △ INSIGHT·INSIGHT_CAMPAIGN 있음, 제안 항목·분석 기간·재생성 기준 없음 | INSIGHT 재설계 + **TBL_INSIGHT_ITEM** 신설, 재생성 기준 **INSIGHT.BASE_UPLOAD_ID** (권장 N4), CAMPAIGN.INSIGHT_ID 유지 |
+| Q16 문자열은 VARCHAR2(n CHAR) | ❌ (바이트 기준) | 7-3의 모든 문자열 컬럼을 `VARCHAR2(n CHAR)`로 표기 |
+| Q17 MyBatis | (해당 없음) | 시퀀스는 `<selectKey order="BEFORE">SELECT SEQ_X.NEXTVAL FROM DUAL</selectKey>`, 페이징은 ROWNUM |
+| 성과분석: 결과 저장 안 함, 선택 기간 매출로 재계산 | ✅ (분석 결과 테이블 없음) | 유지. 매출(TBL_SALES)과 업로드 이력만 저장 |
+| 성과분석: 매출 업로드 이력 조회 | △ SALES_UPLOAD에 데이터 기간 없음 | **SALES_UPLOAD.DATA_FROM, DATA_TO** 추가 (이력에서 그 기간으로 분석) |
+| 캠페인 성과 상세: 게시일 | ✅ CAMPAIGN.PUBLISHED_AT | 유지 |
+| 캠페인 성과 상세: 대상 메뉴 | ❌ (PRODUCT_ID 하나) | **TBL_CAMPAIGN_PRODUCT** (N:M) |
+| 캠페인 성과 상세: 진행 기간 | ❌ | 저장하지 않고 **게시일~게시일+6일로 계산** (권장 N5). 기간을 캠페인마다 다르게 할 계획이 생기면 그때 컬럼 추가 |
+| 개선 방향 이력: 생성 일시·분석 기간·분석 유형 | △ CREATED_AT만 | INSIGHT.CREATED_AT, SALES_FROM, SALES_TO, INSIGHT_TYPE(EARLY/COMPARE) |
+| 개선 방향 이력: 대상 캠페인·Good/Bad 캠페인 ID | △ INSIGHT_CAMPAIGN.COMPARE_ROLE | COMPARE_ROLE을 TARGET / GOOD / BAD로. 그때 수치를 그대로 보여주도록 증가율·전후 매출 스냅샷 컬럼 추가 (권장 N1) |
+| 개선 방향 이력: 비교 기준 | ❌ | INSIGHT.COMPARE_BASIS ('MENU_SALES_LIFT_7D' = 대상 메뉴 매출 증가율, 게시 전 7일 대비 게시 후 7일) |
+| 개선 방향 이력: 제안 항목(분류·제목·내용·근거 수치) | ❌ (INSIGHT.TITLE·CONTENT 하나) | **TBL_INSIGHT_ITEM** (ITEM_CATEGORY, TITLE, CONTENT, EVIDENCE, EVIDENCE_SAMPLE_YN) |
+| Good/Bad 비교 조건 (최근 5개 중 전후 매출 있는 후보 4개 이상) | (규칙이라 테이블 없음) | INSIGHT.CANDIDATE_COUNT로 그때 후보 수 기록. 규칙은 서비스 코드 |
+| 게시물 성과 테이블 | ❌ | **TBL_POST_METRIC** 신설 (POST_ID FK, 좋아요·댓글·공유·저장·도달, COLLECTED_AT, COLLECT_METHOD INSTAGRAM/MANUAL/SAMPLE) |
+
+### 7-2. 남은 질문 추천안 (확인 후 확정)
+
+| 질문 | 추천안 | 근거 |
+|---|---|---|
+| Q2 구독 회원도 캠페인 시작 시 사용 횟수를 남길까 | **남긴다.** 플랜과 상관없이 TBL_MONTHLY_USAGE에 +1, 한도는 현재 플랜의 PRICE_PLAN.MONTHLY_CAMPAIGN_LIMIT로 비교 | PROJECT.md: 구독도 "월 이용 횟수 확대(크레딧 한도 내)"라 한도가 있음 |
+| Q2-1 무료로 3회 쓰고 같은 달 구독 후 해지하면 | **사용 횟수는 그대로 남는다** (월별 기록이 플랜과 분리) | Q1 월별 사용 횟수 구조에서 자연스럽게 정해짐 |
+| Q2-2 구독 플랜의 MAX_CHANNEL_COUNT | **결정 보류** | PROJECT.md v0.07에서 "구독 시 게시 채널 한도 확대 여부는 검토 중". 값을 정해 주셔야 PRICE_PLAN 초기 데이터를 넣을 수 있음 |
+| Q2-3 크레딧을 쓸까 | **쓴다.** 구독 전용 AI 기능(재분석·문구 대안·이미지 수정 등) 사용 시 TBL_CREDIT_HISTORY에 차감 기록, BALANCE 유지 | PROJECT.md: "AI를 추가로 호출하는 작업은 유료(크레딧 차감)" |
+| Q4 마케팅 수신 동의, 약관 버전 | **MARKETING_AGREED_YN 삭제, 약관 버전 컬럼 추가 안 함** | 화면설계서 SCR-U-001-P01: 필수 3개(만 14세·이용약관·개인정보)만 있음. 재동의 화면 없음 |
+| Q4-1 회원 탈퇴 | **상태만 바꾼다.** MEMBER_STATUS = 'ACTIVE' / 'WITHDRAWN', WITHDRAWN_AT 추가 | 화면설계서 SCR-U-002: "회원 탈퇴는 확인 팝업 후 처리". 캠페인·매출 기록이 FK로 묶여 있어 물리 삭제는 위험 |
+| Q5 여러 개 고르는 칩 값(타깃·톤·추천 채널) | **쉼표로 이은 문자열** VARCHAR2(500 CHAR) | 칩 값으로 검색·통계하는 화면이 없음. 매장 정보도 같은 방식 |
+| Q6 목표·채널 코드값 | **영문 코드 + 이름** (GOAL_CODE 'REVISIT' → GOAL_NAME '재방문 유도'). "기타"는 코드 'ETC' + CUSTOM_GOAL / CUSTOM_CHANNEL_NAME | 이름 문구가 바뀌어도 기록이 깨지지 않음 |
+| Q9 메뉴 판매 상태 / 메뉴 삭제 | **SALE_STATUS 유지('ON_SALE' / 'STOPPED')**. 화면의 "삭제"는 STOPPED로 바꾸고 목록에서 숨김 | 화면설계서 SCR-U-003: 상품 삭제 있음. 매출·캠페인·개선 방향 기록이 PRODUCT를 참조하므로 물리 삭제하면 FK 오류 |
+| Q10 직접 입력 매출도 업로드 기록을 만들까 | **만든다** (INPUT_TYPE='MANUAL'). SALES.UPLOAD_ID NOT NULL | 업로드 이력 조회·이력에서 기간 선택이 직접 입력 매출에도 동작 (현재 코드도 직접 입력 시 기록을 만듦) |
+| Q11 알림 읽은 시각 | **READ_YN만 유지** | 읽은 시각을 보여주는 화면 없음 |
+| Q12 기획 항목 NOT NULL | **DIRECTION·TARGET_ANALYSIS·STRATEGY를 NULL 허용** | 2단계에서 사용자가 내용을 지우고 넘어갈 수 있음 (현재 화면도 막지 않음) |
+| Q13 이름 규칙 세부 | **TBL_MEMBER(단수), TBL_SALES는 ERD 이름 유지, 시퀀스는 숫자 대리키 테이블에만, 제약조건은 `PK_/FK_/UK_/CK_` + 짧은 이름** (TBL_ 빼고 30바이트 이내) | 11g 식별자 30바이트 제한 |
+| Q14 작성 중 캠페인 보관 기간 | **무기한 보관** | PROJECT.md: "작성 중 상태로 저장되어 … 이어서 작성할 수 있습니다". 자동 삭제 정책 없음 |
+| Q15 캠페인 삭제 시 차감 횟수 | **되돌리지 않는다** | 사용 횟수가 TBL_MONTHLY_USAGE에 따로 있어 캠페인 삭제와 무관 (현재 코드 동작과 같음) |
+| N1 개선 방향 이력의 비교 수치·차이점 저장 | **INSIGHT_CAMPAIGN에 스냅샷 컬럼**(증가율·전후 매출·반응 합계) + **TBL_INSIGHT_DIFF**(무엇이 달랐나요 표) | 지난 분석을 "그때 결과 그대로" 보여주려면, 나중에 바뀔 수 있는 원본에서 다시 계산하면 안 됨 |
+| N2 같은 캠페인 이중 차감 방지 | **CAMPAIGN.USAGE_MONTH CHAR(6) NULL** (차감한 달. 값이 있으면 차감 완료) | 이어서 작성하기에서 다시 차감하지 않음. 월별 사용 횟수와 짝을 이룸 |
+| N3 POST.VIEW/CLICK/CONVERSION 컬럼 (5장에서 제안) | **추가하지 않는다.** 반응 수치는 TBL_POST_METRIC으로 일원화 | 현재 화면은 조회·클릭·전환을 표시하지 않음 (성과분석·개선 방향 모두 매출 증가율·반응 지표 사용) |
+| N4 "매출을 새로 올렸을 때만 재생성" 판정 | **INSIGHT.BASE_UPLOAD_ID** (분석에 쓴 마지막 업로드). 최신 업로드 ID와 다를 때만 새로 분석 | Q8 결정을 DB만으로 판정 가능 |
+| N5 캠페인 진행 기간 | **저장하지 않고 계산** (게시일~+6일) | 현재 규칙이 고정 7일. 컬럼을 두면 규칙과 데이터가 어긋날 수 있음 |
+
+### 7-3. ERD 수정안 (테이블별 컬럼)
+
+표기: `V(n)` = `VARCHAR2(n CHAR)`, `N(p)` = `NUMBER(p)`, `C(1)` = `CHAR(1)` + `CHECK IN ('Y','N')`, D = `DATE`.
+NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 `DEFAULT SYSDATE`.
+
+#### 테이블·시퀀스 목록
+
+| 기존 | 새 테이블 | PK | 시퀀스 |
+|---|---|---|---|
+| MEMBERS | TBL_MEMBER | MEMBER_ID | SEQ_MEMBER |
+| PRICE_PLAN | TBL_PRICE_PLAN | PLAN_CODE | - |
+| SUBSCRIPTION | TBL_SUBSCRIPTION | SUBSCRIPTION_ID | SEQ_SUBSCRIPTION |
+| ★ | TBL_MONTHLY_USAGE | (MEMBER_ID, USAGE_MONTH) | - |
+| CREDIT_HISTORY | TBL_CREDIT_HISTORY | CREDIT_HISTORY_ID | SEQ_CREDIT_HISTORY |
+| NOTIFICATION | TBL_NOTIFICATION | NOTIFICATION_ID | SEQ_NOTIFICATION |
+| STORE | TBL_STORE | STORE_ID | SEQ_STORE |
+| PRODUCT | TBL_PRODUCT | PRODUCT_ID | SEQ_PRODUCT |
+| GOAL | TBL_GOAL | GOAL_CODE | - |
+| CHANNEL | TBL_CHANNEL | CHANNEL_CODE | - |
+| CAMPAIGN | TBL_CAMPAIGN | CAMPAIGN_ID | SEQ_CAMPAIGN |
+| ★ | TBL_CAMPAIGN_PRODUCT | (CAMPAIGN_ID, PRODUCT_ID) | - |
+| CAMPAIGN_CHANNEL | TBL_CAMPAIGN_CHANNEL | (CAMPAIGN_ID, CHANNEL_CODE) | - |
+| AI_PLAN | TBL_AI_PLAN | AI_PLAN_ID | SEQ_AI_PLAN |
+| IMAGE_SETTING | TBL_IMAGE_SETTING | CAMPAIGN_ID | - |
+| DRAFT | TBL_DRAFT | DRAFT_ID | SEQ_DRAFT |
+| DRAFT_HASHTAG | TBL_DRAFT_HASHTAG | (DRAFT_ID, HASHTAG_SEQ) | - |
+| POST | TBL_POST | POST_ID | SEQ_POST |
+| ★ | TBL_POST_METRIC | METRIC_ID | SEQ_POST_METRIC |
+| SALES_UPLOAD | TBL_SALES_UPLOAD | UPLOAD_ID | SEQ_SALES_UPLOAD |
+| SALES | TBL_SALES | SALES_ID | SEQ_SALES |
+| INSIGHT | TBL_INSIGHT | INSIGHT_ID | SEQ_INSIGHT |
+| INSIGHT_CAMPAIGN | TBL_INSIGHT_CAMPAIGN | (INSIGHT_ID, CAMPAIGN_ID) | - |
+| ★ | TBL_INSIGHT_ITEM | ITEM_ID | SEQ_INSIGHT_ITEM |
+| ★ (N1) | TBL_INSIGHT_DIFF | (INSIGHT_ID, DIFF_SEQ) | - |
+
+테이블 25개, 시퀀스 14개.
+
+#### TBL_MEMBER
+| 컬럼 | 타입 | NULL | 키·제약 / 비고 |
+|---|---|---|---|
+| MEMBER_ID | N(10) | NN | PK |
+| EMAIL | V(100) | NN | UK, 로그인 ID (수정 불가) |
+| PASSWORD | V(100) | NN | 해시 저장 (BCrypt 60자) |
+| MEMBER_NAME | V(20) | NN | 2~20자 |
+| PHONE | V(13) | NULL | 010-0000-0000 |
+| TERMS_AGREED_YN | C(1) | NN | 필수 3개 일괄 동의 |
+| TERMS_AGREED_AT | D | NN △ | 가입 시 항상 기록 |
+| MEMBER_STATUS | V(10) | NN | CK ('ACTIVE','WITHDRAWN') (Q4-1) |
+| JOINED_AT | D | NN | |
+| WITHDRAWN_AT ★ | D | NULL | (Q4-1) |
+| ~~MARKETING_AGREED_YN~~ | | | 삭제 (Q4) |
+
+#### TBL_PRICE_PLAN
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| PLAN_CODE | V(10) | NN | PK ('FREE','PRO') |
+| PLAN_NAME | V(20) | NN | |
+| MONTHLY_PRICE | N(10) | NN | |
+| MONTHLY_CAMPAIGN_LIMIT | N(5) | NN | 무료 3 |
+| MAX_CHANNEL_COUNT | N(2) | NN | 무료 2, 구독 값 보류 (Q2-2) |
+| MONTHLY_CREDIT | N(10) | NN | |
+
+#### TBL_SUBSCRIPTION
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| SUBSCRIPTION_ID | N(10) | NN | PK |
+| MEMBER_ID | N(10) | NN | FK → TBL_MEMBER |
+| PLAN_CODE | V(10) | NN | FK → TBL_PRICE_PLAN |
+| START_DATE | D | NN | |
+| END_DATE | D | NULL | |
+| SUBSCRIPTION_STATUS | V(10) | NN | CK ('ACTIVE','CANCELED','EXPIRED') |
+| PAYMENT_STATUS | V(10) | NN | 모의 결제 |
+| CREATED_AT | D | NN | |
+
+#### TBL_MONTHLY_USAGE ★ (Q1)
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| MEMBER_ID | N(10) | NN | PK, FK → TBL_MEMBER |
+| USAGE_MONTH | CHAR(6) | NN | PK, 'YYYYMM' (매월 1일부터 새 행) |
+| USED_COUNT | N(5) | NN | DEFAULT 0 |
+| UPDATED_AT | D | NN | |
+
+- 이번 달 사용 횟수 = `USAGE_MONTH = TO_CHAR(SYSDATE,'YYYYMM')` 행의 USED_COUNT (없으면 0). 다음 리셋일 = `ADD_MONTHS(TRUNC(SYSDATE,'MM'),1)`.
+- 차감은 MERGE로 행이 없으면 만들고 있으면 +1. 같은 트랜잭션에서 CAMPAIGN.USAGE_MONTH를 채운다 (N2).
+
+#### TBL_CREDIT_HISTORY
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| CREDIT_HISTORY_ID | N(10) | NN | PK |
+| MEMBER_ID | N(10) | NN | FK |
+| CAMPAIGN_ID | N(10) | NULL | FK → TBL_CAMPAIGN, ON DELETE SET NULL |
+| FEATURE_CODE | V(30) | NN | 'PLAN_REANALYZE','COPY_ALT','IMAGE_EDIT','REF_IMAGE','MONTHLY_GRANT' 등 (Q2-3) |
+| CHANGE_AMOUNT | N(10) | NN | 차감은 음수 |
+| BALANCE | N(10) | NN | |
+| CREATED_AT | D | NN | |
+
+#### TBL_NOTIFICATION
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| NOTIFICATION_ID | N(10) | NN | PK |
+| MEMBER_ID | N(10) | NN | FK |
+| CAMPAIGN_ID | N(10) | NULL | FK, ON DELETE CASCADE |
+| NOTIFICATION_TYPE | V(20) | NN | 'PERFORMANCE_INPUT' |
+| MESSAGE | V(200) | NN | |
+| DUE_AT | D | NULL | 게시일 + 7일 |
+| READ_YN | C(1) | NN | DEFAULT 'N' (Q11) |
+| CREATED_AT | D | NN | |
+
+#### TBL_STORE
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| STORE_ID | N(10) | NN | PK |
+| MEMBER_ID | N(10) | NN | FK, **UK_STORE_MEMBER** (Q3) |
+| STORE_NAME | V(50) | NN | |
+| CATEGORY | V(30) | NN | |
+| DESCRIPTION | V(500) | NULL | |
+| PHONE ★ | V(13) | NULL | 매장 연락처 |
+| ADDRESS | V(200) | NULL | |
+| TARGET_CUSTOMER | V(500) | NULL | 칩 쉼표 문자열 (Q5) |
+| TARGET_DESCRIPTION ★ | V(500) | NULL | |
+| TONE_MANNER | V(500) | NULL | 칩 쉼표 문자열 |
+| TONE_DESCRIPTION ★ | V(500) | NULL | |
+| BRAND_COLOR ★ | CHAR(7) | NULL | '#RRGGBB' |
+| HERO_IMAGE_URL | V(500) | NULL | |
+| CREATED_AT / UPDATED_AT | D | NN / NULL | |
+
+#### TBL_PRODUCT
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| PRODUCT_ID | N(10) | NN | PK |
+| STORE_ID | N(10) | NN | FK |
+| PRODUCT_NAME | V(50) | NN | |
+| PRICE | N(10) | NN | |
+| DESCRIPTION | V(300) | NULL | |
+| IMAGE_URL | V(500) | NULL | |
+| STOCK_QTY | N(10) | NULL | |
+| SALE_STATUS | V(10) | NN | CK ('ON_SALE','STOPPED'), 화면의 삭제 = STOPPED (Q9) |
+| CREATED_AT / UPDATED_AT | D | NN / NULL | |
+
+#### TBL_GOAL / TBL_CHANNEL (코드 테이블)
+| 테이블 | 컬럼 |
+|---|---|
+| TBL_GOAL | GOAL_CODE V(20) PK, GOAL_NAME V(30) NN, DESCRIPTION V(200) NULL, SORT_ORDER N(3) NN — 'ETC' 포함 (Q6) |
+| TBL_CHANNEL | CHANNEL_CODE V(20) PK, CHANNEL_NAME V(20) NN, SORT_ORDER N(3) NN — 'ETC' 포함 |
+
+#### TBL_CAMPAIGN
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| CAMPAIGN_ID | N(10) | NN | PK |
+| STORE_ID | N(10) | NN | FK |
+| GOAL_CODE | V(20) | NULL △ | FK, 1단계 전 임시 저장 |
+| CUSTOM_GOAL ★ | V(100) | NULL | GOAL_CODE='ETC'일 때 |
+| INSIGHT_ID | N(10) | NULL | FK → TBL_INSIGHT, 개선 방향 제안에서 시작한 캠페인 (Q8) |
+| CAMPAIGN_NAME | V(100) | NN | |
+| TARGET_CUSTOMER | V(500) | NULL | |
+| TONE_MANNER | V(500) | NULL | |
+| EXTRA_NOTE ★ | V(300) | NULL | |
+| HASHTAG_YN / CAPTION_YN ★ / AD_IMAGE_YN | C(1) | NN | |
+| CURRENT_STEP | V(5) | NN | DEFAULT '1', CK IN ('1','2','3-1','3-2','4','5') |
+| LOCKED_STEP ★ | V(5) | NULL | 확정 단계 |
+| USAGE_MONTH ★ | CHAR(6) | NULL | 이용 횟수를 차감한 달 (N2) |
+| CAMPAIGN_STATUS | V(10) | NN | CK ('DRAFT','PUBLISHED') |
+| CREATED_AT / UPDATED_AT / PUBLISHED_AT | D | NN / NULL / NULL | 진행 기간 = PUBLISHED_AT ~ +6일 (N5) |
+| ~~PRODUCT_ID~~ | | | 삭제 → TBL_CAMPAIGN_PRODUCT |
+
+#### TBL_CAMPAIGN_PRODUCT ★
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| CAMPAIGN_ID | N(10) | NN | PK, FK, ON DELETE CASCADE |
+| PRODUCT_ID | N(10) | NN | PK, FK |
+
+#### TBL_CAMPAIGN_CHANNEL
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| CAMPAIGN_ID | N(10) | NN | PK, FK, ON DELETE CASCADE |
+| CHANNEL_CODE | V(20) | NN | PK, FK |
+| CUSTOM_CHANNEL_NAME ★ | V(20) | NULL | CHANNEL_CODE='ETC'일 때 |
+| CUSTOM_CHANNEL_NOTE △ | V(200) | NULL | CUSTOM_MOOD 대체 |
+| IMAGE_RATIO ★ | V(10) | NULL | '4:5' 등 |
+
+#### TBL_AI_PLAN (Q7)
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| AI_PLAN_ID | N(10) | NN | PK |
+| CAMPAIGN_ID | N(10) | NN | FK, ON DELETE CASCADE, **UK (CAMPAIGN_ID, VERSION_NO)** |
+| VERSION_NO | N(3) | NN | 1부터. 화면에는 가장 큰 VERSION_NO |
+| PLAN_SOURCE | V(10) | NN | CK ('AI','REANALYZE','USER_EDIT') |
+| DIRECTION | V(300) | NULL △ | (Q12) |
+| TARGET_ANALYSIS | V(500) | NULL △ | |
+| AGE_GROUP ★ | V(30) | NULL | |
+| STRATEGY | V(1000) | NULL △ | |
+| TONES ★ | V(300) | NULL | 쉼표 문자열 |
+| RECOMMENDED_CHANNELS ★ | V(300) | NULL | 쉼표 문자열 |
+| EXPECTED_EFFECT | V(500) | NULL | |
+| REACH ★ / FREQUENCY ★ / DURATION ★ | V(50) | NULL | |
+| USER_REQUEST | V(500) | NULL | 재분석 요청 문구 |
+| CONFIRMED_YN | C(1) | NN | 2단계 확정 시 'Y' |
+| CREATED_AT | D | NN | |
+
+#### TBL_IMAGE_SETTING
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| CAMPAIGN_ID | N(10) | NN | PK, FK, ON DELETE CASCADE |
+| PURPOSE △ | V(30) | NULL | IMAGE_STYLE 대체 |
+| MAIN_PRODUCT ★ | V(50) | NULL | |
+| MOOD / COMPOSITION | V(100) | NULL | |
+| BRAND_COLOR_YN ★ | C(1) | NN | |
+| REFERENCE_IMAGE_URL | V(500) | NULL | |
+| EXTRA_REQUEST ★ | V(300) | NULL | |
+| CREATED_AT | D | NN | |
+
+#### TBL_DRAFT / TBL_DRAFT_HASHTAG
+| 테이블 | 컬럼 |
+|---|---|
+| TBL_DRAFT | DRAFT_ID N(10) PK, CAMPAIGN_ID N(10) NN FK(CASCADE), CHANNEL_CODE V(20) NN FK, DRAFT_TYPE CHAR(1) NN CK('A','B'), COPY_TEXT V(1000) NN (11g 4000바이트 이내), IMAGE_URL V(500) NULL, SELECTED_YN C(1) NN, EDITED_YN C(1) NN, CREATED_AT D NN, UPDATED_AT D NULL |
+| TBL_DRAFT_HASHTAG | DRAFT_ID N(10) PK·FK(CASCADE), HASHTAG_SEQ N(3) PK, HASHTAG V(50) NN |
+
+#### TBL_POST / TBL_POST_METRIC ★
+| 테이블 | 컬럼 |
+|---|---|
+| TBL_POST | POST_ID N(10) PK, DRAFT_ID N(10) NN FK(CASCADE), CHANNEL_CODE V(20) NN FK, POST_STATUS V(10) NN CK('SUCCESS','FAILED'), POST_URL V(500) NULL, POSTED_AT D NN |
+| TBL_POST_METRIC ★ | METRIC_ID N(10) PK, POST_ID N(10) NN FK(CASCADE), LIKE_COUNT · COMMENT_COUNT · SHARE_COUNT · SAVE_COUNT · REACH_COUNT N(10) NN DEFAULT 0, COLLECTED_AT D NN, COLLECT_METHOD V(10) NN CK('INSTAGRAM','MANUAL','SAMPLE') |
+
+- POST 1 : N POST_METRIC (수집할 때마다 한 줄). 화면은 게시물별 가장 최근 COLLECTED_AT 행을 쓰고, COLLECT_METHOD='SAMPLE'이면 "예시 데이터"를 표시한다.
+- 5장에서 제안한 POST.VIEW/CLICK/CONVERSION_COUNT는 추가하지 않는다 (N3).
+
+#### TBL_SALES_UPLOAD / TBL_SALES
+| 테이블 | 컬럼 |
+|---|---|
+| TBL_SALES_UPLOAD | UPLOAD_ID N(10) PK, STORE_ID N(10) NN FK, INPUT_TYPE V(10) NN CK('EXCEL','RECEIPT','MANUAL'), FILE_NAME V(200) NULL, RECORD_COUNT N(6) NN, **DATA_FROM ★ D NN, DATA_TO ★ D NN**, UPLOADED_AT D NN |
+| TBL_SALES | SALES_ID N(10) PK, UPLOAD_ID N(10) **NN** FK (Q10), PRODUCT_ID N(10) NN FK, SALE_DATE D NN, QUANTITY N(6) NN, AMOUNT N(12) NN |
+
+- 성과분석은 결과를 저장하지 않고 `SALE_DATE BETWEEN :from AND :to`로 매번 계산한다. 인덱스: `IX_SALES_PRODUCT_DATE (PRODUCT_ID, SALE_DATE)`.
+
+#### TBL_INSIGHT △ (Q8)
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| INSIGHT_ID | N(10) | NN | PK |
+| STORE_ID | N(10) | NN | FK |
+| BASE_UPLOAD_ID ★ | N(10) | NULL | FK → TBL_SALES_UPLOAD, 분석에 쓴 마지막 업로드 (N4) |
+| INSIGHT_TYPE △ | V(10) | NN | CK ('EARLY','COMPARE') — ANALYSIS_LEVEL 대체 |
+| SALES_FROM ★ / SALES_TO ★ | D | NULL | 분석에 사용한 매출 기간 |
+| CANDIDATE_COUNT ★ | N(2) | NN | 그때 비교 후보 수 (4 이상이면 COMPARE) |
+| COMPARE_BASIS ★ | V(30) | NULL | 'MENU_SALES_LIFT_7D' (COMPARE일 때) |
+| HEADLINE △ | V(200) | NN | TITLE 대체 |
+| SUMMARY △ | V(1000) | NN | CONTENT 대체 |
+| CONCLUSION ★ | V(1000) | NULL | Good/Bad 결론 문장 |
+| CONCLUSION_GOAL_CODE ★ | V(20) | NULL | FK, "이 내용으로 캠페인 만들기" 목표 |
+| CONCLUSION_PRODUCT_ID ★ | N(10) | NULL | FK |
+| CREATED_AT | D | NN | 생성 일시 |
+| ~~PRODUCT_ID, GOAL_CODE, ANALYSIS_LEVEL, TITLE, CONTENT~~ | | | 삭제·대체 |
+
+#### TBL_INSIGHT_CAMPAIGN △ (대상·Good·Bad)
+| 컬럼 | 타입 | NULL | 비고 |
+|---|---|---|---|
+| INSIGHT_ID | N(10) | NN | PK, FK, ON DELETE CASCADE |
+| CAMPAIGN_ID | N(10) | NN | PK, FK |
+| COMPARE_ROLE △ | V(10) | NN | CK ('TARGET','GOOD','BAD') |
+| SALES_CHANGE_RATE ★ | N(6) | NULL | 대상 메뉴 매출 증가율(%) 스냅샷 (N1) |
+| BEFORE_AMOUNT ★ / AFTER_AMOUNT ★ | N(12) | NN | 게시 전·후 7일 대상 메뉴 매출 |
+| LIKE_SUM ★ / SAVE_SUM ★ / REACH_SUM ★ | N(10) | NULL | 반응 합계 스냅샷 (보조 근거) |
+
+#### TBL_INSIGHT_ITEM ★ / TBL_INSIGHT_DIFF ★
+| 테이블 | 컬럼 |
+|---|---|
+| TBL_INSIGHT_ITEM | ITEM_ID N(10) PK, INSIGHT_ID N(10) NN FK(CASCADE), ITEM_CATEGORY V(15) NN CK('STRENGTH','IMPROVEMENT','SLOW_MENU','STOCK'), SORT_ORDER N(3) NN, TITLE V(200) NN, CONTENT V(1000) NN, EVIDENCE V(100) NULL (근거 수치 배지), EVIDENCE_SAMPLE_YN C(1) NN (예시 데이터 근거), GOAL_CODE V(20) NULL FK, PRODUCT_ID N(10) NULL FK |
+| TBL_INSIGHT_DIFF (N1) | INSIGHT_ID N(10) PK·FK(CASCADE), DIFF_SEQ N(2) PK, ITEM_NAME V(30) NN, GOOD_VALUE V(100) NN, BAD_VALUE V(100) NN |
+
+#### 관계 요약
+
+```mermaid
+erDiagram
+    TBL_MEMBER ||--|| TBL_STORE : owns
+    TBL_MEMBER ||--o{ TBL_SUBSCRIPTION : has
+    TBL_PRICE_PLAN ||--o{ TBL_SUBSCRIPTION : applies
+    TBL_MEMBER ||--o{ TBL_MONTHLY_USAGE : counts
+    TBL_MEMBER ||--o{ TBL_CREDIT_HISTORY : uses
+    TBL_MEMBER ||--o{ TBL_NOTIFICATION : receives
+    TBL_STORE ||--o{ TBL_PRODUCT : sells
+    TBL_STORE ||--o{ TBL_CAMPAIGN : runs
+    TBL_STORE ||--o{ TBL_SALES_UPLOAD : uploads
+    TBL_STORE ||--o{ TBL_INSIGHT : gets
+    TBL_GOAL ||--o{ TBL_CAMPAIGN : targets
+    TBL_INSIGHT |o--o{ TBL_CAMPAIGN : suggests
+    TBL_CAMPAIGN ||--o{ TBL_CAMPAIGN_PRODUCT : promotes
+    TBL_PRODUCT ||--o{ TBL_CAMPAIGN_PRODUCT : promoted_in
+    TBL_CAMPAIGN ||--o{ TBL_CAMPAIGN_CHANNEL : posts_to
+    TBL_CHANNEL ||--o{ TBL_CAMPAIGN_CHANNEL : used_by
+    TBL_CAMPAIGN ||--o{ TBL_AI_PLAN : versions
+    TBL_CAMPAIGN ||--o| TBL_IMAGE_SETTING : configures
+    TBL_CAMPAIGN ||--o{ TBL_DRAFT : produces
+    TBL_DRAFT ||--o{ TBL_DRAFT_HASHTAG : tagged
+    TBL_DRAFT ||--o{ TBL_POST : published_as
+    TBL_POST ||--o{ TBL_POST_METRIC : measured
+    TBL_CAMPAIGN |o--o{ TBL_CREDIT_HISTORY : charged_by
+    TBL_CAMPAIGN ||--o{ TBL_NOTIFICATION : reminds
+    TBL_SALES_UPLOAD ||--o{ TBL_SALES : contains
+    TBL_PRODUCT ||--o{ TBL_SALES : sold
+    TBL_SALES_UPLOAD |o--o{ TBL_INSIGHT : based_on
+    TBL_INSIGHT ||--o{ TBL_INSIGHT_CAMPAIGN : compares
+    TBL_CAMPAIGN ||--o{ TBL_INSIGHT_CAMPAIGN : compared_in
+    TBL_INSIGHT ||--o{ TBL_INSIGHT_ITEM : suggests
+    TBL_INSIGHT ||--o{ TBL_INSIGHT_DIFF : differs
+```
+
+### 7-4. 결정 사항과 현재 코드가 다른 점 (참고, 코드 미수정)
+
+DB 연동 단계에서 서비스 내부를 바꿀 때 맞출 항목이다. 지금은 DemoSession 목업이라 그대로 둔다.
+
+| 결정 | 현재 코드 | DB 연동 때 |
+|---|---|---|
+| Q1 월별 사용 횟수, 매월 1일 초기화 | `Member.campaignsUsedThisMonth` 카운터, 초기화 없음 | TBL_MONTHLY_USAGE 조회·MERGE |
+| Q7 기획 버전별 저장 | 재분석하면 `Campaign.plan`을 덮어씀 | 재분석·확정마다 TBL_AI_PLAN 새 버전 |
+| Q8 매출을 새로 올렸을 때만 재생성 | 캠페인·메뉴 재고·매출 건수·개발용 early/enough가 바뀌면 재생성 (`InsightService.signature`) | BASE_UPLOAD_ID가 최신 업로드와 다를 때만. 개발용 전환은 목업 전용으로 남김 |
+| Q8 CAMPAIGN.INSIGHT_ID | `Campaign.insightPrefill`(true/false)만 있음 | 제안에서 시작하면 INSIGHT_ID 저장 |
+| 게시물 성과 테이블 | `Post`에 likes 등 필드 + views/clicks/conversions | TBL_POST_METRIC (COLLECT_METHOD='SAMPLE') |
+| Q9 메뉴 삭제 = 판매 중단 | 목록에서 실제로 지움 | SALE_STATUS='STOPPED' |
+| 매출 업로드 형식 | inputType 'excel'/'receipt'/'manual' 소문자 | CK 값은 대문자. 매퍼에서 변환하거나 코드 상수를 맞춤 |
