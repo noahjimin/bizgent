@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
 import com.bizgent.domain.Campaign;
+import com.bizgent.domain.InsightReport;
 import com.bizgent.domain.Member;
 import com.bizgent.domain.Notification;
 import com.bizgent.domain.Sale;
@@ -49,6 +50,7 @@ public class DemoSession implements Serializable {
     private List<Sale> sales = new ArrayList<>();
     private List<SalesUpload> salesUploads = new ArrayList<>();
     private List<Notification> notifications = new ArrayList<>();
+    private List<InsightReport> insightReports = new ArrayList<>();
 
     private final AtomicLong sequence = new AtomicLong(1000);
 

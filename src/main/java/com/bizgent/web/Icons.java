@@ -26,7 +26,11 @@ public class Icons {
             Map.entry("blog", "M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"),
             Map.entry("carrot", "M14 4c1 1.5 3 2 4.5 1.5M16 3c-.5 1.5 0 3.5 1.5 4.5M15.5 8.5 4 20l5-9a5 5 0 0 1 6.5-2.5z"),
             Map.entry("upload", "M12 16V4M7 9l5-5 5 5M4 16v4h16v-4"),
-            Map.entry("chevron", "M9 6l6 6-6 6"));
+            Map.entry("chevron", "M9 6l6 6-6 6"),
+            Map.entry("trend-up", "M3 17l6-6 4 4 8-8M15 7h6v6"),
+            Map.entry("alert", "M12 3 2 20h20zM12 10v4M12 17h.01"),
+            Map.entry("menu-tip", "M4 6h16M4 12h10M4 18h7M17 15l2 2 3-4"),
+            Map.entry("box", "M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"));
 
     public String path(String name) {
         return PATHS.getOrDefault(name, "");

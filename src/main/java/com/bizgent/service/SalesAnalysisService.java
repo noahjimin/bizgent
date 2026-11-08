@@ -212,6 +212,11 @@ public class SalesAnalysisService {
         }).toList();
     }
 
+    /** 게시한 캠페인별 대상 메뉴 매출 성과 (최근 게시 순). 개선 방향 분석에서 쓴다. */
+    public List<CampaignRow> campaignResults(List<Campaign> campaigns, List<Sale> sales) {
+        return campaignRows(sales, campaigns.stream().filter(c -> c.isPublished() && c.getPublishedAt() != null).toList());
+    }
+
     private List<CampaignRow> campaignRows(List<Sale> sales, List<Campaign> campaigns) {
         return campaigns.stream()
                 .sorted(Comparator.comparing(Campaign::getPublishedAt).reversed())

@@ -13,6 +13,7 @@ import com.bizgent.domain.AiPlan;
 import com.bizgent.domain.Campaign;
 import com.bizgent.domain.CampaignStatus;
 import com.bizgent.domain.Draft;
+import com.bizgent.domain.InsightReport;
 import com.bizgent.domain.Member;
 import com.bizgent.domain.Notification;
 import com.bizgent.domain.Plan;
@@ -71,6 +72,12 @@ final class DemoSeed {
         LocalDateTime tomorrow = LocalDate.now().plusDays(1).atTime(10, 0);
         s.setNotifications(new ArrayList<>(List.of(new Notification(1L, 3L,
                 "주말 디저트 캠페인의 성과를 확인하고 다음 개선 방향을 살펴보세요.", tomorrow, false))));
+
+        // 지난 AI 개선 방향 분석. 결과는 처음 볼 때 그 날짜까지의 데이터로 분석해 고정한다 (InsightService).
+        s.setInsightReports(new ArrayList<>(List.of(
+                new InsightReport(1L, LocalDateTime.of(2026, 9, 19, 10, 0), LocalDate.of(2026, 9, 19), null, null),
+                new InsightReport(2L, LocalDateTime.of(2026, 9, 25, 10, 0), LocalDate.of(2026, 9, 25), null, null),
+                new InsightReport(3L, LocalDateTime.of(2026, 10, 13, 10, 0), LocalDate.of(2026, 10, 13), null, null))));
     }
 
     private static List<Campaign> campaigns() {
@@ -81,14 +88,14 @@ final class DemoSeed {
                 List.of("인스타그램", "네이버 플레이스"), true, "따뜻하고 화사한 봄", "음료 중심의 테이블 컷");
         String latte = UNSPLASH + "photo-1570968915860-54d5c301fa9f?auto=format&fit=crop&w=1200&q=80";
         c1.setDrafts(new ArrayList<>(List.of(
-                new Draft("A", "인스타그램", "봄처럼 부드러운 오늘의 한 잔, 모먼트 카페 시그니처 크림 라떼를 만나보세요.",
+                new Draft("A", "인스타그램", "봄처럼 부드러운 오늘의 한 잔, 모먼트 카페 시그니처 크림 라떼입니다.",
                         new ArrayList<>(List.of("모먼트카페", "성수카페", "크림라떼")), latte),
                 new Draft("B", "네이버 플레이스", "고소한 에스프레소와 부드러운 수제 크림이 어우러진 봄 시즌 라떼입니다.",
                         new ArrayList<>(List.of("성수동카페", "신메뉴")), latte))));
         c1.setPosts(new ArrayList<>(List.of(Post.result("인스타그램", 4820, 386, 74).reactions(412, 38, 21, 97, 4100),
                 Post.result("네이버 플레이스", 2110, 241, 51).reactions(186, 22, 9, 41, 1830))));
 
-        Campaign c2 = published(2L, "9월 신메뉴 프로모션", "/assets/eece9.png", LocalDateTime.of(2026, 9, 18, 9, 0),
+        Campaign c2 = published(2L, "9월 신메뉴 프로모션", "/assets/eece9.png", LocalDateTime.of(2026, 9, 18, 14, 0),
                 "평일 오후 방문 늘리기", 3L,
                 new AiPlan("오후 세 시, 달콤한 쉼표", "성수동 인근 직장인과 프리랜서",
                         "커피와 스콘 세트의 합리적인 가격을 강조합니다.", "평일 14~17시 매출 증가"),
@@ -98,17 +105,34 @@ final class DemoSeed {
                 UNSPLASH + "photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1200&q=80"))));
         c2.setPosts(new ArrayList<>(List.of(Post.result("카카오톡 채널", 1890, 304, 92).reactions(154, 12, 33, 28, 1650))));
 
-        Campaign c3 = published(3L, "추석 할인 이벤트", "/assets/afdbb.png", LocalDateTime.of(2026, 9, 12, 9, 0),
+        Campaign c3 = published(3L, "추석 할인 이벤트", "/assets/afdbb.png", LocalDateTime.of(2026, 9, 12, 18, 30),
                 "주말 디저트 판매 늘리기", 4L,
                 new AiPlan("주말을 위한 작은 축하", "주말 데이트를 즐기는 20~30대 고객",
                         "딸기와 생크림의 신선함을 시각적으로 강조합니다.", "주말 디저트 주문과 동반 방문 증가"),
                 List.of("인스타그램"), true, "생기 있고 사랑스러운 분위기", "케이크 클로즈업");
         c3.setDrafts(new ArrayList<>(List.of(new Draft("A", "인스타그램",
-                "이번 주말에는 제철 딸기를 가득 올린 생크림 케이크로 달콤하게 쉬어가세요.",
+                "이번 주말 한정 10% 할인! 제철 딸기를 가득 올린 생크림 케이크로 달콤하게 쉬어가세요. 매장에 방문해 만나보세요.",
                 new ArrayList<>(List.of("딸기케이크", "성수데이트", "모먼트카페")),
                 UNSPLASH + "photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1200&q=80"))));
         c3.setPosts(new ArrayList<>(List.of(Post.result("인스타그램", 3240, 278, 63).reactions(298, 31, 18, 76, 2870))));
         c3.setReminderAt(LocalDate.now().plusDays(1).atTime(10, 0));
+
+        // 개선 방향 Good/Bad 비교에서 차이가 드러나도록 채널별 이미지 비율을 넣는다.
+        c1.getImage().getRatios().putAll(Map.of("인스타그램", "1:1", "네이버 플레이스", "1:1"));
+        c2.getImage().getRatios().put("카카오톡 채널", "4:5");
+        c3.getImage().getRatios().put("인스타그램", "4:5");
+
+        Campaign c5 = published(5L, "크루아상 아침 세트 안내",
+                UNSPLASH + "photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1200&q=80",
+                LocalDateTime.of(2026, 9, 26, 8, 0), "아침 방문 늘리기", 2L,
+                new AiPlan("하루를 여는 고소한 아침", "출근길 직장인과 아침 산책 고객",
+                        "갓 구운 크루아상과 커피 세트로 아침 루틴을 제안합니다.", "오전 8~10시 방문 증가"),
+                List.of("네이버 플레이스"), false, "따뜻한 아침 햇살", "크루아상과 커피 세트");
+        c5.setDrafts(new ArrayList<>(List.of(new Draft("A", "네이버 플레이스",
+                "갓 구운 크루아상과 아메리카노로 하루를 시작해 보세요. 오전 8시부터 매장에서 만나보세요.", new ArrayList<>(),
+                UNSPLASH + "photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1200&q=80"))));
+        c5.setPosts(new ArrayList<>(List.of(Post.result("네이버 플레이스", 1420, 168, 39).reactions(121, 9, 6, 33, 1290))));
+        c5.getImage().getRatios().put("네이버 플레이스", "1:1");
 
         Campaign c4 = new Campaign();
         c4.setCampaignId(4L);
@@ -122,7 +146,7 @@ final class DemoSeed {
         c4.getContent().setHashtagOn(true);
         c4.getContent().setImageOn(true);
 
-        return List.of(c1, c2, c3, c4);
+        return List.of(c1, c5, c2, c3, c4);
     }
 
     private static Campaign published(Long id, String title, String thumbnail, LocalDateTime at, String goal,
@@ -173,12 +197,13 @@ final class DemoSeed {
     /**
      * 2026-09-01 ~ 2026-10-12 (42일) 메뉴별 일 매출. 게시된 캠페인과 맞춰
      * 추석 할인 이벤트(9/12, 브런치 세트)와 9월 신메뉴 프로모션(9/18, 시그니처 케이크)은 뚜렷하게 오르고,
-     * 10월 신메뉴 프로모션(10/5, 아메리카노)은 효과가 거의 없게 만든다.
+     * 크루아상 아침 세트 안내(9/26, 크루아상)는 조금 오르고, 10월 신메뉴 프로모션(10/5, 아메리카노)은 효과가 거의 없게 만든다.
      */
     private static List<Sale> sales(List<Product> products) {
         LocalDate start = LocalDate.of(2026, 9, 1);
         Map<Long, Integer> baseQty = Map.of(1L, 14, 2L, 6, 3L, 4, 4L, 2);
-        List<Lift> lifts = List.of(new Lift(4, 11, 8, 2.1), new Lift(3, 17, 10, 1.8), new Lift(1, 34, 8, 1.02));
+        List<Lift> lifts = List.of(new Lift(4, 11, 8, 2.1), new Lift(3, 17, 10, 1.8), new Lift(2, 25, 7, 1.15),
+                new Lift(1, 34, 8, 1.02));
         String[] sources = {"excel", "receipt", "manual"};
 
         List<Sale> sales = new ArrayList<>();
