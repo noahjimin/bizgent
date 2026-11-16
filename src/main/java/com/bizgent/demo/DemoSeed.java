@@ -44,7 +44,6 @@ final class DemoSeed {
         member.setMemberName("김사장");
         member.setEmail(DemoSession.DEMO_EMAIL);
         member.setPlan(Plan.FREE);
-        member.setCredits(12);
         member.setCampaignsUsedThisMonth(1);
         member.setUsageResetAt(LocalDate.now().withDayOfMonth(1).plusMonths(1));
         s.setMember(member);

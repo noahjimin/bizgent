@@ -14,7 +14,7 @@ import com.bizgent.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
 
-/** AI 캠페인 개선 방향 (SCR-U-011, F19) · 구독 관리 및 크레딧 (SCR-U-012, F14·F15) */
+/** AI 캠페인 개선 방향 (SCR-U-011, F19) · 구독 관리 (SCR-U-012, F14·F15) */
 @Controller
 @RequiredArgsConstructor
 public class InsightController {

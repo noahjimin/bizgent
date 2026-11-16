@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.bizgent.demo.DemoSession;
+import com.bizgent.domain.Plan;
 import com.bizgent.service.NotificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +34,9 @@ public class GlobalModelAdvice {
     public void addCommon(Model model) {
         model.addAttribute("me", session.getMember());
         model.addAttribute("store", session.getStore());
+        // 랜딩·약관처럼 로그인 전 화면에서도 두 요금제의 한도를 보여 준다.
+        model.addAttribute("freePlan", Plan.FREE);
+        model.addAttribute("proPlan", Plan.PRO);
         model.addAttribute("insightsView", session.getInsightsView());
         model.addAttribute("notifications", notificationService.findAll());
         model.addAttribute("hasDueNotification", notificationService.hasUnreadDue());

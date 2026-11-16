@@ -614,7 +614,8 @@ erDiagram
 ## 7. 결정 사항 반영 (2026-11-08)
 
 > 이 장이 최신 ERD 수정안이다. 1~6장과 부록의 내용 중 이 장과 다른 부분은 이 장을 따른다.
-> 근거: 팀 결정(Q1·Q3·Q7·Q8·Q16·Q17, 성과분석·개선 방향 결정), PROJECT.md v0.07, 화면설계서.
+> 근거: 팀 결정(Q1·Q3·Q7·Q8·Q16·Q17, 성과분석·개선 방향 결정), PROJECT.md v0.08, 화면설계서.
+> 2026-11-08 추가 확정: 플랜 구분은 크레딧 없이 월 캠페인 횟수로만(무료 4회, 구독 8회, 구독 월 9,900원), 채널 최대 2개(무료·구독 동일), 탈퇴 15일 후 삭제·같은 이메일 재가입 가능, 시안 문구 1000자 제한.
 
 ### 7-1. 결정 사항이 ERD에 있는지 확인
 
@@ -638,16 +639,16 @@ erDiagram
 | Good/Bad 비교 조건 (최근 5개 중 전후 매출 있는 후보 4개 이상) | (규칙이라 테이블 없음) | INSIGHT.CANDIDATE_COUNT로 그때 후보 수 기록. 규칙은 서비스 코드 |
 | 게시물 성과 테이블 | ❌ | **TBL_POST_METRIC** 신설 (POST_ID FK, 좋아요·댓글·공유·저장·도달, COLLECTED_AT, COLLECT_METHOD INSTAGRAM/MANUAL/SAMPLE) |
 
-### 7-2. 남은 질문 추천안 (확인 후 확정)
+### 7-2. 남은 질문 확정 (2026-11-08)
 
-| 질문 | 추천안 | 근거 |
+| 질문 | 확정 | 근거 |
 |---|---|---|
-| Q2 구독 회원도 캠페인 시작 시 사용 횟수를 남길까 | **남긴다.** 플랜과 상관없이 TBL_MONTHLY_USAGE에 +1, 한도는 현재 플랜의 PRICE_PLAN.MONTHLY_CAMPAIGN_LIMIT로 비교 | PROJECT.md: 구독도 "월 이용 횟수 확대(크레딧 한도 내)"라 한도가 있음 |
-| Q2-1 무료로 3회 쓰고 같은 달 구독 후 해지하면 | **사용 횟수는 그대로 남는다** (월별 기록이 플랜과 분리) | Q1 월별 사용 횟수 구조에서 자연스럽게 정해짐 |
-| Q2-2 구독 플랜의 MAX_CHANNEL_COUNT | **결정 보류** | PROJECT.md v0.07에서 "구독 시 게시 채널 한도 확대 여부는 검토 중". 값을 정해 주셔야 PRICE_PLAN 초기 데이터를 넣을 수 있음 |
-| Q2-3 크레딧을 쓸까 | **쓴다.** 구독 전용 AI 기능(재분석·문구 대안·이미지 수정 등) 사용 시 TBL_CREDIT_HISTORY에 차감 기록, BALANCE 유지 | PROJECT.md: "AI를 추가로 호출하는 작업은 유료(크레딧 차감)" |
+| Q2 구독 회원도 캠페인 시작 시 사용 횟수를 남길까 | **남긴다.** 플랜과 상관없이 TBL_MONTHLY_USAGE에 +1, 한도는 현재 플랜의 PRICE_PLAN.MONTHLY_CAMPAIGN_LIMIT로 비교 | 구독도 월 8회 한도가 있음 |
+| Q2-1 무료로 4회 쓰고 같은 달 구독 후 해지하면 | **사용 횟수는 그대로 남는다** (월별 기록이 플랜과 분리) | Q1 월별 사용 횟수 구조에서 자연스럽게 정해짐 |
+| Q2-2 구독 플랜의 MAX_CHANNEL_COUNT | **무료·구독 모두 2개** | 팀 결정. 컬럼은 남겨 두고 두 플랜 모두 2를 넣는다 (나중에 구독 값만 바꿀 수 있게) |
+| Q2-3 크레딧을 쓸까 | **쓰지 않는다.** 플랜 구분은 월 캠페인 횟수로만 한다. TBL_CREDIT_HISTORY·SEQ_CREDIT_HISTORY·PRICE_PLAN.MONTHLY_CREDIT 삭제. 구독 전용 기능(재분석·문구 대안·이미지 수정·참고 이미지)은 구독 여부로만 허용하고 차감하지 않는다 | 팀 결정. BizGent는 캠페인 1회가 사용 단위라 크레딧보다 횟수가 단순함 |
 | Q4 마케팅 수신 동의, 약관 버전 | **MARKETING_AGREED_YN 삭제, 약관 버전 컬럼 추가 안 함** | 화면설계서 SCR-U-001-P01: 필수 3개(만 14세·이용약관·개인정보)만 있음. 재동의 화면 없음 |
-| Q4-1 회원 탈퇴 | **상태만 바꾼다.** MEMBER_STATUS = 'ACTIVE' / 'WITHDRAWN', WITHDRAWN_AT 추가 | 화면설계서 SCR-U-002: "회원 탈퇴는 확인 팝업 후 처리". 캠페인·매출 기록이 FK로 묶여 있어 물리 삭제는 위험 |
+| Q4-1 회원 탈퇴 | **탈퇴 즉시 MEMBER_STATUS='WITHDRAWN', WITHDRAWN_AT 기록 → 15일 후 회원과 관련 데이터 전부 삭제.** 삭제 후에는 같은 이메일로 재가입 가능. 탈퇴 이메일을 따로 보관하는 테이블은 두지 않는다 | 팀 결정. 유예 15일 동안은 회원 행이 남아 있어 같은 이메일로 가입할 수 없다(EMAIL UK). 삭제는 하위 테이블부터 순서대로 지우는 처리로 하며, 구현 시점은 DB 연동 단계에서 정한다. 실제 결제를 붙이면 결제 기록 보관 기준(전자상거래법)을 다시 검토한다 |
 | Q5 여러 개 고르는 칩 값(타깃·톤·추천 채널) | **쉼표로 이은 문자열** VARCHAR2(500 CHAR) | 칩 값으로 검색·통계하는 화면이 없음. 매장 정보도 같은 방식 |
 | Q6 목표·채널 코드값 | **영문 코드 + 이름** (GOAL_CODE 'REVISIT' → GOAL_NAME '재방문 유도'). "기타"는 코드 'ETC' + CUSTOM_GOAL / CUSTOM_CHANNEL_NAME | 이름 문구가 바뀌어도 기록이 깨지지 않음 |
 | Q9 메뉴 판매 상태 / 메뉴 삭제 | **SALE_STATUS 유지('ON_SALE' / 'STOPPED')**. 화면의 "삭제"는 STOPPED로 바꾸고 목록에서 숨김 | 화면설계서 SCR-U-003: 상품 삭제 있음. 매출·캠페인·개선 방향 기록이 PRODUCT를 참조하므로 물리 삭제하면 FK 오류 |
@@ -662,6 +663,7 @@ erDiagram
 | N3 POST.VIEW/CLICK/CONVERSION 컬럼 (5장에서 제안) | **추가하지 않는다.** 반응 수치는 TBL_POST_METRIC으로 일원화 | 현재 화면은 조회·클릭·전환을 표시하지 않음 (성과분석·개선 방향 모두 매출 증가율·반응 지표 사용) |
 | N4 "매출을 새로 올렸을 때만 재생성" 판정 | **INSIGHT.BASE_UPLOAD_ID** (분석에 쓴 마지막 업로드). 최신 업로드 ID와 다를 때만 새로 분석 | Q8 결정을 DB만으로 판정 가능 |
 | N5 캠페인 진행 기간 | **저장하지 않고 계산** (게시일~+6일) | 현재 규칙이 고정 7일. 컬럼을 두면 규칙과 데이터가 어긋날 수 있음 |
+| N6 시안 문구 길이 | **1000자 제한** (블로그 포함 모든 채널). DRAFT.COPY_TEXT V(1000), 화면 입력도 1000자로 제한 | 팀 결정. 11g VARCHAR2 4000바이트 이내라 CLOB 불필요 |
 
 ### 7-3. ERD 수정안 (테이블별 컬럼)
 
@@ -676,7 +678,7 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 | PRICE_PLAN | TBL_PRICE_PLAN | PLAN_CODE | - |
 | SUBSCRIPTION | TBL_SUBSCRIPTION | SUBSCRIPTION_ID | SEQ_SUBSCRIPTION |
 | ★ | TBL_MONTHLY_USAGE | (MEMBER_ID, USAGE_MONTH) | - |
-| CREDIT_HISTORY | TBL_CREDIT_HISTORY | CREDIT_HISTORY_ID | SEQ_CREDIT_HISTORY |
+| ~~CREDIT_HISTORY~~ | 삭제 (Q2-3) | | |
 | NOTIFICATION | TBL_NOTIFICATION | NOTIFICATION_ID | SEQ_NOTIFICATION |
 | STORE | TBL_STORE | STORE_ID | SEQ_STORE |
 | PRODUCT | TBL_PRODUCT | PRODUCT_ID | SEQ_PRODUCT |
@@ -698,13 +700,13 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 | ★ | TBL_INSIGHT_ITEM | ITEM_ID | SEQ_INSIGHT_ITEM |
 | ★ (N1) | TBL_INSIGHT_DIFF | (INSIGHT_ID, DIFF_SEQ) | - |
 
-테이블 25개, 시퀀스 14개.
+테이블 24개, 시퀀스 14개 (SEQ_MEMBER, SEQ_SUBSCRIPTION, SEQ_NOTIFICATION, SEQ_STORE, SEQ_PRODUCT, SEQ_CAMPAIGN, SEQ_AI_PLAN, SEQ_DRAFT, SEQ_POST, SEQ_POST_METRIC, SEQ_SALES_UPLOAD, SEQ_SALES, SEQ_INSIGHT, SEQ_INSIGHT_ITEM).
 
 #### TBL_MEMBER
 | 컬럼 | 타입 | NULL | 키·제약 / 비고 |
 |---|---|---|---|
 | MEMBER_ID | N(10) | NN | PK |
-| EMAIL | V(100) | NN | UK, 로그인 ID (수정 불가) |
+| EMAIL | V(100) | NN | UK, 로그인 ID (수정 불가). 탈퇴 15일 후 행이 삭제되면 같은 이메일로 재가입 가능 (Q4-1) |
 | PASSWORD | V(100) | NN | 해시 저장 (BCrypt 60자) |
 | MEMBER_NAME | V(20) | NN | 2~20자 |
 | PHONE | V(13) | NULL | 010-0000-0000 |
@@ -712,7 +714,7 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 | TERMS_AGREED_AT | D | NN △ | 가입 시 항상 기록 |
 | MEMBER_STATUS | V(10) | NN | CK ('ACTIVE','WITHDRAWN') (Q4-1) |
 | JOINED_AT | D | NN | |
-| WITHDRAWN_AT ★ | D | NULL | (Q4-1) |
+| WITHDRAWN_AT ★ | D | NULL | 탈퇴 일시. 이 값 + 15일이 지나면 회원·관련 데이터 삭제 (Q4-1) |
 | ~~MARKETING_AGREED_YN~~ | | | 삭제 (Q4) |
 
 #### TBL_PRICE_PLAN
@@ -720,10 +722,17 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 |---|---|---|---|
 | PLAN_CODE | V(10) | NN | PK ('FREE','PRO') |
 | PLAN_NAME | V(20) | NN | |
-| MONTHLY_PRICE | N(10) | NN | |
-| MONTHLY_CAMPAIGN_LIMIT | N(5) | NN | 무료 3 |
-| MAX_CHANNEL_COUNT | N(2) | NN | 무료 2, 구독 값 보류 (Q2-2) |
-| MONTHLY_CREDIT | N(10) | NN | |
+| MONTHLY_PRICE | N(10) | NN | 무료 0, 구독 9900 |
+| MONTHLY_CAMPAIGN_LIMIT | N(5) | NN | 무료 4, 구독 8 |
+| MAX_CHANNEL_COUNT | N(2) | NN | 무료·구독 모두 2 (Q2-2) |
+| ~~MONTHLY_CREDIT~~ | | | 삭제 (Q2-3) |
+
+초기 데이터:
+
+| PLAN_CODE | PLAN_NAME | MONTHLY_PRICE | MONTHLY_CAMPAIGN_LIMIT | MAX_CHANNEL_COUNT |
+|---|---|---|---|---|
+| FREE | 무료 | 0 | 4 | 2 |
+| PRO | 구독 | 9900 | 8 | 2 |
 
 #### TBL_SUBSCRIPTION
 | 컬럼 | 타입 | NULL | 비고 |
@@ -748,16 +757,9 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 - 이번 달 사용 횟수 = `USAGE_MONTH = TO_CHAR(SYSDATE,'YYYYMM')` 행의 USED_COUNT (없으면 0). 다음 리셋일 = `ADD_MONTHS(TRUNC(SYSDATE,'MM'),1)`.
 - 차감은 MERGE로 행이 없으면 만들고 있으면 +1. 같은 트랜잭션에서 CAMPAIGN.USAGE_MONTH를 채운다 (N2).
 
-#### TBL_CREDIT_HISTORY
-| 컬럼 | 타입 | NULL | 비고 |
-|---|---|---|---|
-| CREDIT_HISTORY_ID | N(10) | NN | PK |
-| MEMBER_ID | N(10) | NN | FK |
-| CAMPAIGN_ID | N(10) | NULL | FK → TBL_CAMPAIGN, ON DELETE SET NULL |
-| FEATURE_CODE | V(30) | NN | 'PLAN_REANALYZE','COPY_ALT','IMAGE_EDIT','REF_IMAGE','MONTHLY_GRANT' 등 (Q2-3) |
-| CHANGE_AMOUNT | N(10) | NN | 차감은 음수 |
-| BALANCE | N(10) | NN | |
-| CREATED_AT | D | NN | |
+#### ~~TBL_CREDIT_HISTORY~~ (삭제, Q2-3)
+
+크레딧을 쓰지 않기로 해서 테이블과 SEQ_CREDIT_HISTORY를 만들지 않는다. 월 사용 횟수는 TBL_MONTHLY_USAGE로 관리한다.
 
 #### TBL_NOTIFICATION
 | 컬럼 | 타입 | NULL | 비고 |
@@ -877,7 +879,7 @@ NN = NOT NULL, ★ = 신규 테이블/컬럼, △ = 변경. 날짜 기본값은 
 #### TBL_DRAFT / TBL_DRAFT_HASHTAG
 | 테이블 | 컬럼 |
 |---|---|
-| TBL_DRAFT | DRAFT_ID N(10) PK, CAMPAIGN_ID N(10) NN FK(CASCADE), CHANNEL_CODE V(20) NN FK, DRAFT_TYPE CHAR(1) NN CK('A','B'), COPY_TEXT V(1000) NN (11g 4000바이트 이내), IMAGE_URL V(500) NULL, SELECTED_YN C(1) NN, EDITED_YN C(1) NN, CREATED_AT D NN, UPDATED_AT D NULL |
+| TBL_DRAFT | DRAFT_ID N(10) PK, CAMPAIGN_ID N(10) NN FK(CASCADE), CHANNEL_CODE V(20) NN FK, DRAFT_TYPE CHAR(1) NN CK('A','B'), COPY_TEXT V(1000) NN (1000자 제한 확정, 11g 4000바이트 이내, N6), IMAGE_URL V(500) NULL, SELECTED_YN C(1) NN, EDITED_YN C(1) NN, CREATED_AT D NN, UPDATED_AT D NULL |
 | TBL_DRAFT_HASHTAG | DRAFT_ID N(10) PK·FK(CASCADE), HASHTAG_SEQ N(3) PK, HASHTAG V(50) NN |
 
 #### TBL_POST / TBL_POST_METRIC ★
@@ -939,7 +941,6 @@ erDiagram
     TBL_MEMBER ||--o{ TBL_SUBSCRIPTION : has
     TBL_PRICE_PLAN ||--o{ TBL_SUBSCRIPTION : applies
     TBL_MEMBER ||--o{ TBL_MONTHLY_USAGE : counts
-    TBL_MEMBER ||--o{ TBL_CREDIT_HISTORY : uses
     TBL_MEMBER ||--o{ TBL_NOTIFICATION : receives
     TBL_STORE ||--o{ TBL_PRODUCT : sells
     TBL_STORE ||--o{ TBL_CAMPAIGN : runs
@@ -957,7 +958,6 @@ erDiagram
     TBL_DRAFT ||--o{ TBL_DRAFT_HASHTAG : tagged
     TBL_DRAFT ||--o{ TBL_POST : published_as
     TBL_POST ||--o{ TBL_POST_METRIC : measured
-    TBL_CAMPAIGN |o--o{ TBL_CREDIT_HISTORY : charged_by
     TBL_CAMPAIGN ||--o{ TBL_NOTIFICATION : reminds
     TBL_SALES_UPLOAD ||--o{ TBL_SALES : contains
     TBL_PRODUCT ||--o{ TBL_SALES : sold
@@ -981,3 +981,7 @@ DB 연동 단계에서 서비스 내부를 바꿀 때 맞출 항목이다. 지�
 | 게시물 성과 테이블 | `Post`에 likes 등 필드 + views/clicks/conversions | TBL_POST_METRIC (COLLECT_METHOD='SAMPLE') |
 | Q9 메뉴 삭제 = 판매 중단 | 목록에서 실제로 지움 | SALE_STATUS='STOPPED' |
 | 매출 업로드 형식 | inputType 'excel'/'receipt'/'manual' 소문자 | CK 값은 대문자. 매퍼에서 변환하거나 코드 상수를 맞춤 |
+| 플랜 값 (무료 4회, 구독 8회, 채널 2개) | 무료 월 3회, 구독 채널 3개 | TBL_PRICE_PLAN 값으로 읽음. 목업 상수는 별도 작업으로 먼저 맞출 수 있음 |
+| Q2-3 크레딧 미사용 | `Member.credits` 필드 (DemoSeed만 값을 넣음) | 필드 삭제 |
+| Q4-1 탈퇴 15일 후 삭제 | 탈퇴 처리 없음 (목업) | MEMBER_STATUS·WITHDRAWN_AT 기록, 15일 지난 회원 삭제 처리 |
+| N6 시안 문구 1000자 | 입력 길이 제한 없음 | 화면 입력·서버 검증 1000자 |

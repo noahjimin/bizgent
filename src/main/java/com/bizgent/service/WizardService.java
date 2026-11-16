@@ -111,10 +111,10 @@ public class WizardService {
         lock(draft, "1");
     }
 
-    /** 3-1단계 콘텐츠 설정 저장. 채널 수는 무료 2개, 구독 3개까지 */
+    /** 3-1단계 콘텐츠 설정 저장. 채널 수는 플랜의 최대 채널 수까지 */
     public void saveContent(Campaign draft, List<String> channels, boolean hashtagOn, boolean captionOn,
             boolean imageOn, String customChannelName, String customChannelNote) {
-        int limit = session.getMember().isFree() ? 2 : 3;
+        int limit = session.getMember().getChannelLimit();
         List<String> allowed = channels.stream().filter(CHANNELS::contains).distinct().limit(limit).toList();
         ContentSetting cs = draft.getContent();
         cs.setChannels(new ArrayList<>(allowed));

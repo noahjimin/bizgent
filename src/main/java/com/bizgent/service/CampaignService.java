@@ -47,19 +47,16 @@ public class CampaignService {
 
     /**
      * 새 캠페인을 만들고 위자드에서 작성 중인 캠페인으로 지정한다.
-     * 무료 플랜은 캠페인을 시작할 때마다 월 무료 이용 1회를 사용한다.
+     * 무료·구독 모두 캠페인을 시작할 때마다 월 이용 횟수 1회를 사용한다.
      *
-     * @return 만든 캠페인. 무료 이용 횟수를 모두 썼으면 null
+     * @return 만든 캠페인. 이번 달 이용 횟수를 모두 썼으면 null
      */
     public Campaign start(CampaignPrefill prefill) {
         Member member = session.getMember();
         if (member.isCampaignLimitReached()) {
             return null;
         }
-        if (member.isFree()) {
-            member.setCampaignsUsedThisMonth(
-                    Math.min(member.getMonthlyCampaignLimit(), member.getCampaignsUsedThisMonth() + 1));
-        }
+        member.setCampaignsUsedThisMonth(member.getCampaignsUsedThisMonth() + 1);
 
         LocalDateTime now = LocalDateTime.now();
         Campaign campaign = new Campaign();

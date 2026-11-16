@@ -10,7 +10,7 @@
   <input type="hidden" name="source">
 </form>
 
-<!-- 설정 메뉴 (계정 관리 / 크레딧 및 이용 현황 / 로그아웃) -->
+<!-- 설정 메뉴 (계정 관리 / 이용 현황 / 로그아웃) -->
 <div th:fragment="settingsMenu" id="settings-menu" role="menu" aria-label="설정 메뉴" hidden
      th:with="used=${me.usedThisMonth}"
      class="fixed z-[55] flex w-[240px] flex-col rounded-[12px] bg-[#1f2937] p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.28)]">
@@ -26,11 +26,11 @@
   <div class="relative" data-settings-sub-area>
     <button type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false" data-settings-sub-toggle
             class="f-medium flex h-[36px] w-full items-center justify-between rounded-[8px] px-[12px] text-left text-[14px] text-white outline-none hover:bg-white/10 focus-visible:bg-white/10">
-      크레딧 및 이용 현황
+      이용 현황
       <svg viewBox="0 0 16 16" class="size-[14px] text-white/60" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div data-settings-sub hidden class="absolute top-[-6px] left-full pl-[8px]">
-      <div role="menu" aria-label="크레딧 및 이용 현황" class="flex w-[240px] flex-col rounded-[12px] bg-[#1f2937] p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.28)]">
+      <div role="menu" aria-label="이용 현황" class="flex w-[240px] flex-col rounded-[12px] bg-[#1f2937] p-[6px] shadow-[0px_12px_32px_0px_rgba(16,24,40,0.28)]">
         <div class="flex flex-col gap-[8px] px-[12px] py-[10px]">
           <div class="flex items-center justify-between text-[13px]">
             <span class="f-medium text-white">이번 달 캠페인 이용</span>
@@ -174,17 +174,26 @@
         data-confirm="정말 탈퇴하시겠어요? 탈퇴하면 매장 정보와 캠페인 기록을 다시 볼 수 없어요." data-confirm-label="탈퇴하기"></form>
 </div>
 
-<!-- 무료 캠페인 횟수 소진 안내 -->
+<!-- 캠페인 이용 횟수 소진 안내: 무료는 구독 안내, 구독은 구독 관리 화면으로 이동 -->
 <div th:fragment="upgradeNotice" id="upgrade-notice" data-modal data-backdrop-close role="presentation" th:hidden="${upgradeNotice == null}"
      class="fixed inset-0 z-50 flex items-center justify-center bg-[#172033]/35">
   <div role="dialog" aria-modal="true" aria-labelledby="campaign-limit-title"
        class="w-[400px] rounded-[20px] border border-[#e5eaf1] bg-white p-[28px] shadow-[0px_20px_48px_0px_rgba(16,24,40,0.18)]">
-    <h2 id="campaign-limit-title" class="f-bold text-[20px] text-[#172033]">이번 달 무료 캠페인 3회를 모두 사용했어요</h2>
-    <p class="f-regular mt-[10px] text-[14px] leading-[1.6] text-[#667085]">캠페인을 더 만들려면 구독 플랜을 확인해주세요.</p>
-    <div class="mt-[24px] flex justify-end gap-[10px]">
-      <button type="button" data-modal-close class="f-semibold h-[44px] rounded-full border border-[#d0d7e2] bg-white px-[18px] text-[15px] text-[#667085]">닫기</button>
-      <a th:href="@{/subscription}" class="f-semibold flex h-[44px] items-center rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8]">구독하기</a>
-    </div>
+    <th:block th:if="${me.free}">
+      <h2 id="campaign-limit-title" class="f-bold text-[20px] text-[#172033]" th:text="|이번 달 무료 캠페인 ${me.monthlyCampaignLimit}회를 모두 사용했어요|">이번 달 무료 캠페인을 모두 사용했어요</h2>
+      <p class="f-regular mt-[10px] text-[14px] leading-[1.6] text-[#667085]">캠페인을 더 만들려면 구독 플랜을 확인해주세요.</p>
+      <div class="mt-[24px] flex justify-end gap-[10px]">
+        <button type="button" data-modal-close class="f-semibold h-[44px] rounded-full border border-[#d0d7e2] bg-white px-[18px] text-[15px] text-[#667085]">닫기</button>
+        <a th:href="@{/subscription}" class="f-semibold flex h-[44px] items-center rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8]">구독하기</a>
+      </div>
+    </th:block>
+    <th:block th:unless="${me.free}">
+      <h2 id="campaign-limit-title" class="f-bold text-[20px] text-[#172033]" th:text="|이번 달 캠페인 이용 횟수 ${me.monthlyCampaignLimit}회를 모두 사용했어요|">이번 달 캠페인 이용 횟수를 모두 사용했어요</h2>
+      <p class="f-regular mt-[10px] text-[14px] leading-[1.6] text-[#667085]" th:text="|다음 리셋일(${@fmt.monthDay(me.usageResetAt)})부터 다시 캠페인을 만들 수 있어요.|"></p>
+      <div class="mt-[24px] flex justify-end">
+        <a th:href="@{/subscription}" class="f-semibold flex h-[44px] items-center rounded-full bg-[#2563eb] px-[18px] text-[15px] text-white hover:bg-[#1d4ed8]">구독 관리로 이동</a>
+      </div>
+    </th:block>
   </div>
 </div>
 
@@ -199,15 +208,15 @@
       <button type="button" data-new-campaign class="f-medium rounded-[8px] px-[8px] py-[6px] text-left text-[13px] text-[#667085] hover:bg-[#f4f6f9]">새 캠페인 1단계</button>
     </div>
     <div class="flex flex-col gap-[6px]">
-      <p class="f-semibold text-[12px] text-[#98a2b3]" th:text="'무료 이용 횟수 · ' + ${me.campaignsUsedThisMonth} + '/' + ${me.monthlyCampaignLimit}">무료 이용 횟수</p>
+      <p class="f-semibold text-[12px] text-[#98a2b3]" th:text="'이용 횟수 · ' + ${me.campaignsUsedThisMonth} + '/' + ${me.monthlyCampaignLimit}">이용 횟수</p>
       <div class="flex gap-[4px]">
         <form method="post" th:action="@{/dev/usage}" class="flex flex-1">
           <input type="hidden" name="used" th:value="${me.monthlyCampaignLimit}">
-          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">무료 횟수 소진</button>
+          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">횟수 소진</button>
         </form>
         <form method="post" th:action="@{/dev/usage}" class="flex flex-1">
           <input type="hidden" name="used" value="0">
-          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">무료 횟수 초기화</button>
+          <button class="f-semibold flex-1 rounded-[8px] border border-[#e5eaf1] py-[6px] text-[12px] text-[#667085] hover:bg-[#f4f6f9]">횟수 초기화</button>
         </form>
       </div>
     </div>

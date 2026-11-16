@@ -29,7 +29,7 @@
              {'campaigns', '/campaigns', '캠페인 보관함', '보관함', 'archive'},
              {'performance', '/performance', '성과분석', '성과분석', 'chart'},
              {'insights', '/insights', 'AI 캠페인 개선 방향', '개선 방향', 'bulb'},
-             {'subscription', '/subscription', '구독 관리 및 크레딧', '이용권', 'ticket'}
+             {'subscription', '/subscription', '구독 관리', '이용권', 'ticket'}
          } }"
          th:with="isActive=${active == item[0]}"
          th:href="@{${item[1]}}" th:aria-label="${item[2]}" th:attr="aria-current=${isActive ? 'page' : null}"

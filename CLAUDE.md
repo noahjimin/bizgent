@@ -45,7 +45,7 @@ Spring Boot 4.0 + Thymeleaf. Figma Make의 React 프로토타입을 Thymeleaf로
 - **AI**: `service/ai/AiService` 인터페이스와 `MockAiService` 구현. 실제 LLM·이미지 API는 이 인터페이스의 새 구현으로 붙인다.
 - **AI 캠페인 개선 방향** (`InsightService`): 최근 게시한 캠페인 5개 중 게시 전후 매출 데이터가 있는 캠페인이 4개 이상이면 Good/Bad 비교를, 4개 미만이면 초기 분석을 보여 준다. Good/Bad 판정 기준은 대상 메뉴 매출 증가율(게시 전 7일 대비 게시 후 7일)이다. 분석 결과는 기록으로 저장하고, 데이터가 바뀌었을 때만 새로 분석한다.
 - **게시물 반응**(좋아요·댓글·공유·저장·도달): `Post`에 들어 있는 예시 데이터이고, 화면에 "예시 데이터"라고 표시한다. 인스타그램 연동(F12)은 추후 계획이다.
-- **플랜 규칙**: 무료는 월 3회 캠페인(캠페인 시작 시 차감), 채널 최대 2개, 시안은 무료·구독 모두 A/B 2종. 구독은 재분석·문구 대안·이미지 수정·참고 이미지를 쓸 수 있다. 구독 시 채널 한도는 PROJECT.md상 검토 중이다. 구독 전용 API는 서버에서도 검사하고 `ForbiddenException`(403)을 던진다. 화면의 잠금 버튼은 `data-upgrade-feature-name`으로 구독 안내를 띄운다. 무료 이용 횟수는 매월 1일에 초기화한다(PROJECT.md v0.07). 지금은 화면에 다음 리셋일만 표시하며, DB 연동 단계에서 월(YYYYMM)별 사용 횟수 구조로 구현한다.
+- **플랜 규칙**: 한도는 `domain/Plan` 한 곳에서 정한다(PROJECT.md v0.08, 크레딧 없음). 무료는 월 4회 캠페인·0원, 구독은 월 8회 캠페인·월 9,900원이고, 무료·구독 모두 캠페인 시작 시 1회 차감하고 한도를 검사한다. 채널은 무료·구독 모두 최대 2개, 시안은 모두 A/B 2종. 구독은 재분석·문구 대안·이미지 수정·참고 이미지를 쓸 수 있고 따로 차감하지 않는다. 횟수를 다 쓰고 새 캠페인을 누르면 `upgradeNotice` 팝업이 뜬다. 무료는 구독 안내, 구독은 소진 안내와 "구독 관리로 이동" 버튼을 보여 준다. 화면 문구의 한도 숫자는 `me`(로그인 후) 또는 `freePlan`/`proPlan`(랜딩·약관) 모델 속성에서 읽는다. 구독 전용 API는 서버에서도 검사하고 `ForbiddenException`(403)을 던진다. 화면의 잠금 버튼은 `data-upgrade-feature-name`으로 구독 안내를 띄운다. 이용 횟수는 매월 1일에 초기화한다(PROJECT.md v0.07). 지금은 화면에 다음 리셋일만 표시하며, DB 연동 단계에서 월(YYYYMM)별 사용 횟수 구조로 구현한다.
 - **로그인**: `config/LoginCheckInterceptor`가 로그인 전 화면(/landing, /login, /signup, /terms/agree)과 나머지를 나눈다. 모의 인증이라 비밀번호를 검사하지 않는다.
 
 ### 캠페인 생성 위자드 (`WizardController`, `WizardService`)
@@ -72,4 +72,4 @@ Spring Boot 4.0 + Thymeleaf. Figma Make의 React 프로토타입을 Thymeleaf로
 
 ## 개발용 기능
 
-화면 오른쪽 아래 "개발 바로가기"(`app-parts :: devShortcuts`, `HomeController`의 `/dev/*`)로 무료 횟수 소진/초기화, 무료↔구독 전환(모의 결제), AI 개선 방향 데이터 양(early/enough. early는 비교 후보 중 가장 오래된 2개만 있는 것으로 계산해 초기 분석을 보여 준다), 시연 데이터 초기화를 할 수 있다. 시연·검증용이며 화면설계서 범위 밖이다.
+화면 오른쪽 아래 "개발 바로가기"(`app-parts :: devShortcuts`, `HomeController`의 `/dev/*`)로 이용 횟수 소진/초기화, 무료↔구독 전환(모의 결제), AI 개선 방향 데이터 양(early/enough. early는 비교 후보 중 가장 오래된 2개만 있는 것으로 계산해 초기 분석을 보여 준다), 시연 데이터 초기화를 할 수 있다. 시연·검증용이며 화면설계서 범위 밖이다.

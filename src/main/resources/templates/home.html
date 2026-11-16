@@ -35,7 +35,7 @@
       </div>
       <!-- 빠른 작업 줄이 움직이지 않도록 높이를 유지한다 -->
       <p class="mt-[16px] h-[20px] text-[13px] leading-[20px] text-[#475569]"
-         th:text="${me.free} ? |무료 플랜 · 이번 달 캠페인 ${me.monthlyCampaignLimit}회 중 ${me.remainingCampaigns}회 남음| : ''"></p>
+         th:text="|${me.free ? '무료' : '구독'} 플랜 · 이번 달 캠페인 ${me.monthlyCampaignLimit}회 중 ${me.remainingCampaigns}회 남음|"></p>
       <div aria-hidden="true" class="h-[12px]"></div>
     </section>
 

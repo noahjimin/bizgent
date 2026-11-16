@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- 캠페인 생성 3-1단계: 콘텐츠 설정 (F05, F07). 콘텐츠 유형, 게시 채널(무료 최대 2개), 광고 이미지 생성 여부 -->
+<!-- 캠페인 생성 3-1단계: 콘텐츠 설정 (F05, F07). 콘텐츠 유형, 게시 채널(플랜별 최대 수), 광고 이미지 생성 여부 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko"
       th:replace="~{layout/wizard :: layout('콘텐츠 설정', ~{::content}, ~{::scripts})}">
 <body>
 <th:block th:fragment="content">
 <form id="step-form" method="post" th:action="@{/campaigns/new/3-1}" class="flex flex-1 flex-col" data-content-form
-      th:with="cs=${draft.content}, limit=${me.free ? 2 : 3}" th:attr="data-limit=${limit},data-free=${me.free}">
+      th:with="cs=${draft.content}, limit=${me.channelLimit}" th:attr="data-limit=${limit},data-free=${me.free}">
   <input type="hidden" name="channels" th:value="${#strings.listJoin(cs.channels, ',')}" data-channels>
   <input type="hidden" name="hashtagOn" th:value="${cs.hashtagOn}" data-flag="hashtagOn">
   <input type="hidden" name="captionOn" th:value="${cs.captionOn}" data-flag="captionOn">
@@ -44,7 +44,7 @@
                placeholder="기타 선택시 예 : 캐주얼하고 유쾌한 분위기로 작성해주세요" aria-label="기타 채널 요청 사항"
                class="f-regular w-full rounded-[12px] border border-[#e5eaf1] bg-[#f7f9fc] px-[16px] py-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb] disabled:cursor-not-allowed">
         <p data-channel-notice role="status" class="f-regular w-full text-[13px] leading-[1.5] text-[#667085]"
-           th:text="${me.free ? '무료 플랜은 최대 2개 채널까지 선택 가능해요' : '구독 플랜은 최대 3개 채널까지 선택 가능해요'}"></p>
+           th:text="|${me.free ? '무료' : '구독'} 플랜은 최대 ${limit}개 채널까지 선택 가능해요|"></p>
       </section>
 
       <section class="flex w-full flex-col gap-[12px] rounded-[18px] border border-[#cdefe9] bg-[#eefbf8] p-[20px] shadow-[0px_5px_16px_0px_rgba(16,24,40,0.05)]">
