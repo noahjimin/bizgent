@@ -30,6 +30,7 @@ build/
 target/
 .gradle/
 out/
+bin/
 
 # IDE 설정 (IntelliJ, VS Code, Eclipse)
 .idea/
@@ -38,6 +39,9 @@ out/
 .settings/
 .classpath
 .project
+
+# 개인 AI 도구 설정 (Serena)
+.serena/
 
 # 비밀 정보: API 키, DB 비밀번호 (절대 커밋 금지)
 .env
