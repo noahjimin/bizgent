@@ -133,7 +133,8 @@ public class MockAiService implements AiService {
                 .mapToObj(i -> new GeneratedImage(now + "-" + i,
                         "https://images.unsplash.com/photo-" + pool.get((offset + i) % pool.size())
                                 + "?auto=format&fit=crop&w=1200&q=80",
-                        store.getStoreName() + " " + request.mood() + " " + subject + " 이미지 " + (i + 1)))
+                        store.getStoreName() + " " + request.mood() + " " + subject + " " + request.style() + " "
+                                + (i + 1)))
                 .toList();
     }
 

@@ -1,0 +1,12 @@
+# Oracle 11g XE 연동 (실행: --spring.profiles.active=db)
+# 계정·비밀번호는 gitignore된 application-local.yml에만 쓴다 (application-local.yml.example 참고).
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@203.247.53.176:80:xe
+    hikari:
+      # 교수님 제공 공용 서버라 연결 수를 작게 유지한다.
+      maximum-pool-size: 5
+      minimum-idle: 1

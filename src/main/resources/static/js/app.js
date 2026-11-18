@@ -320,7 +320,11 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body || {}),
     });
-    if (!res.ok) throw new Error("요청에 실패했어요 (" + res.status + ")");
+    if (!res.ok) {
+      // 서버가 안내 문구({message})를 주면 그 문구를 쓴다.
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.message || "요청에 실패했어요 (" + res.status + ")"), { status: res.status });
+    }
     return res.json();
   };
 

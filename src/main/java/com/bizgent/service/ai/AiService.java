@@ -49,7 +49,8 @@ public interface AiService {
     record GeneratedImage(String id, String imageUrl, String alt) {
     }
 
-    record StoreImageRequest(String mood, String scene, Long productId, String extraRequest) {
+    /** style: 표현 방식 (실사 사진 / 일러스트) */
+    record StoreImageRequest(String style, String mood, String scene, Long productId, String extraRequest) {
     }
 
     /**

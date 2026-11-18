@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +18,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bizgent.domain.Tags;
+import com.bizgent.service.ForbiddenException;
 import com.bizgent.service.StoreService;
-import com.bizgent.service.ai.AiService;
 import com.bizgent.service.ai.AiService.GeneratedImage;
 import com.bizgent.service.ai.AiService.StoreImageRequest;
 import com.bizgent.web.form.StoreForm;
@@ -33,7 +36,6 @@ public class StoreController {
     static final List<String> TONE_PRESETS = List.of("친근한", "전문적인", "트렌디한", "감성적인", "신뢰감있는", "유쾌한");
 
     private final StoreService storeService;
-    private final AiService aiService;
 
     @GetMapping("/store")
     public String store(@RequestParam(required = false) String imageCard, Model model) {
@@ -63,11 +65,13 @@ public class StoreController {
     @PostMapping("/api/store/hero-images")
     @ResponseBody
     public List<GeneratedImage> generateHeroImages(@RequestBody StoreImageRequest request) {
-        String extra = request.extraRequest() == null ? "" : request.extraRequest().trim();
-        if (extra.length() > 300) {
-            request = new StoreImageRequest(request.mood(), request.scene(), request.productId(), extra.substring(0, 300));
-        }
-        return aiService.generateStoreImages(storeService.get(), request);
+        return storeService.generateHeroImages(request);
+    }
+
+    /** 생성 횟수를 다 쓴 경우: 팝업이 보여 줄 안내 문구를 함께 돌려준다. 이 컨트롤러 요청에만 적용된다. */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, String>> forbidden(ForbiddenException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
     }
 
     @PostMapping("/api/store/hero-image")

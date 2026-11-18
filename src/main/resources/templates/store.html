@@ -42,11 +42,19 @@
               <input type="file" name="heroImageFile" accept=".jpg,.jpeg,.png,.gif,.webp" class="hidden" data-hero-file>
             </label>
             <input type="hidden" name="heroImageUrl" th:value="${store.heroImageUrl}" data-hero-url>
-            <button type="button" data-modal-open="store-image-modal"
-                    class="flex h-[36px] items-center gap-[4px] rounded-[12px] border border-[#14b8a6] bg-[#f4fffc] px-[8px] hover:bg-[#e6faf6]">
-              <img alt="" th:src="@{/assets/16f99.svg}" class="size-[14px]">
-              <span class="f-bold text-[14px] whitespace-nowrap text-[#0f766e]">AI로 대표 이미지 무료 생성</span>
-            </button>
+            <div class="flex flex-wrap items-center justify-center gap-[8px]">
+              <button type="button" data-modal-open="store-image-modal"
+                      class="flex h-[36px] items-center gap-[4px] rounded-[12px] border border-[#14b8a6] bg-[#f4fffc] px-[8px] hover:bg-[#e6faf6]">
+                <img alt="" th:src="@{/assets/16f99.svg}" class="size-[14px]">
+                <span class="f-bold text-[14px] whitespace-nowrap text-[#0f766e]">AI로 대표 이미지 무료 생성</span>
+              </button>
+              <!-- 업로드 영역(label) 밖에 두어야 눌러도 파일 선택 창이 열리지 않는다 -->
+              <button type="button" data-hero-download aria-label="대표 이미지 다운로드" title="대표 이미지 다운로드"
+                      th:hidden="${#strings.isEmpty(store.heroImageUrl)}"
+                      class="flex size-[36px] items-center justify-center rounded-[12px] border border-[#d0d7e2] bg-white hover:bg-[#f7f9fc]">
+                <img alt="" th:src="@{/assets/49184.svg}" class="size-[17px]">
+              </button>
+            </div>
           </div>
           <div class="flex min-w-[240px] flex-1 flex-col gap-[14px] pl-[8px]">
             <label class="flex w-full flex-col gap-[8px]">
@@ -235,6 +243,7 @@
       <div class="flex min-w-0 flex-1 flex-col gap-[6px]">
         <h2 id="store-image-title" class="f-bold text-[28px] text-[#172033]">AI로 매장 대표 이미지 만들기</h2>
         <p class="f-regular text-[15px] leading-[1.5] text-[#667085]">매장 정보를 바탕으로 대표 이미지 3장을 만들어 드려요</p>
+        <p class="f-semibold text-[14px] text-[#0f766e]">이번 달 남은 생성 횟수 <span data-si-remaining th:text="${me.remainingStoreImages}">0</span>회</p>
       </div>
       <button type="button" data-si-close aria-label="닫기"
               class="flex size-[36px] shrink-0 items-center justify-center rounded-full border border-[#e5eaf1] bg-[#f7f9fc] hover:bg-[#eef1f5] disabled:opacity-40">
@@ -242,10 +251,21 @@
       </button>
     </div>
 
+    <!-- 구독 플랜에서 횟수를 다 쓴 경우 (무료는 이미지 만들기를 누르면 구독 안내가 뜬다) -->
+    <p data-si-limit-notice role="status" hidden
+       class="f-medium w-full rounded-[12px] bg-[#fff7ed] px-[14px] py-[10px] text-[14px] leading-[1.5] text-[#c2410c]">이번 달 생성 횟수를 모두 사용했어요. 다음 달 1일에 다시 만들 수 있어요</p>
+
     <div class="flex min-h-0 w-full flex-1 flex-col gap-[20px] overflow-y-auto">
       <!-- 설정 -->
       <div data-si-phase="settings" class="flex w-full flex-col gap-[20px]">
         <div class="flex w-full flex-wrap items-center gap-[8px]" aria-label="매장 정보 요약" data-si-summary></div>
+        <div class="flex w-full flex-col gap-[10px]">
+          <p class="f-semibold text-[14px] text-[#172033]">표현 방식</p>
+          <div role="radiogroup" aria-label="표현 방식" class="flex flex-wrap gap-[10px]" data-si-style>
+            <button th:replace="~{fragments/ui :: chip('실사 사진', true, 'radio')}"></button>
+            <button th:replace="~{fragments/ui :: chip('일러스트', false, 'radio')}"></button>
+          </div>
+        </div>
         <div class="flex w-full flex-col gap-[10px]">
           <p class="f-semibold text-[14px] text-[#172033]">이미지 분위기</p>
           <div role="radiogroup" aria-label="이미지 분위기" class="flex flex-wrap gap-[10px]" data-si-mood>
@@ -274,6 +294,10 @@
                     oninput="this.nextElementSibling.textContent = this.value.length + '/300'"
                     class="f-regular h-[96px] w-full resize-none rounded-[12px] border border-[#d5dce7] bg-white p-[14px] text-[15px] leading-[1.45] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]"></textarea>
           <p class="f-regular w-full text-right text-[12px] text-[#667085]">0/300</p>
+          <div class="flex flex-wrap gap-[8px]" aria-label="추가 요청 예시" data-si-examples>
+            <button th:each="ex : ${ {'창가에 햇살이 드는 느낌', '손님이 있는 모습', '따뜻한 밤 조명', '테이블 위 대표 메뉴 강조'} }" type="button" th:text="|+ ${ex}|" th:data-example="${ex}"
+                    class="f-medium rounded-full border border-[#d5dce7] bg-white px-[12px] py-[6px] text-[13px] text-[#667085] hover:bg-[#f7f9fc]">예시</button>
+          </div>
         </div>
       </div>
 
@@ -295,12 +319,19 @@
       <div data-si-phase="result" hidden class="flex w-full flex-col gap-[12px]">
         <div class="flex w-full items-center justify-between">
           <p class="f-semibold text-[14px] text-[#172033]">마음에 드는 이미지를 골라주세요</p>
-          <button type="button" data-si-regenerate class="f-semibold flex items-center gap-[6px] text-[14px] text-[#2563eb] hover:underline">
-            <span th:if="${me.free}" class="f-bold rounded-full bg-[#ddf8f3] px-[8px] py-[3px] text-[11px] text-[#0f766e]">구독 전용</span>
-            다시 만들기
+          <button type="button" data-si-regenerate
+                  class="f-semibold flex items-center gap-[6px] text-[14px] text-[#2563eb] hover:underline disabled:cursor-not-allowed disabled:text-[#98a2b3] disabled:no-underline">
+            다시 만들기 <span class="f-regular text-[12px]">(1회 사용)</span>
           </button>
         </div>
         <div role="radiogroup" aria-label="생성된 대표 이미지" class="grid w-full grid-cols-3 gap-[14px]" data-si-images></div>
+        <p class="f-regular text-[13px] text-[#667085]">고르지 않은 이미지는 저장되지 않아요</p>
+      </div>
+
+      <!-- 저장 완료 -->
+      <div data-si-phase="saved" hidden class="flex w-full flex-col items-center gap-[14px]">
+        <img data-si-saved-image alt="저장한 대표 이미지" class="aspect-[3/2] w-full max-w-[420px] rounded-[16px] object-cover">
+        <p class="f-bold text-[18px] text-[#172033]">대표 이미지로 저장했어요</p>
       </div>
     </div>
 
@@ -312,7 +343,11 @@
       <button type="button" data-si-reset hidden
               class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">설정 다시 하기</button>
       <button type="button" data-si-apply hidden disabled
-              class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">이 이미지로 설정</button>
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:hover:bg-[#2563eb]">대표 이미지로 저장</button>
+      <button type="button" data-si-done hidden
+              class="f-bold flex h-[44px] items-center rounded-full border border-[#d0d7e2] bg-white px-[20px] text-[15px] text-[#667085] hover:bg-[#f7f9fc]">닫기</button>
+      <button type="button" data-si-saved-download hidden
+              class="f-bold flex h-[44px] items-center gap-[6px] rounded-full border border-[#2563eb] bg-[#2563eb] px-[24px] text-[15px] text-white drop-shadow-[0px_10px_12px_rgba(37,99,235,0.14)] hover:bg-[#1d4ed8]">이미지 다운로드</button>
     </div>
   </div>
 </div>
@@ -322,7 +357,7 @@
   const IS_PRO = /*[[${!me.free}]]*/ false;
   const OPEN_IMAGE_CARD = /*[[${openImageCard}]]*/ false;
   const CHECK_ICON = /*[[@{/assets/a244b.svg}]]*/ "";
-  const DOWNLOAD_ICON = /*[[@{/assets/49184.svg}]]*/ "";
+  let remainingImages = /*[[${me.remainingStoreImages}]]*/ 0;
 </script>
 <script>
 (() => {
@@ -350,10 +385,17 @@
   };
 
   /* ---------- 기본 정보 ---------- */
+  const heroPreview = form.querySelector("[data-hero-preview]");
+  const heroDownload = form.querySelector("[data-hero-download]");
+  const showHero = (src) => {
+    showPreview(heroPreview, form.querySelector("[data-hero-empty]"), src);
+    heroDownload.hidden = !src;
+  };
   form.querySelector("[data-hero-file]").addEventListener("change", async (e) => {
     const f = checkPhoto(e.target);
-    if (f) showPreview(form.querySelector("[data-hero-preview]"), form.querySelector("[data-hero-empty]"), await readFile(f));
+    if (f) showHero(await readFile(f));
   });
+  heroDownload.addEventListener("click", () => BG.downloadImage(heroPreview.src, "bizgent_대표이미지.jpg"));
 
   /* ---------- 상품·메뉴 카드 ---------- */
   const list = form.querySelector("[data-menu-list]");
@@ -475,16 +517,22 @@
   let selected = null;
 
   const radioValue = (group) => { const on = Array.from(group.querySelectorAll("[data-chip]")).find(BG.isChipOn); return on ? on.dataset.value : ""; };
+  const RADIO_GROUPS = ["[data-si-style]", "[data-si-mood]", "[data-si-scene]"];
+  const FOOTER = { settings: ["cancel", "generate"], generating: ["cancel", "generate"], result: ["reset", "apply"], saved: ["done", "saved-download"] };
   const setPhase = (p) => {
     phase = p;
     modal.querySelectorAll("[data-si-phase]").forEach((el) => (el.hidden = el.dataset.siPhase !== p));
-    const result = p === "result";
-    $("[data-si-cancel]").hidden = result;
-    $("[data-si-generate]").hidden = result;
-    $("[data-si-reset]").hidden = !result;
-    $("[data-si-apply]").hidden = !result;
+    ["cancel", "generate", "reset", "apply", "done", "saved-download"].forEach((k) => ($(`[data-si-${k}]`).hidden = !FOOTER[p].includes(k)));
     $("[data-si-close]").disabled = $("[data-si-cancel]").disabled = p === "generating";
-    $("[data-si-generate]").disabled = p === "generating" || !(radioValue($("[data-si-mood]")) && radioValue($("[data-si-scene]")));
+    // 횟수를 다 쓰면 잠근다: 구독은 안내 문구 + 비활성, 무료는 누르면 구독 안내(data-upgrade-feature-name)
+    const exhausted = remainingImages <= 0;
+    $("[data-si-remaining]").textContent = remainingImages;
+    $("[data-si-limit-notice]").hidden = !(exhausted && IS_PRO);
+    const gen = $("[data-si-generate]");
+    if (exhausted && !IS_PRO) gen.dataset.upgradeFeatureName = "대표 이미지 추가 생성";
+    else delete gen.dataset.upgradeFeatureName;
+    gen.disabled = p === "generating" || (exhausted && IS_PRO) || !RADIO_GROUPS.every((sel) => radioValue($(sel)));
+    $("[data-si-regenerate]").disabled = exhausted;
   };
 
   // 저장 전 입력값도 요약에 반영한다.
@@ -502,7 +550,7 @@
     setPhase("settings");
   });
 
-  ["[data-si-mood]", "[data-si-scene]"].forEach((sel) =>
+  RADIO_GROUPS.forEach((sel) =>
     $(sel).addEventListener("click", (e) => {
       const chip = e.target.closest("[data-chip]");
       if (!chip) return;
@@ -511,23 +559,46 @@
       setPhase("settings");
     }));
 
+  // 추가 요청 예시: 기존 내용 뒤에 이어 붙이고 300자를 넘는 부분은 자른다.
+  $("[data-si-examples]").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-example]");
+    if (!btn) return;
+    const extra = $("[data-si-extra]");
+    const current = extra.value.trimEnd();
+    extra.value = (current ? current + ", " : "") + btn.dataset.example;
+    extra.value = extra.value.slice(0, 300);
+    extra.dispatchEvent(new Event("input"));
+    extra.focus();
+  });
+
+  // 한 번 만들 때마다 1회 차감 (3장 = 1회). 서버도 한도를 다시 검사한다.
   const generate = async () => {
+    if (remainingImages <= 0) return;
+    const before = phase;
+    const style = radioValue($("[data-si-style]"));
     const mood = radioValue($("[data-si-mood]"));
     const scene = radioValue($("[data-si-scene]"));
-    $("[data-si-generating-label]").textContent = `${mood} · ${scene}`;
-    selected = null;
+    $("[data-si-generating-label]").textContent = `${style} · ${mood} · ${scene}`;
     setPhase("generating");
-    const [result] = await Promise.all([
-      BG.postJson("/api/store/hero-images", {
-        mood, scene,
-        productId: MENU_SCENES.includes(scene) ? Number($("[data-si-menu]").value) || null : null,
-        extraRequest: $("[data-si-extra]").value.trim(),
-      }),
-      new Promise((r) => setTimeout(r, 2000)), // 생성 중 화면을 보여주기 위한 대기
-    ]);
-    images = result;
-    renderImages();
-    setPhase("result");
+    try {
+      const [result] = await Promise.all([
+        BG.postJson("/api/store/hero-images", {
+          style, mood, scene,
+          productId: MENU_SCENES.includes(scene) ? Number($("[data-si-menu]").value) || null : null,
+          extraRequest: $("[data-si-extra]").value.trim(),
+        }),
+        new Promise((r) => setTimeout(r, 2000)), // 생성 중 화면을 보여주기 위한 대기
+      ]);
+      images = result;
+      selected = null;
+      remainingImages--;
+      renderImages();
+      setPhase("result");
+    } catch (err) {
+      if (err.status === 403) remainingImages = 0;
+      BG.toast(err.message);
+      setPhase(before);
+    }
   };
 
   const renderImages = () => {
@@ -543,16 +614,12 @@
       cell.className = "relative aspect-square w-full cursor-pointer overflow-hidden rounded-[16px] border-2 " + (on ? "border-[#2563eb]" : "border-transparent hover:border-[#cfe0ff]");
       cell.innerHTML = `
         <img class="absolute inset-0 size-full object-cover">
-        ${on ? `<span class="absolute top-[10px] right-[10px] flex size-[26px] items-center justify-center rounded-full bg-[#2563eb] shadow-[0px_4px_10px_0px_rgba(37,99,235,0.3)]"><img alt="" src="${CHECK_ICON}" class="size-[14px]"></span>` : ""}
-        <button type="button" data-si-download aria-label="이미지 ${i + 1} 다운로드" class="absolute right-[10px] bottom-[10px] flex size-[32px] items-center justify-center rounded-[10px] bg-white shadow-[0px_5px_16px_0px_rgba(16,24,40,0.12)] hover:bg-[#f7f9fc]"><img alt="" src="${DOWNLOAD_ICON}" class="size-[17px]"></button>`;
+        ${on ? `<span class="absolute top-[10px] right-[10px] flex size-[26px] items-center justify-center rounded-full bg-[#2563eb] shadow-[0px_4px_10px_0px_rgba(37,99,235,0.3)]"><img alt="" src="${CHECK_ICON}" class="size-[14px]"></span>` : ""}`;
       const photo = cell.querySelector("img");
       photo.src = img.imageUrl;
       photo.alt = img.alt;
       const pick = () => { selected = img.id; renderImages(); };
-      cell.addEventListener("click", (e) => {
-        if (e.target.closest("[data-si-download]")) BG.downloadImage(img.imageUrl, `bizgent_대표이미지${i + 1}.jpg`);
-        else pick();
-      });
+      cell.addEventListener("click", pick);
       cell.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
       grid.appendChild(cell);
     });
@@ -561,7 +628,7 @@
 
   const requestClose = () => {
     if (phase === "generating") return;
-    if (phase === "result") BG.confirm("만든 이미지가 저장되지 않아요. 닫으시겠어요?", "닫기", () => BG.closeModal(modal));
+    if (phase === "result") BG.confirm("선택하지 않으면 이번에 만든 이미지는 사라지고, 사용한 횟수는 돌아오지 않아요. 닫을까요?", "닫기", () => BG.closeModal(modal));
     else BG.closeModal(modal);
   };
   $("[data-si-close]").addEventListener("click", requestClose);
@@ -570,20 +637,25 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden && document.getElementById("confirm-dialog").hidden) requestClose(); });
   $("[data-si-generate]").addEventListener("click", generate);
   $("[data-si-reset]").addEventListener("click", () => setPhase("settings"));
-  $("[data-si-regenerate]").addEventListener("click", () => (IS_PRO ? generate() : BG.upgradeHint("대표 이미지 다시 만들기")));
+  $("[data-si-regenerate]").addEventListener("click", generate);
 
-  // 대표 이미지는 다른 입력값과 별개로 바로 저장된다.
+  // 고른 1장만 대표 이미지로 바로 저장한다 (나머지 2장은 저장하지 않는다). 저장 후 팝업에서 그 이미지만 내려받을 수 있다.
+  let savedUrl = null;
   $("[data-si-apply]").addEventListener("click", async () => {
     const chosen = images.find((img) => img.id === selected);
     if (!chosen) return;
     await BG.postJson("/api/store/hero-image", { imageUrl: chosen.imageUrl });
-    showPreview(form.querySelector("[data-hero-preview]"), form.querySelector("[data-hero-empty]"), chosen.imageUrl);
-    form.querySelector("[data-hero-url]").value = chosen.imageUrl;
+    savedUrl = chosen.imageUrl;
+    showHero(savedUrl);
+    form.querySelector("[data-hero-url]").value = savedUrl;
     form.querySelector("[data-hero-file]").value = "";
-    BG.closeModal(modal);
+    $("[data-si-saved-image]").src = savedUrl;
+    setPhase("saved");
     history.replaceState(null, "", location.pathname);
-    BG.toast("대표 이미지가 설정되었어요");
+    BG.toast("대표 이미지가 저장되었어요");
   });
+  $("[data-si-done]").addEventListener("click", () => BG.closeModal(modal));
+  $("[data-si-saved-download]").addEventListener("click", () => BG.downloadImage(savedUrl, "bizgent_대표이미지.jpg"));
 
   if (OPEN_IMAGE_CARD) BG.openModal("store-image-modal");
 })();

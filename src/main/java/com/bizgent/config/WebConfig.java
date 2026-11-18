@@ -20,7 +20,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginCheckInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/assets/**", "/images/**", "/css/**", "/js/**", "/uploads/**", "/favicon.ico", "/error");
+                .excludePathPatterns("/assets/**", "/images/**", "/css/**", "/js/**", "/uploads/**", "/favicon.ico", "/error",
+                        "/api/auth/**"); // 가입 화면의 이메일 확인은 로그인 여부와 상관없이 쓴다
     }
 
     /** 업로드한 이미지를 /uploads/** 경로로 보여준다. */

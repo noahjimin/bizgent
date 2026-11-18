@@ -16,9 +16,10 @@ class MemberServiceSignupTest {
     void signupSavesMemberAndStoreWithTermsAgreement() {
         DemoSession session = new DemoSession();
         MemberService service = new MemberService(session);
-        service.agreeTerms("start");
+        service.rememberStartIntent("unknown"); // 알 수 없는 값은 무시
+        service.rememberStartIntent(MemberService.INTENT_HERO_IMAGE);
 
-        service.signup(" 홍길동 ", "gd@ex.com", "길동 분식", "분식", "010-1234-5678");
+        assertEquals("/store?imageCard=open", service.signup(" 홍길동 ", "gd@ex.com", "길동 분식", "분식", "010-1234-5678"));
 
         assertEquals("홍길동", session.getMember().getMemberName());
         assertEquals("010-1234-5678", session.getMember().getPhone());

@@ -20,6 +20,7 @@ public class Member {
     private LocalDateTime termsAgreedAt;
     private Plan plan = Plan.FREE;
     private int campaignsUsedThisMonth;
+    private int storeImagesUsedThisMonth;
     private LocalDate usageResetAt;
 
     public boolean isFree() {
@@ -51,6 +52,10 @@ public class Member {
     /** 이번 달 캠페인 이용 횟수를 모두 사용했는지 여부 (무료·구독 공통) */
     public boolean isCampaignLimitReached() {
         return campaignsUsedThisMonth >= getMonthlyCampaignLimit();
+    }
+
+    public int getRemainingStoreImages() {
+        return Math.max(0, plan.getMonthlyStoreImages() - storeImagesUsedThisMonth);
     }
 
     public String getInitial() {

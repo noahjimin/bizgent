@@ -11,7 +11,7 @@ import com.bizgent.domain.Plan;
 
 import lombok.RequiredArgsConstructor;
 
-/** 회원가입·로그인·약관 동의·계정 관리 (F01) */
+/** 회원가입·로그인·계정 관리 (F01) */
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -44,18 +44,17 @@ public class MemberService {
         return session.getMember();
     }
 
-    public boolean isTermsAgreed() {
-        return session.isTermsAgreed();
+    /** 비밀번호 규칙(8~20자, 영문·숫자 포함) 검사. 맞으면 null, 아니면 부족한 점 안내 문구 */
+    public static String passwordProblem(String password) {
+        if (password.length() < 8 || password.length() > 20) return "8~20자로 입력해주세요";
+        if (!password.matches(".*[A-Za-z].*")) return "영문을 포함해주세요";
+        if (!password.matches(".*\\d.*")) return "숫자를 포함해주세요";
+        return null;
     }
 
-    public void agreeTerms(String intent) {
-        session.setTermsAgreed(true);
-        session.setTermsAgreedAt(LocalDateTime.now());
-        if (intent != null && !intent.isBlank()) {
-            session.setStartIntent(intent);
-        } else if (session.getStartIntent() == null) {
-            session.setStartIntent("start");
-        }
+    /** 랜딩에서 누른 시작 버튼을 기억한다. 알 수 없는 값은 무시한다. */
+    public void rememberStartIntent(String intent) {
+        if (INTENT_HERO_IMAGE.equals(intent)) session.setStartIntent(intent);
     }
 
     /** 데모 단계에서는 비밀번호를 검사하지 않는다. 로그인 후 이동할 경로를 돌려준다. */
@@ -65,14 +64,14 @@ public class MemberService {
         return consumeStartPath();
     }
 
-    /** 이름·연락처·약관 동의는 회원 정보에, 매장명·업종은 매장 정보에 저장한다. 약관 동의 여부는 컨트롤러가 먼저 확인한다. */
+    /** 이름·연락처·약관 동의 일시는 회원 정보에, 매장명·업종은 매장 정보에 저장한다. 약관 동의 여부는 컨트롤러가 먼저 확인한다. */
     public String signup(String memberName, String email, String storeName, String category, String phone) {
         Member member = session.getMember();
         member.setMemberName(memberName.trim());
         member.setEmail(email.trim());
         member.setPhone(phone.isBlank() ? null : phone.trim());
         member.setTermsAgreed(true);
-        member.setTermsAgreedAt(session.getTermsAgreedAt());
+        member.setTermsAgreedAt(LocalDateTime.now());
         session.getStore().setStoreName(storeName.trim());
         session.getStore().setCategory(category);
         session.setLoggedIn(true);

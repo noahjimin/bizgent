@@ -1,0 +1,5 @@
+# 이 파일을 복사해 application-local.yml로 저장하고 값을 채운다. application-local.yml은 커밋하지 않는다(.gitignore).
+spring:
+  datasource:
+    username: DB_아이디
+    password: DB_비밀번호

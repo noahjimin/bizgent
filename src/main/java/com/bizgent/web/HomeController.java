@@ -66,6 +66,8 @@ public class HomeController {
     @PostMapping("/dev/usage")
     public String devUsage(@RequestParam int used, @RequestHeader(value = "Referer", required = false) String referer) {
         session.getMember().setCampaignsUsedThisMonth(used);
+        // 매장 이미지 생성 횟수도 같이 소진(한도까지)하거나 초기화한다.
+        session.getMember().setStoreImagesUsedThisMonth(used == 0 ? 0 : session.getMember().getPlan().getMonthlyStoreImages());
         return "redirect:" + backPath(referer);
     }
 

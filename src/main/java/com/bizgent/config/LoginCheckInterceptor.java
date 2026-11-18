@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LoginCheckInterceptor implements HandlerInterceptor {
 
-    private static final Set<String> PUBLIC_ONLY = Set.of("/landing", "/login", "/signup", "/terms/agree");
+    private static final Set<String> PUBLIC_ONLY = Set.of("/landing", "/login", "/signup");
 
     private final DemoSession session;
 
