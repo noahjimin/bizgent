@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.StoreMapper">
+
+    <select id="findByMember" resultType="Store">
+        SELECT STORE_ID, STORE_NAME, CATEGORY, DESCRIPTION, PHONE, ADDRESS, TARGET_CUSTOMER, TARGET_DESCRIPTION,
+               TONE_MANNER, TONE_DESCRIPTION, BRAND_COLOR, HERO_IMAGE_URL
+          FROM STORE WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="findProducts" resultType="Product">
+        SELECT PRODUCT_ID, PRODUCT_NAME, PRICE, DESCRIPTION, IMAGE_URL
+          FROM PRODUCT WHERE STORE_ID = #{storeId} AND SALE_STATUS = #{status}
+         ORDER BY PRODUCT_ID
+    </select>
+
+    <insert id="insertStore">
+        <selectKey keyProperty="s.storeId" resultType="long" order="BEFORE">SELECT SEQ_STORE.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO STORE (STORE_ID, MEMBER_ID, STORE_NAME, CATEGORY, DESCRIPTION, PHONE, ADDRESS, TARGET_CUSTOMER,
+                           TARGET_DESCRIPTION, TONE_MANNER, TONE_DESCRIPTION, BRAND_COLOR, HERO_IMAGE_URL, CREATED_AT)
+        VALUES (#{s.storeId}, #{memberId}, #{s.storeName}, #{s.category}, #{s.description}, #{s.phone}, #{s.address},
+                #{s.targetCustomer}, #{s.targetDescription}, #{s.toneManner}, #{s.toneDescription}, #{s.brandColor},
+                #{s.heroImageUrl}, SYSDATE)
+    </insert>
+
+    <update id="updateStore" parameterType="Store">
+        UPDATE STORE
+           SET STORE_NAME = #{storeName}, CATEGORY = #{category}, PHONE = #{phone}, BRAND_COLOR = #{brandColor},
+               TARGET_CUSTOMER = #{targetCustomer}, TARGET_DESCRIPTION = #{targetDescription},
+               TONE_MANNER = #{toneManner}, TONE_DESCRIPTION = #{toneDescription}, HERO_IMAGE_URL = #{heroImageUrl},
+               UPDATED_AT = SYSDATE
+         WHERE STORE_ID = #{storeId}
+    </update>
+
+    <update id="updateHeroImage">
+        UPDATE STORE SET HERO_IMAGE_URL = #{url}, UPDATED_AT = SYSDATE WHERE STORE_ID = #{storeId}
+    </update>
+
+    <insert id="insertProduct">
+        <selectKey keyProperty="p.productId" resultType="long" order="BEFORE">SELECT SEQ_PRODUCT.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO PRODUCT (PRODUCT_ID, STORE_ID, PRODUCT_NAME, PRICE, DESCRIPTION, IMAGE_URL, SALE_STATUS, CREATED_AT)
+        VALUES (#{p.productId}, #{storeId}, #{p.productName}, #{p.price}, #{p.description}, #{p.imageUrl}, 'ON_SALE', SYSDATE)
+    </insert>
+
+    <update id="updateProduct">
+        UPDATE PRODUCT
+           SET PRODUCT_NAME = #{p.productName}, PRICE = #{p.price}, DESCRIPTION = #{p.description},
+               IMAGE_URL = #{p.imageUrl}, UPDATED_AT = SYSDATE
+         WHERE PRODUCT_ID = #{p.productId} AND STORE_ID = #{storeId}
+    </update>
+
+    <update id="stopProductsExcept">
+        UPDATE PRODUCT SET SALE_STATUS = 'STOPPED', UPDATED_AT = SYSDATE
+         WHERE STORE_ID = #{storeId} AND SALE_STATUS = 'ON_SALE'
+        <if test="keepIds != null and !keepIds.isEmpty()">
+           AND PRODUCT_ID NOT IN <foreach collection="keepIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        </if>
+    </update>
+
+    <insert id="insertStoreImage" parameterType="StoreImageRow">
+        INSERT INTO STORE_IMAGE (STORE_IMAGE_ID, PRODUCT_ID, STORE_ID, IMAGE_STYLE, MOOD, SCENE, EXTRA_REQUEST, IMAGE_URL, CREATED_AT)
+        VALUES (SEQ_STORE_IMAGE.NEXTVAL, #{productId}, #{storeId}, #{imageStyle}, #{mood}, #{scene}, #{extraRequest},
+                #{imageUrl}, #{createdAt})
+    </insert>
+
+    <select id="findLatestImageTime" resultType="java.time.LocalDateTime">
+        SELECT MAX(CREATED_AT) FROM STORE_IMAGE WHERE STORE_ID = #{storeId}
+    </select>
+
+    <delete id="deleteStoreImagesThisMonth">
+        DELETE FROM STORE_IMAGE WHERE STORE_ID = #{storeId} AND CREATED_AT >= TRUNC(SYSDATE, 'MM')
+    </delete>
+
+    <delete id="deleteStoreImages">DELETE FROM STORE_IMAGE WHERE STORE_ID = #{storeId}</delete>
+
+    <delete id="deleteProducts">DELETE FROM PRODUCT WHERE STORE_ID = #{storeId}</delete>
+
+    <delete id="deleteStore">DELETE FROM STORE WHERE STORE_ID = #{storeId}</delete>
+</mapper>

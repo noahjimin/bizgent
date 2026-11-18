@@ -68,7 +68,8 @@
   <div th:replace="~{fragments/app-parts :: notificationMenu}"></div>
   <div th:replace="~{fragments/app-parts :: accountModal}"></div>
   <div th:replace="~{fragments/app-parts :: upgradeNotice}"></div>
-  <div th:replace="~{fragments/app-parts :: devShortcuts}"></div>
+  <!-- 개발 바로가기: 시연 계정으로 로그인했을 때만 (서버도 /dev/*를 시연 계정 외에는 403으로 막는다) -->
+  <th:block th:if="${isDemo}"><div th:replace="~{fragments/app-parts :: devShortcuts}"></div></th:block>
   <div th:replace="~{fragments/common :: hosts}"></div>
 </div>
 <th:block th:replace="${scripts}"></th:block>

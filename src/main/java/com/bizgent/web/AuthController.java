@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.bizgent.service.MemberService;
+import com.bizgent.service.StoreService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,7 +55,13 @@ public class AuthController {
             model.addAttribute("email", email);
             return landingPage(model, true);
         }
-        return "redirect:" + memberService.login(email);
+        String next = memberService.login(email, password);
+        if (next == null) {
+            model.addAttribute("errors", Map.of("password", "이메일 또는 비밀번호를 확인해주세요"));
+            model.addAttribute("email", email);
+            return landingPage(model, true);
+        }
+        return "redirect:" + next;
     }
 
     /** intent는 로그인 화면에서 기억한 값이 세션에 남아 가입 후에도 쓰인다. */
@@ -78,7 +85,7 @@ public class AuthController {
             @RequestParam(defaultValue = "") String password, @RequestParam(defaultValue = "") String passwordCheck,
             @RequestParam(defaultValue = "") String storeName, @RequestParam(defaultValue = "") String category,
             @RequestParam(defaultValue = "") String phone, @RequestParam(defaultValue = "false") boolean agreeTerms,
-            Model model) {
+            @RequestParam(defaultValue = "") String categoryEtc, Model model) {
         Map<String, String> errors = new LinkedHashMap<>();
         int nameLength = memberName.trim().length();
         if (nameLength == 0) errors.put("memberName", "이름을 입력해주세요");
@@ -105,9 +112,11 @@ public class AuthController {
             model.addAttribute("phone", phone);
             model.addAttribute("categories", StoreController.CATEGORIES);
             model.addAttribute("agreeTerms", agreeTerms);
+            model.addAttribute("categoryEtc", categoryEtc);
             return "auth/signup";
         }
-        return "redirect:" + memberService.signup(memberName, email, storeName, category, phone);
+        return "redirect:" + memberService.signup(memberName, email, password, storeName,
+                StoreService.category(category, categoryEtc), phone);
     }
 
     @PostMapping("/logout")

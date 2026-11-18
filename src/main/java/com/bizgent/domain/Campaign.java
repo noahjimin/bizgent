@@ -40,9 +40,17 @@ public class Campaign {
     private List<String> selectedDraftKeys = new ArrayList<>();
     private List<Post> posts = new ArrayList<>();
 
+    /** 시안 이미지가 없을 때의 카드 썸네일 (DB 컬럼 없음, 화면 기본값) */
     private String thumbnailUrl = "";
+    /** AI 캠페인 개선 방향 제안에서 시작한 캠페인의 분석 ID (CAMPAIGN.INSIGHT_ID) */
+    private Long insightId;
+    /** 캠페인 시작 시 1회 차감한 이용 월 YYYYMM (CAMPAIGN.USAGE_MONTH) */
+    private String usageMonth;
+
     /** AI 캠페인 개선 방향 제안에서 목표·메뉴가 미리 선택되어 시작된 캠페인 */
-    private boolean insightPrefill;
+    public boolean isInsightPrefill() {
+        return insightId != null;
+    }
     /** 사용자가 확정한 가장 마지막 단계. 이 단계와 이전 단계는 다시 수정할 수 없다. */
     private String lockedStep;
     /** 마지막으로 보던 위자드 단계 (CAMPAIGN.CURRENT_STEP). 이어서 작성할 때 이 단계로 돌아온다. */

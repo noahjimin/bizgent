@@ -34,7 +34,8 @@ public class InsightController {
         if (shown == null) {
             shown = current.report();
         }
-        boolean latest = shown == current.report();
+        // DB에서 다시 읽은 객체라 같은 기록인지 ID로 비교한다.
+        boolean latest = shown.getReportId().equals(current.report().getReportId());
         model.addAttribute("report", shown);
         model.addAttribute("result", shown.getResult());
         model.addAttribute("latest", latest);

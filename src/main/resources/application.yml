@@ -2,9 +2,8 @@ spring:
   application:
     name: bizgent
   profiles:
-    # mock: DB 없이 세션 데모 데이터로 화면 동작 (화면 구현 단계 기본값)
-    # db  : Oracle 연동. 접속 정보는 application-local.yml(커밋 금지)에 작성
-    default: mock
+    # db: Oracle 연동(기본값). 접속 계정은 application-local.yml(커밋 금지)에 작성
+    default: db
   thymeleaf:
     cache: false
   servlet:
@@ -20,8 +19,15 @@ server:
       # 첫 접속 때 주소에 ;jsessionid가 붙으면 LoginCheckInterceptor가 경로를 못 맞춰 랜딩으로 돌려보낸다
       tracking-modes: cookie
 
+bizgent:
+  demo:
+    # 시연 계정: 로그인 화면 "임시 계정" 카드에 공개하는 값이라 설정 파일에 둔다.
+    email: demo@bizgent.kr
+    password: BizGentDemo26!
+
 mybatis:
   mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.bizgent.mapper.row,com.bizgent.domain
   configuration:
     map-underscore-to-camel-case: true
-    jdbc-type-for-null: NULL
+    jdbc-type-for-null: 'NULL'

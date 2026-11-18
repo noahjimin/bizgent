@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.NotificationMapper">
+
+    <select id="findByMember" resultType="Notification">
+        SELECT NOTIFICATION_ID, CAMPAIGN_ID, MESSAGE, DUE_AT, DECODE(READ_YN, 'Y', 1, 0) AS "read"
+          FROM NOTIFICATION WHERE MEMBER_ID = #{memberId}
+         ORDER BY DUE_AT, NOTIFICATION_ID
+    </select>
+
+    <insert id="insert">
+        INSERT INTO NOTIFICATION (NOTIFICATION_ID, MEMBER_ID, CAMPAIGN_ID, NOTIFICATION_TYPE, MESSAGE, DUE_AT, READ_YN, CREATED_AT)
+        VALUES (SEQ_NOTIFICATION.NEXTVAL, #{memberId}, #{campaignId}, #{type}, #{message}, #{dueAt}, 'N', SYSDATE)
+    </insert>
+
+    <update id="markRead">
+        UPDATE NOTIFICATION SET READ_YN = 'Y' WHERE NOTIFICATION_ID = #{notificationId} AND MEMBER_ID = #{memberId}
+    </update>
+
+    <delete id="deleteByCampaign">
+        DELETE FROM NOTIFICATION WHERE CAMPAIGN_ID = #{campaignId} AND NOTIFICATION_TYPE = #{type}
+    </delete>
+
+    <delete id="deleteByMember">DELETE FROM NOTIFICATION WHERE MEMBER_ID = #{memberId}</delete>
+</mapper>

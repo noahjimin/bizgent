@@ -6,33 +6,44 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-/** 회원 (MEMBERS). 요금제는 DB 단계에서 SUBSCRIPTION으로, 월 이용 횟수는 MONTHLY_USAGE로 분리된다. */
+/**
+ * 회원 (MEMBERS). 현재 요금제는 SUBSCRIPTION의 ACTIVE 행(없으면 FREE), 이번 달 캠페인 이용 횟수는 MONTHLY_USAGE,
+ * 매장 이미지 생성 횟수는 STORE_IMAGE의 생성 시각 묶음 수에서 읽는다.
+ */
 @Getter
 @Setter
 public class Member {
 
     private Long memberId;
     private String email;
+    /** BCrypt 해시 */
     private String password;
     private String memberName;
     private String phone;
     private boolean termsAgreed;
     private LocalDateTime termsAgreedAt;
+    /** ACTIVE / WITHDRAWN */
+    private String memberStatus;
     private Plan plan = Plan.FREE;
+    private PricePlan pricePlan;
     private int campaignsUsedThisMonth;
     private int storeImagesUsedThisMonth;
-    private LocalDate usageResetAt;
 
     public boolean isFree() {
         return plan == Plan.FREE;
     }
 
+    /** 이용 횟수는 매월 1일 초기화 (MONTHLY_USAGE가 달마다 새 행) */
+    public LocalDate getUsageResetAt() {
+        return LocalDate.now().withDayOfMonth(1).plusMonths(1);
+    }
+
     public int getMonthlyCampaignLimit() {
-        return plan.getMonthlyCampaigns();
+        return pricePlan.getMonthlyCampaignLimit();
     }
 
     public int getChannelLimit() {
-        return plan.getMaxChannels();
+        return pricePlan.getMaxChannelCount();
     }
 
     /** 이번 달 사용 횟수 (한도를 넘지 않게 표시) */
@@ -55,7 +66,7 @@ public class Member {
     }
 
     public int getRemainingStoreImages() {
-        return Math.max(0, plan.getMonthlyStoreImages() - storeImagesUsedThisMonth);
+        return Math.max(0, pricePlan.getMonthlyImageLimit() - storeImagesUsedThisMonth);
     }
 
     public String getInitial() {

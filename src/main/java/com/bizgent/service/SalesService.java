@@ -5,18 +5,20 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.bizgent.demo.DemoSession;
 import com.bizgent.domain.Product;
 import com.bizgent.domain.Sale;
 import com.bizgent.domain.SalesUpload;
+import com.bizgent.mapper.SalesMapper;
+import com.bizgent.mapper.row.UploadRow;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SalesService {
 
-    private final DemoSession session;
+    private final RequestData data;
+    private final SalesMapper salesMapper;
 
     /** 업로드에서 읽은 한 줄. productId는 매장 상품과 이름이 일치할 때만 채워진다. */
     public record RawRow(String date, String menuName, Long productId, Integer quantity, Long amount) {
@@ -54,35 +57,42 @@ public class SalesService {
 
     /** 매출 업로드 기록, 최근 순 (SCR-U-008 ③ 자세히 보기) */
     public List<SalesUpload> uploadHistory() {
-        return session.getSalesUploads().stream()
-                .sorted(Comparator.comparing(SalesUpload::uploadedAt).reversed()).toList();
+        return data.uploads();
     }
 
-    /** @return 반영한 건수 */
+    /**
+     * 확인을 마친 매출을 저장한다. 직접 입력도 업로드 한 건(SALES_UPLOAD)으로 남기고 데이터 기간(DATA_FROM~DATA_TO)을 기록한다.
+     *
+     * @return 반영한 건수
+     */
+    @Transactional
     public int commit(String source, List<ConfirmedRow> rows) {
         String inputType = switch (source == null ? "" : source) {
-            case "excel", "receipt" -> source;
-            default -> "manual";
+            case "excel" -> "EXCEL";
+            case "receipt" -> "RECEIPT";
+            default -> "MANUAL";
         };
-        int count = 0;
-        LocalDate from = null;
-        LocalDate to = null;
+        List<Sale> sales = new ArrayList<>();
         for (ConfirmedRow r : rows) {
-            Product product = session.getStore().findProduct(r.productId());
+            Product product = data.store().findProduct(r.productId());
             if (product == null || r.quantity() <= 0) {
                 continue;
             }
-            LocalDate date = LocalDate.parse(r.date());
-            session.getSales().add(new Sale(session.nextId(), date, product.getProductId(),
-                    r.quantity(), r.amount(), inputType));
-            from = from == null || date.isBefore(from) ? date : from;
-            to = to == null || date.isAfter(to) ? date : to;
-            count++;
+            sales.add(new Sale(null, LocalDate.parse(r.date()), product.getProductId(), r.quantity(), r.amount(),
+                    inputType.toLowerCase(Locale.ROOT)));
         }
-        if (count > 0) {
-            session.getSalesUploads().add(new SalesUpload(session.nextId(), LocalDateTime.now(), inputType, count, from, to));
+        if (sales.isEmpty()) {
+            return 0;
         }
-        return count;
+        UploadRow upload = UploadRow.builder().storeId(data.store().getStoreId()).inputType(inputType)
+                .recordCount(sales.size())
+                .dataFrom(sales.stream().map(Sale::getSaleDate).min(LocalDate::compareTo).orElseThrow())
+                .dataTo(sales.stream().map(Sale::getSaleDate).max(LocalDate::compareTo).orElseThrow())
+                .uploadedAt(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)).build();
+        salesMapper.insertUpload(upload);
+        sales.forEach(sale -> salesMapper.insertSale(upload.getUploadId(), sale));
+        data.clear();
+        return sales.size();
     }
 
     private List<RawRow> parseCsv(MultipartFile file) {
@@ -109,7 +119,7 @@ public class SalesService {
 
     /** 시연용 인식 결과. 확인이 필요한 줄(모르는 메뉴, 금액 누락)을 일부러 섞는다. */
     private List<RawRow> sampleRows(int count, List<String> unknown) {
-        List<Product> menus = session.getStore().getProducts();
+        List<Product> menus = data.store().getProducts();
         int n = Math.max(1, menus.size());
         LocalDate base = LocalDate.of(2026, 10, 13);
         List<RawRow> rows = new ArrayList<>();
@@ -133,7 +143,7 @@ public class SalesService {
     /** 공백·대소문자를 무시하고 매장 상품명과 맞춘다. */
     private Long match(String menuName) {
         String key = normalize(menuName);
-        return session.getStore().getProducts().stream()
+        return data.store().getProducts().stream()
                 .filter(p -> normalize(p.getProductName()).equals(key))
                 .map(Product::getProductId).findFirst().orElse(null);
     }

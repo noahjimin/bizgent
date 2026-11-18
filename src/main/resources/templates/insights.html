@@ -161,7 +161,6 @@
       <section th:replace="~{:: panel(${result.view == 'enough' ? '잘된 점에서 배울 것' : '잘된 점'}, 'green', 'trend-up', ${result.strengths})}"></section>
       <section th:replace="~{:: panel(${result.view == 'enough' ? '개선 항목' : '개선할 점'}, 'orange', 'alert', ${result.improvements})}"></section>
       <section th:replace="~{:: panel('비인기 메뉴 조언', 'blue', 'menu-tip', ${result.slowMenus})}"></section>
-      <section th:replace="~{:: panel('재고 소진 프로모션 제안', 'purple', 'box', ${result.stockPromotions})}"></section>
     </div>
   </div>
 </div>

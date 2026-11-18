@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.bizgent.demo.DemoSession;
 import com.bizgent.domain.Campaign;
 import com.bizgent.domain.Product;
 import com.bizgent.domain.Sale;
+import com.bizgent.domain.Store;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +31,7 @@ public class SalesAnalysisService {
     /** 직접 선택 기간의 최대 길이 */
     public static final int MAX_CUSTOM_DAYS = 366;
 
-    private final DemoSession session;
+    private final RequestData data;
 
     public record Range(LocalDate start, LocalDate end) {
 
@@ -55,7 +55,7 @@ public class SalesAnalysisService {
     public record Band(Long campaignId, String title, String x1, String x2) {
     }
 
-    /** status: 인기 / 보통 / 비인기 / 재고 많음 */
+    /** status: 인기 / 보통 / 비인기 */
     public record MenuRow(Product product, long quantity, long amount, int share, Integer change, String status) {
     }
 
@@ -88,7 +88,7 @@ public class SalesAnalysisService {
      * @return 매출 데이터가 없으면 null
      */
     public View analyze(String period, Range custom) {
-        List<Sale> sales = session.getSales();
+        List<Sale> sales = data.sales();
         if (sales.isEmpty()) {
             return null;
         }
@@ -120,7 +120,7 @@ public class SalesAnalysisService {
             compareLabel = "직전 " + days + "일 대비";
         }
 
-        List<Campaign> published = session.getCampaigns().stream()
+        List<Campaign> published = data.campaigns().stream()
                 .filter(c -> c.isPublished() && c.getPublishedAt() != null)
                 .toList();
         Range cur = current;
@@ -131,7 +131,7 @@ public class SalesAnalysisService {
             return !p.isBefore(cur.start().minusDays(1)) && !p.isAfter(cur.end().plusDays(1));
         }).toList();
 
-        List<CampaignRow> details = campaignRows(sales, published);
+        List<CampaignRow> details = campaignRows(data.store(), sales, published);
         List<CampaignRow> rows = details.stream().filter(r -> inPeriod.contains(r.campaign())).toList();
         return new View(last, current, summary(sales, untilEnd, current, previous, compareLabel),
                 dailySeries(sales, current), bands(published, current), menuRows(sales, current, previous), rows,
@@ -180,7 +180,7 @@ public class SalesAnalysisService {
     }
 
     private List<MenuRow> menuRows(List<Sale> sales, Range current, Range previous) {
-        List<Product> products = session.getStore().getProducts();
+        List<Product> products = data.store().getProducts();
         List<Sale> cur = in(sales, current);
         List<Sale> prev = previous == null ? List.of() : in(sales, previous);
         long total = sum(cur, Sale::getAmount);
@@ -198,26 +198,21 @@ public class SalesAnalysisService {
         Set<Long> popular = new HashSet<>();
         rows.stream().limit(rows.size() >= 5 ? 2 : 1).filter(b -> b.amount() > 0).forEach(b -> popular.add(b.p().getProductId()));
         Long lowest = rows.size() > 2 ? rows.get(rows.size() - 1).p().getProductId() : null;
-        long days = current.days();
 
         return rows.stream().map(b -> {
-            double dailyQty = (double) b.quantity() / days;
-            Integer stock = b.p().getStockQty();
-            // 재고 많음: 지금 판매 속도로 10일 넘게 팔아야 하는 재고
-            boolean highStock = stock != null && stock > 0 && stock > Math.max(dailyQty * 10, 10);
             String status = popular.contains(b.p().getProductId()) ? "인기"
-                    : b.p().getProductId().equals(lowest) ? "비인기" : highStock ? "재고 많음" : "보통";
+                    : b.p().getProductId().equals(lowest) ? "비인기" : "보통";
             return new MenuRow(b.p(), b.quantity(), b.amount(), total == 0 ? 0 : (int) Math.round(b.amount() * 100.0 / total),
                     b.change(), status);
         }).toList();
     }
 
     /** 게시한 캠페인별 대상 메뉴 매출 성과 (최근 게시 순). 개선 방향 분석에서 쓴다. */
-    public List<CampaignRow> campaignResults(List<Campaign> campaigns, List<Sale> sales) {
-        return campaignRows(sales, campaigns.stream().filter(c -> c.isPublished() && c.getPublishedAt() != null).toList());
+    public List<CampaignRow> campaignResults(Store store, List<Campaign> campaigns, List<Sale> sales) {
+        return campaignRows(store, sales, campaigns.stream().filter(c -> c.isPublished() && c.getPublishedAt() != null).toList());
     }
 
-    private List<CampaignRow> campaignRows(List<Sale> sales, List<Campaign> campaigns) {
+    private static List<CampaignRow> campaignRows(Store store, List<Sale> sales, List<Campaign> campaigns) {
         return campaigns.stream()
                 .sorted(Comparator.comparing(Campaign::getPublishedAt).reversed())
                 .map(c -> {
@@ -231,7 +226,7 @@ public class SalesAnalysisService {
                     long storeRevenue = sum(in(sales, afterRange), Sale::getAmount);
                     Integer change = pct(afterAmount, beforeAmount);
                     String result = change == null ? "보통" : change >= 20 ? "좋음" : change >= 5 ? "보통" : "아쉬움";
-                    String names = String.join(", ", c.getProductIds().stream().map(session.getStore()::productName)
+                    String names = String.join(", ", c.getProductIds().stream().map(store::productName)
                             .filter(n -> !n.isEmpty()).toList());
                     List<String> channels = c.getContent().getChannels();
                     CompareChart chart = new CompareChart(c.getCampaignId(), beforeAmount, afterAmount,

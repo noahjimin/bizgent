@@ -68,6 +68,7 @@ public class WizardController {
             return "redirect:/campaigns/new/4";
         }
         draft.setCurrentStep(step);
+        wizardService.saveSteps(draft);
         model.addAttribute("draft", draft);
         model.addAttribute("step", step);
         model.addAttribute("stepIndex", Campaign.STEPS.indexOf(step));
@@ -251,6 +252,7 @@ public class WizardController {
         save.run();
         if (draft.getGoal().isEmpty() || draft.getProductIds().isEmpty()) {
             draft.setLockedStep(null);
+            wizardService.saveSteps(draft);
             return "redirect:/campaigns/new/1";
         }
         return "redirect:/campaigns/new/2";
@@ -282,6 +284,7 @@ public class WizardController {
             throw new ForbiddenException("구독 플랜에서 사용할 수 있어요");
         }
         draft.setPlan(aiService.reanalyzePlan(storeService.get(), draft, request.feedback()));
+        draft.getPlan().setSource("REANALYZE");
         wizardService.touch(draft);
         return draft.getPlan();
     }
@@ -326,6 +329,7 @@ public class WizardController {
     /** 떠나는 단계를 기록하고, exit=plans면 요금제 화면으로(돌아가기 버튼용 캠페인 ID 전달), 그 밖에는 홈으로 */
     private String leave(Campaign draft, String step, String exit) {
         draft.setCurrentStep(step);
+        wizardService.saveSteps(draft);
         return "plans".equals(exit) ? "redirect:/subscription?resume=" + draft.getCampaignId() : "redirect:/";
     }
 

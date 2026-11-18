@@ -72,6 +72,10 @@
                 </select>
                 <img alt="" th:src="@{/assets/73ce0.svg}" class="pointer-events-none absolute right-[14px] size-[17px]">
               </span>
+              <!-- '기타'를 고르면 업종을 직접 입력한다 (입력한 글자를 CATEGORY에 그대로 저장) -->
+              <input name="categoryEtc" data-category-etc maxlength="50" placeholder="업종을 직접 입력해주세요" aria-label="업종 직접 입력"
+                     th:hidden="${store.category != '기타'}"
+                     class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
             </label>
             <label class="flex w-full flex-col gap-[8px]">
               <span class="flex items-center gap-[6px]">
@@ -185,14 +189,6 @@
         <label class="flex min-w-0 flex-1 flex-col gap-[8px]">
           <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">간단 설명</span>
           <input data-field="description" th:value="${p?.description}" placeholder="예: 부드러운 바닐라 크림을 올린 대표 라떼"
-                 class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
-        </label>
-        <label class="flex w-[190px] shrink-0 flex-col gap-[8px]">
-          <span class="flex items-center gap-[6px]">
-            <span class="f-semibold text-[14px] whitespace-nowrap text-[#172033]">재고 수량</span>
-            <span class="f-regular text-[12px] text-[#667085]">선택</span>
-          </span>
-          <input data-field="stockQty" inputmode="numeric" data-digits th:value="${p?.stockQty}" placeholder="예: 30"
                  class="f-regular h-[46px] w-full rounded-[12px] border border-[#d5dce7] bg-white px-[14px] text-[15px] text-[#172033] outline-none placeholder:text-[#667085] focus:border-[#2563eb]">
         </label>
       </div>
@@ -396,6 +392,11 @@
     if (f) showHero(await readFile(f));
   });
   heroDownload.addEventListener("click", () => BG.downloadImage(heroPreview.src, "bizgent_대표이미지.jpg"));
+  const categoryEtc = form.querySelector("[data-category-etc]");
+  form.querySelector("[data-store-category]").addEventListener("change", (e) => {
+    categoryEtc.hidden = e.target.value !== "기타";
+    if (!categoryEtc.hidden) categoryEtc.focus();
+  });
 
   /* ---------- 상품·메뉴 카드 ---------- */
   const list = form.querySelector("[data-menu-list]");

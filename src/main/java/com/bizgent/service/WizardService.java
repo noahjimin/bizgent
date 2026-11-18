@@ -6,25 +6,25 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.bizgent.demo.DemoSession;
 import com.bizgent.domain.AiPlan;
 import com.bizgent.domain.Campaign;
 import com.bizgent.domain.CampaignStatus;
 import com.bizgent.domain.ContentSetting;
 import com.bizgent.domain.Draft;
 import com.bizgent.domain.ImageSetting;
-import com.bizgent.domain.Notification;
 import com.bizgent.domain.Post;
 import com.bizgent.domain.Product;
 import com.bizgent.domain.Store;
 import com.bizgent.domain.Tags;
+import com.bizgent.mapper.NotificationMapper;
 
 import lombok.RequiredArgsConstructor;
 
 /**
  * 캠페인 생성 위자드 (1 목표 설정 → 2 AI 기획 → 3-1 콘텐츠 설정 → 3-2 이미지 설정 → 4 시안 비교 → 5 게시).
- * 다음 단계로 넘어가면 그 단계는 확정(lockedStep)되어 다시 수정할 수 없다.
+ * 다음 단계로 넘어가면 그 단계는 확정(LOCKED_STEP)되어 다시 수정할 수 없다. 단계마다 캠페인과 하위 기록을 DB에 저장한다.
  */
 @Service
 @RequiredArgsConstructor
@@ -36,7 +36,11 @@ public class WizardService {
     private static final Map<String, String> GOAL_TO_PURPOSE = Map.of(
             "신메뉴/신상품 홍보", "신메뉴 홍보", "할인/이벤트 홍보", "할인·이벤트", "매장 인지도 확대", "매장 분위기");
 
-    private final DemoSession session;
+    private final UserSession session;
+    private final RequestData data;
+    private final CampaignRepository repository;
+    private final StoreService storeService;
+    private final NotificationMapper notificationMapper;
 
     /** 지금 작성 중인 캠페인 (없으면 null) */
     public Campaign activeDraft() {
@@ -44,7 +48,7 @@ public class WizardService {
         if (id == null) {
             return null;
         }
-        return session.getCampaigns().stream()
+        return data.campaigns().stream()
                 .filter(c -> c.getCampaignId().equals(id) && !c.isPublished())
                 .findFirst().orElse(null);
     }
@@ -69,15 +73,16 @@ public class WizardService {
     }
 
     public List<String> menuNames(Campaign draft) {
-        Store store = session.getStore();
+        Store store = data.store();
         return draft.getProductIds().stream().map(store::productName).filter(n -> !n.isEmpty()).toList();
     }
 
     /** 1단계 목표 설정 저장. 새로 입력한 메뉴는 매장 상품으로 추가한다. */
+    @Transactional
     public void saveGoal(Campaign draft, String goalOption, String customGoal, List<Long> productIds,
             List<String> newMenuNames, String targetCustomers, String toneManners, String extraNote) {
-        Store store = session.getStore();
-        List<Long> ids = new ArrayList<>(productIds);
+        Store store = data.store();
+        List<Long> ids = new ArrayList<>(productIds.stream().filter(id -> store.findProduct(id) != null).toList());
         for (String name : newMenuNames) {
             String trimmed = name.trim();
             if (trimmed.isEmpty()) {
@@ -86,8 +91,7 @@ public class WizardService {
             Product existing = store.getProducts().stream().filter(p -> p.getProductName().equals(trimmed)).findFirst()
                     .orElse(null);
             if (existing == null) {
-                existing = new Product(session.nextId(), trimmed, 0, 0, null, null);
-                store.getProducts().add(existing);
+                existing = storeService.addProduct(trimmed);
             }
             if (!ids.contains(existing.getProductId())) {
                 ids.add(existing.getProductId());
@@ -112,9 +116,10 @@ public class WizardService {
     }
 
     /** 3-1단계 콘텐츠 설정 저장. 채널 수는 플랜의 최대 채널 수까지 */
+    @Transactional
     public void saveContent(Campaign draft, List<String> channels, boolean hashtagOn, boolean captionOn,
             boolean imageOn, String customChannelName, String customChannelNote) {
-        int limit = session.getMember().getChannelLimit();
+        int limit = data.member().getChannelLimit();
         List<String> allowed = channels.stream().filter(CHANNELS::contains).distinct().limit(limit).toList();
         ContentSetting cs = draft.getContent();
         cs.setChannels(new ArrayList<>(allowed));
@@ -150,7 +155,8 @@ public class WizardService {
         return s;
     }
 
-    /** 3-2단계 이미지 설정 저장 */
+    /** 3-2단계 이미지 설정 저장 (채널별 비율은 CAMPAIGN_CHANNEL.IMAGE_RATIO) */
+    @Transactional
     public void saveImage(Campaign draft, String purpose, String product, String composition, String mood,
             boolean brandColorOn, List<String> ratios, String referenceImageUrl, String extraRequest) {
         ImageSetting s = draft.getImage();
@@ -165,7 +171,7 @@ public class WizardService {
             s.getRatios().put(channels.get(i), i < ratios.size() ? ratios.get(i) : "1:1 정사각");
         }
         // 참고 이미지는 구독 사용자만 쓸 수 있다.
-        if (referenceImageUrl != null && !session.getMember().isFree()) {
+        if (referenceImageUrl != null && !data.member().isFree()) {
             s.setReferenceImageUrl(referenceImageUrl);
         }
         String extra = extraRequest == null ? "" : extraRequest.trim();
@@ -175,14 +181,25 @@ public class WizardService {
         lock(draft, "3-2");
     }
 
-    /** 4단계 시안 수정 저장 (수정하기 모달) */
+    /** 4단계 AI가 만든 시안 A/B 저장 */
+    @Transactional
+    public void saveDrafts(Campaign draft, List<Draft> drafts) {
+        draft.setDrafts(new ArrayList<>(drafts));
+        draft.setSelectedDraftKeys(new ArrayList<>());
+        touch(draft);
+    }
+
+    /** 4단계 시안 수정 저장 (수정하기 모달). 문구를 비우면 이전 문구를 유지한다 (COPY_TEXT 필수). */
+    @Transactional
     public Draft updateDraft(Campaign draft, String key, String text, List<String> hashtags, String imageUrl) {
         Draft d = draft.findDraft(key);
         if (d == null) {
             throw new NotFoundException("시안을 찾을 수 없습니다: " + key);
         }
         String trimmed = text == null ? "" : text.trim();
-        d.setText(trimmed.length() > 300 ? trimmed.substring(0, 300) : trimmed);
+        if (!trimmed.isEmpty()) {
+            d.setText(trimmed.length() > 300 ? trimmed.substring(0, 300) : trimmed);
+        }
         d.setHashtags(new ArrayList<>(hashtags.stream().map(t -> t.trim().replaceFirst("^#", ""))
                 .filter(t -> !t.isEmpty()).distinct().toList()));
         d.setImageUrl(imageUrl == null ? "" : imageUrl);
@@ -190,7 +207,8 @@ public class WizardService {
         return d;
     }
 
-    /** 4단계 시안 선택 확정 */
+    /** 4단계 시안 선택 확정 (DRAFT.SELECTED_YN) */
+    @Transactional
     public boolean saveSelection(Campaign draft, List<String> keys) {
         List<String> valid = draft.getDrafts().stream().map(Draft::getKey).filter(keys::contains).toList();
         if (valid.isEmpty()) {
@@ -202,9 +220,10 @@ public class WizardService {
     }
 
     /**
-     * 5단계 게시 (모의). 선택한 시안을 한 번에 게시하고, 7일 뒤 성과·매출 입력 알림을 예약한다.
-     * 실제 SNS 연동(F12)은 이 메서드에서 채널 API를 호출하도록 확장한다.
+     * 5단계 게시 (모의). 선택한 시안을 한 번에 게시하고(POST), 반응은 예시 데이터로 POST_METRIC에 SAMPLE로 남긴다.
+     * 7일 뒤 성과·매출 입력 알림을 예약한다. 실제 SNS 연동(F12)은 이 메서드에서 채널 API를 호출하도록 확장한다.
      */
+    @Transactional
     public Campaign publish(Campaign draft) {
         List<Draft> selected = draft.getDrafts().stream()
                 .filter(d -> draft.getSelectedDraftKeys().contains(d.getKey())).toList();
@@ -216,39 +235,49 @@ public class WizardService {
         draft.setPublishedAt(now);
         draft.setUpdatedAt(now);
         draft.setLockedStep("5");
-        selected.stream().map(Draft::getImageUrl).filter(u -> u != null && !u.isEmpty()).findFirst()
-                .ifPresent(draft::setThumbnailUrl);
+        draft.setCurrentStep("5");
         draft.setPosts(new ArrayList<>(selected.stream()
                 // 반응 수치는 인스타그램 연동 전까지 캠페인 ID로 만든 예시 값
-                .map(d -> new Post(d.getChannel(), d.getKey(), "success").reactions(
+                .map(d -> new Post(d.getChannel(), d.getKey(), Post.SUCCESS).reactions(
                         120 + (int) (draft.getCampaignId() % 7) * 17, 8 + (int) (draft.getCampaignId() % 5),
                         5 + (int) (draft.getCampaignId() % 4), 14 + (int) (draft.getCampaignId() % 6) * 2,
                         1800 + (int) (draft.getCampaignId() % 9) * 230))
                 .toList()));
+        repository.save(draft);
+        repository.insertPosts(draft);
         session.setActiveDraftId(null);
         setReminder(draft, true);
         return draft;
     }
 
-    /** 게시 완료 카드의 "7일 뒤 알림 받기" */
+    /** 게시 완료 카드의 "7일 뒤 알림 받기" (NOTIFICATION.DUE_AT) */
+    @Transactional
     public void setReminder(Campaign campaign, boolean on) {
-        session.getNotifications().removeIf(n -> campaign.getCampaignId().equals(n.getCampaignId()));
+        notificationMapper.deleteByCampaign(campaign.getCampaignId(), NotificationService.TYPE_CAMPAIGN_RESULT);
         if (!on || campaign.getPublishedAt() == null) {
             campaign.setReminderAt(null);
             return;
         }
         LocalDateTime remindAt = campaign.getPublishedAt().plusDays(7);
         campaign.setReminderAt(remindAt);
-        session.getNotifications().add(new Notification(session.nextId(), campaign.getCampaignId(),
-                "캠페인 성과와 매출을 입력할 시간이에요", remindAt, false));
+        notificationMapper.insert(data.member().getMemberId(), campaign.getCampaignId(),
+                NotificationService.TYPE_CAMPAIGN_RESULT, "캠페인 성과와 매출을 입력할 시간이에요", remindAt);
     }
 
+    /** 단계를 확정하고 지금 입력값을 저장한다. */
     public void lock(Campaign draft, String step) {
         draft.setLockedStep(step);
-        draft.setUpdatedAt(LocalDateTime.now());
+        touch(draft);
     }
 
+    /** 지금 입력값을 저장한다 (단계 확정 없이). */
     public void touch(Campaign draft) {
         draft.setUpdatedAt(LocalDateTime.now());
+        repository.save(draft);
+    }
+
+    /** 보던 단계(CURRENT_STEP)·확정 단계(LOCKED_STEP)만 저장한다. */
+    public void saveSteps(Campaign draft) {
+        repository.saveSteps(draft);
     }
 }

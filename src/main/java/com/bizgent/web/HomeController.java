@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.bizgent.demo.DemoSession;
+import com.bizgent.demo.DemoSeed;
+import com.bizgent.service.UserSession;
 import com.bizgent.domain.Campaign;
-import com.bizgent.domain.Plan;
 import com.bizgent.service.CampaignService;
 import com.bizgent.service.CampaignService.CampaignPrefill;
+import com.bizgent.service.InsightService;
 import com.bizgent.service.MemberService;
+import com.bizgent.service.StoreService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +29,10 @@ public class HomeController {
 
     private final CampaignService campaignService;
     private final MemberService memberService;
-    private final DemoSession session;
+    private final UserSession session;
+    private final StoreService storeService;
+    private final InsightService insightService;
+    private final DemoSeed demoSeed;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -61,33 +66,40 @@ public class HomeController {
         return "redirect:" + backPath(referer);
     }
 
-    /* ---------- 개발 바로가기 (시연 데이터 조작) ---------- */
+    /* ---------- 개발 바로가기 (시연 계정 전용: LoginCheckInterceptor가 그 밖에는 403) ---------- */
 
+    /** 이번 달 캠페인 이용 횟수(MONTHLY_USAGE)와 매장 이미지 생성 횟수(STORE_IMAGE)를 함께 소진하거나 초기화한다. */
     @PostMapping("/dev/usage")
     public String devUsage(@RequestParam int used, @RequestHeader(value = "Referer", required = false) String referer) {
-        session.getMember().setCampaignsUsedThisMonth(used);
-        // 매장 이미지 생성 횟수도 같이 소진(한도까지)하거나 초기화한다.
-        session.getMember().setStoreImagesUsedThisMonth(used == 0 ? 0 : session.getMember().getPlan().getMonthlyStoreImages());
+        demoSeed.setUsage(memberService.current(), storeService.get(), Math.max(0, used));
         return "redirect:" + backPath(referer);
     }
 
-    /** 결제 없이 무료 ↔ 구독 플랜 전환 (구독 전용 기능 시연용) */
+    /** 결제 없이 무료 ↔ 구독 플랜 전환 (SUBSCRIPTION 추가·해지) */
     @PostMapping("/dev/plan")
     public String devPlan(@RequestParam String plan, @RequestHeader(value = "Referer", required = false) String referer) {
-        session.getMember().setPlan("pro".equals(plan) ? Plan.PRO : Plan.FREE);
+        if ("pro".equals(plan)) {
+            memberService.subscribe();
+        } else {
+            memberService.cancelSubscription();
+        }
         return "redirect:" + backPath(referer);
     }
 
+    /** AI 개선 방향 데이터 양: 바꾸면 바로 새로 분석해서 기록으로 남긴다. */
     @PostMapping("/dev/insights-view")
     public String devInsightsView(@RequestParam String view,
             @RequestHeader(value = "Referer", required = false) String referer) {
         session.setInsightsView("enough".equals(view) ? "enough" : "early");
+        insightService.reanalyze();
         return "redirect:" + backPath(referer);
     }
 
+    /** 시연 계정의 데이터만 지우고 처음 상태로 되돌린 뒤 로그아웃한다. */
     @PostMapping("/dev/reset")
     public String devReset() {
-        session.reset();
+        demoSeed.reset();
+        memberService.logout();
         return "redirect:/landing";
     }
 

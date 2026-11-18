@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.CampaignMapper">
+
+    <!-- 조회 대상 캠페인: 매장의 모든 캠페인 또는 한 캠페인 -->
+    <sql id="campaignIds">
+        SELECT CAMPAIGN_ID FROM CAMPAIGN WHERE STORE_ID = #{storeId}
+        <if test="campaignId != null">AND CAMPAIGN_ID = #{campaignId}</if>
+    </sql>
+
+    <select id="findCampaigns" resultType="CampaignRow">
+        SELECT c.CAMPAIGN_ID, c.STORE_ID, c.GOAL_CODE, c.CUSTOM_GOAL, g.GOAL_NAME, c.INSIGHT_ID, c.CAMPAIGN_NAME,
+               c.TARGET_CUSTOMER, c.TONE_MANNER, c.EXTRA_NOTE,
+               DECODE(c.HASHTAG_YN, 'Y', 1, 0) AS HASHTAG_ON, DECODE(c.CAPTION_YN, 'Y', 1, 0) AS CAPTION_ON,
+               DECODE(c.AD_IMAGE_YN, 'Y', 1, 0) AS IMAGE_ON, c.CURRENT_STEP, c.LOCKED_STEP, c.USAGE_MONTH,
+               c.CAMPAIGN_STATUS, c.CREATED_AT, c.UPDATED_AT, c.PUBLISHED_AT
+          FROM CAMPAIGN c LEFT JOIN GOAL g ON g.GOAL_CODE = c.GOAL_CODE
+         WHERE c.STORE_ID = #{storeId}
+        <if test="campaignId != null">AND c.CAMPAIGN_ID = #{campaignId}</if>
+    </select>
+
+    <select id="findProducts" resultType="CampaignProductRow">
+        SELECT CAMPAIGN_ID, PRODUCT_ID FROM CAMPAIGN_PRODUCT
+         WHERE CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         ORDER BY CAMPAIGN_ID, PRODUCT_ID
+    </select>
+
+    <select id="findChannels" resultType="CampaignChannelRow">
+        SELECT cc.CAMPAIGN_ID, cc.CHANNEL_CODE, ch.CHANNEL_NAME, cc.CUSTOM_CHANNEL_NAME, cc.CUSTOM_CHANNEL_NOTE, cc.IMAGE_RATIO
+          FROM CAMPAIGN_CHANNEL cc JOIN CHANNEL ch ON ch.CHANNEL_CODE = cc.CHANNEL_CODE
+         WHERE cc.CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         ORDER BY cc.CAMPAIGN_ID, ch.SORT_ORDER
+    </select>
+
+    <select id="findLatestPlans" resultType="PlanRow">
+        SELECT p.AI_PLAN_ID, p.CAMPAIGN_ID, p.VERSION_NO, p.PLAN_SOURCE, p.DIRECTION, p.TARGET_ANALYSIS, p.AGE_GROUP,
+               p.STRATEGY, p.TONES, p.RECOMMENDED_CHANNELS, p.EXPECTED_EFFECT, p.REACH, p.FREQUENCY, p.DURATION,
+               p.USER_REQUEST, DECODE(p.CONFIRMED_YN, 'Y', 1, 0) AS CONFIRMED
+          FROM AI_PLAN p
+         WHERE p.CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+           AND p.VERSION_NO = (SELECT MAX(x.VERSION_NO) FROM AI_PLAN x WHERE x.CAMPAIGN_ID = p.CAMPAIGN_ID)
+    </select>
+
+    <select id="findImageSettings" resultType="ImageSettingRow">
+        SELECT CAMPAIGN_ID, PURPOSE, MAIN_PRODUCT, MOOD, COMPOSITION, DECODE(BRAND_COLOR_YN, 'Y', 1, 0) AS BRAND_COLOR_ON,
+               REFERENCE_IMAGE_URL, EXTRA_REQUEST
+          FROM IMAGE_SETTING WHERE CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+    </select>
+
+    <select id="findDrafts" resultType="DraftRow">
+        SELECT DRAFT_ID, CAMPAIGN_ID, CHANNEL_CODE, DRAFT_TYPE, COPY_TEXT, IMAGE_URL, DECODE(SELECTED_YN, 'Y', 1, 0) AS SELECTED
+          FROM DRAFT WHERE CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         ORDER BY CAMPAIGN_ID, DRAFT_TYPE
+    </select>
+
+    <select id="findHashtags" resultType="HashtagRow">
+        SELECT h.DRAFT_ID, h.HASHTAG_SEQ, h.HASHTAG
+          FROM DRAFT_HASHTAG h JOIN DRAFT d ON d.DRAFT_ID = h.DRAFT_ID
+         WHERE d.CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         ORDER BY h.DRAFT_ID, h.HASHTAG_SEQ
+    </select>
+
+    <select id="findPosts" resultType="PostRow">
+        SELECT p.POST_ID, p.DRAFT_ID, d.CAMPAIGN_ID, d.CHANNEL_CODE, d.DRAFT_TYPE, p.POST_STATUS, p.POSTED_AT,
+               NVL(m.LIKE_COUNT, 0) AS LIKE_COUNT, NVL(m.COMMENT_COUNT, 0) AS COMMENT_COUNT,
+               NVL(m.SHARE_COUNT, 0) AS SHARE_COUNT, NVL(m.SAVE_COUNT, 0) AS SAVE_COUNT, NVL(m.REACH_COUNT, 0) AS REACH_COUNT
+          FROM POST p
+          JOIN DRAFT d ON d.DRAFT_ID = p.DRAFT_ID
+          LEFT JOIN (SELECT POST_ID, LIKE_COUNT, COMMENT_COUNT, SHARE_COUNT, SAVE_COUNT, REACH_COUNT
+                       FROM POST_METRIC
+                      WHERE METRIC_ID IN (SELECT MAX(METRIC_ID) FROM POST_METRIC GROUP BY POST_ID)) m
+            ON m.POST_ID = p.POST_ID
+         WHERE d.CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         ORDER BY p.POST_ID
+    </select>
+
+    <select id="findReminders" resultType="Notification">
+        SELECT CAMPAIGN_ID, MIN(DUE_AT) AS DUE_AT
+          FROM NOTIFICATION
+         WHERE NOTIFICATION_TYPE = #{type} AND CAMPAIGN_ID IN (<include refid="campaignIds"/>)
+         GROUP BY CAMPAIGN_ID
+    </select>
+
+    <insert id="insertCampaign" parameterType="CampaignRow">
+        <selectKey keyProperty="campaignId" resultType="long" order="BEFORE">SELECT SEQ_CAMPAIGN.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO CAMPAIGN (CAMPAIGN_ID, STORE_ID, GOAL_CODE, CUSTOM_GOAL, INSIGHT_ID, CAMPAIGN_NAME, TARGET_CUSTOMER,
+                              TONE_MANNER, EXTRA_NOTE, HASHTAG_YN, CAPTION_YN, AD_IMAGE_YN, CURRENT_STEP, LOCKED_STEP,
+                              USAGE_MONTH, CAMPAIGN_STATUS, CREATED_AT, UPDATED_AT, PUBLISHED_AT)
+        VALUES (#{campaignId}, #{storeId}, #{goalCode}, #{customGoal}, #{insightId}, #{campaignName}, #{targetCustomer},
+                #{toneManner}, #{extraNote}, ${hashtagOn ? "'Y'" : "'N'"}, ${captionOn ? "'Y'" : "'N'"},
+                ${imageOn ? "'Y'" : "'N'"}, #{currentStep}, #{lockedStep}, #{usageMonth}, #{campaignStatus},
+                #{createdAt}, #{updatedAt}, #{publishedAt})
+    </insert>
+
+    <update id="updateCampaign" parameterType="CampaignRow">
+        UPDATE CAMPAIGN
+           SET GOAL_CODE = #{goalCode}, CUSTOM_GOAL = #{customGoal}, INSIGHT_ID = #{insightId},
+               CAMPAIGN_NAME = #{campaignName}, TARGET_CUSTOMER = #{targetCustomer}, TONE_MANNER = #{toneManner},
+               EXTRA_NOTE = #{extraNote}, HASHTAG_YN = ${hashtagOn ? "'Y'" : "'N'"},
+               CAPTION_YN = ${captionOn ? "'Y'" : "'N'"}, AD_IMAGE_YN = ${imageOn ? "'Y'" : "'N'"},
+               CURRENT_STEP = #{currentStep}, LOCKED_STEP = #{lockedStep}, CAMPAIGN_STATUS = #{campaignStatus},
+               UPDATED_AT = #{updatedAt}, PUBLISHED_AT = #{publishedAt}
+         WHERE CAMPAIGN_ID = #{campaignId}
+    </update>
+
+    <update id="updateSteps">
+        UPDATE CAMPAIGN SET CURRENT_STEP = #{currentStep}, LOCKED_STEP = #{lockedStep} WHERE CAMPAIGN_ID = #{campaignId}
+    </update>
+
+    <delete id="deleteProducts">DELETE FROM CAMPAIGN_PRODUCT WHERE CAMPAIGN_ID = #{campaignId}</delete>
+
+    <insert id="insertProduct" parameterType="CampaignProductRow">
+        INSERT INTO CAMPAIGN_PRODUCT (CAMPAIGN_ID, PRODUCT_ID) VALUES (#{campaignId}, #{productId})
+    </insert>
+
+    <delete id="deleteChannels">DELETE FROM CAMPAIGN_CHANNEL WHERE CAMPAIGN_ID = #{campaignId}</delete>
+
+    <insert id="insertChannel" parameterType="CampaignChannelRow">
+        INSERT INTO CAMPAIGN_CHANNEL (CAMPAIGN_ID, CHANNEL_CODE, CUSTOM_CHANNEL_NAME, CUSTOM_CHANNEL_NOTE, IMAGE_RATIO)
+        VALUES (#{campaignId}, #{channelCode}, #{customChannelName}, #{customChannelNote}, #{imageRatio})
+    </insert>
+
+    <insert id="insertPlan" parameterType="PlanRow">
+        <selectKey keyProperty="aiPlanId,versionNo" resultType="PlanRow" order="BEFORE">
+            SELECT SEQ_AI_PLAN.NEXTVAL AS AI_PLAN_ID,
+                   (SELECT NVL(MAX(VERSION_NO), 0) + 1 FROM AI_PLAN WHERE CAMPAIGN_ID = #{campaignId}) AS VERSION_NO
+              FROM DUAL
+        </selectKey>
+        INSERT INTO AI_PLAN (AI_PLAN_ID, CAMPAIGN_ID, VERSION_NO, PLAN_SOURCE, DIRECTION, TARGET_ANALYSIS, AGE_GROUP,
+                             STRATEGY, TONES, RECOMMENDED_CHANNELS, EXPECTED_EFFECT, REACH, FREQUENCY, DURATION,
+                             USER_REQUEST, CONFIRMED_YN, CREATED_AT)
+        VALUES (#{aiPlanId}, #{campaignId}, #{versionNo}, #{planSource}, #{direction}, #{targetAnalysis}, #{ageGroup},
+                #{strategy}, #{tones}, #{recommendedChannels}, #{expectedEffect}, #{reach}, #{frequency}, #{duration},
+                #{userRequest}, ${confirmed ? "'Y'" : "'N'"}, SYSDATE)
+    </insert>
+
+    <delete id="deletePlans">DELETE FROM AI_PLAN WHERE CAMPAIGN_ID = #{campaignId}</delete>
+
+    <update id="confirmLatestPlan">
+        UPDATE AI_PLAN SET CONFIRMED_YN = 'Y'
+         WHERE CAMPAIGN_ID = #{campaignId}
+           AND VERSION_NO = (SELECT MAX(VERSION_NO) FROM AI_PLAN WHERE CAMPAIGN_ID = #{campaignId})
+    </update>
+
+    <delete id="deleteImageSetting">DELETE FROM IMAGE_SETTING WHERE CAMPAIGN_ID = #{campaignId}</delete>
+
+    <insert id="insertImageSetting" parameterType="ImageSettingRow">
+        INSERT INTO IMAGE_SETTING (CAMPAIGN_ID, PURPOSE, MAIN_PRODUCT, MOOD, COMPOSITION, BRAND_COLOR_YN,
+                                   REFERENCE_IMAGE_URL, EXTRA_REQUEST, CREATED_AT)
+        VALUES (#{campaignId}, #{purpose}, #{mainProduct}, #{mood}, #{composition}, ${brandColorOn ? "'Y'" : "'N'"},
+                #{referenceImageUrl}, #{extraRequest}, SYSDATE)
+    </insert>
+
+    <delete id="deleteDraftsExcept">
+        DELETE FROM DRAFT WHERE CAMPAIGN_ID = #{campaignId}
+        <if test="keepIds != null and !keepIds.isEmpty()">
+           AND DRAFT_ID NOT IN <foreach collection="keepIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        </if>
+    </delete>
+
+    <insert id="insertDraft" parameterType="DraftRow">
+        <selectKey keyProperty="draftId" resultType="long" order="BEFORE">SELECT SEQ_DRAFT.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO DRAFT (DRAFT_ID, CAMPAIGN_ID, CHANNEL_CODE, DRAFT_TYPE, COPY_TEXT, IMAGE_URL, SELECTED_YN, CREATED_AT)
+        VALUES (#{draftId}, #{campaignId}, #{channelCode}, #{draftType}, #{copyText}, #{imageUrl},
+                ${selected ? "'Y'" : "'N'"}, SYSDATE)
+    </insert>
+
+    <update id="updateDraft" parameterType="DraftRow">
+        UPDATE DRAFT SET COPY_TEXT = #{copyText}, IMAGE_URL = #{imageUrl}, SELECTED_YN = ${selected ? "'Y'" : "'N'"},
+               UPDATED_AT = SYSDATE
+         WHERE DRAFT_ID = #{draftId}
+    </update>
+
+    <delete id="deleteHashtags">DELETE FROM DRAFT_HASHTAG WHERE DRAFT_ID = #{draftId}</delete>
+
+    <insert id="insertHashtag" parameterType="HashtagRow">
+        INSERT INTO DRAFT_HASHTAG (DRAFT_ID, HASHTAG_SEQ, HASHTAG) VALUES (#{draftId}, #{hashtagSeq}, #{hashtag})
+    </insert>
+
+    <insert id="insertPost" parameterType="PostRow">
+        <selectKey keyProperty="postId" resultType="long" order="BEFORE">SELECT SEQ_POST.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO POST (POST_ID, DRAFT_ID, POST_STATUS, POSTED_AT) VALUES (#{postId}, #{draftId}, #{postStatus}, #{postedAt})
+    </insert>
+
+    <insert id="insertPostMetric" parameterType="PostRow">
+        INSERT INTO POST_METRIC (METRIC_ID, POST_ID, LIKE_COUNT, COMMENT_COUNT, SHARE_COUNT, SAVE_COUNT, REACH_COUNT,
+                                 COLLECTED_AT, COLLECT_METHOD)
+        VALUES (SEQ_POST_METRIC.NEXTVAL, #{postId}, #{likeCount}, #{commentCount}, #{shareCount}, #{saveCount},
+                #{reachCount}, #{postedAt}, 'SAMPLE')
+    </insert>
+
+    <select id="countInsightLinks" resultType="int">
+        SELECT COUNT(*) FROM INSIGHT_CAMPAIGN WHERE CAMPAIGN_ID = #{campaignId}
+    </select>
+
+    <delete id="deleteCampaign">
+        DELETE FROM CAMPAIGN WHERE CAMPAIGN_ID = #{campaignId} AND STORE_ID = #{storeId}
+    </delete>
+
+    <update id="clearInsightIds">UPDATE CAMPAIGN SET INSIGHT_ID = NULL WHERE STORE_ID = #{storeId}</update>
+
+    <delete id="deleteByStore">DELETE FROM CAMPAIGN WHERE STORE_ID = #{storeId}</delete>
+</mapper>

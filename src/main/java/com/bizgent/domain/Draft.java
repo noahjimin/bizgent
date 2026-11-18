@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,15 +13,24 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Draft {
 
+    /** DRAFT.DRAFT_ID. 아직 저장하지 않은 시안은 null */
+    private Long draftId;
     /** "A" 또는 "B" (DRAFT.DRAFT_TYPE) */
     private String key;
     private String channel;
     private String text;
     private List<String> hashtags = new ArrayList<>();
     private String imageUrl;
+
+    public Draft(String key, String channel, String text, List<String> hashtags, String imageUrl) {
+        this.key = key;
+        this.channel = channel;
+        this.text = text;
+        this.hashtags = hashtags;
+        this.imageUrl = imageUrl;
+    }
 
     public String getHashtagText() {
         return hashtags.stream().map(tag -> "#" + tag).reduce((a, b) -> a + " " + b).orElse("");

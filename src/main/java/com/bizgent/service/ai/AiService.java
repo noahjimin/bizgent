@@ -86,7 +86,29 @@ public interface AiService {
     /** view: early(초기 분석) / enough(Good·Bad 비교). targets가 비면 분석할 캠페인이 없는 상태 */
     record Insights(String view, String headline, String summary, List<CampaignBrief> targets,
             LocalDate salesFrom, LocalDate salesTo, List<Suggestion> strengths, List<Suggestion> improvements,
-            List<Suggestion> slowMenus, List<Suggestion> stockPromotions, CampaignComparison good,
+            List<Suggestion> slowMenus, CampaignComparison good,
             CampaignComparison bad, List<MetricBar> metrics, List<Difference> differences, Conclusion conclusion) {
+    }
+
+    /** Good/Bad 두 캠페인의 지표 막대. 저장된 분석(INSIGHT_CAMPAIGN)을 다시 보여 줄 때도 같은 값으로 그린다. */
+    static List<MetricBar> metricBars(CampaignComparison g, CampaignComparison b) {
+        return List.of(
+                bar("대상 메뉴 매출 증가율", signed(g.salesChange()), signed(b.salesChange()),
+                        Math.max(0, g.salesChange() == null ? 0 : g.salesChange()),
+                        Math.max(0, b.salesChange() == null ? 0 : b.salesChange()), false),
+                bar("게시 후 7일 매출", String.format("%,d원", g.after()), String.format("%,d원", b.after()), g.after(), b.after(), false),
+                bar("좋아요", String.format("%,d", g.likes()), String.format("%,d", b.likes()), g.likes(), b.likes(), true),
+                bar("저장", String.format("%,d", g.saves()), String.format("%,d", b.saves()), g.saves(), b.saves(), true),
+                bar("도달", String.format("%,d", g.reach()), String.format("%,d", b.reach()), g.reach(), b.reach(), true));
+    }
+
+    private static MetricBar bar(String label, String goodText, String badText, long good, long bad, boolean sample) {
+        long max = Math.max(good, bad);
+        return new MetricBar(label, goodText, badText, max == 0 ? 0 : (int) Math.round(good * 100.0 / max),
+                max == 0 ? 0 : (int) Math.round(bad * 100.0 / max), sample);
+    }
+
+    private static String signed(Integer pct) {
+        return pct == null ? "-" : (pct >= 0 ? "+" : "") + pct + "%";
     }
 }

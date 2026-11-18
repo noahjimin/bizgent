@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.SalesMapper">
+
+    <select id="findSales" resultType="Sale">
+        SELECT s.SALES_ID, s.SALE_DATE, s.PRODUCT_ID, s.QUANTITY, s.AMOUNT, LOWER(u.INPUT_TYPE) AS SOURCE
+          FROM SALES s JOIN SALES_UPLOAD u ON u.UPLOAD_ID = s.UPLOAD_ID
+         WHERE u.STORE_ID = #{storeId}
+         ORDER BY s.SALE_DATE, s.SALES_ID
+    </select>
+
+    <resultMap id="uploadMap" type="SalesUpload">
+        <constructor>
+            <arg column="UPLOAD_ID" javaType="java.lang.Long"/>
+            <arg column="UPLOADED_AT" javaType="java.time.LocalDateTime"/>
+            <arg column="INPUT_TYPE" javaType="java.lang.String"/>
+            <arg column="RECORD_COUNT" javaType="_int"/>
+            <arg column="DATA_FROM" javaType="java.time.LocalDate"/>
+            <arg column="DATA_TO" javaType="java.time.LocalDate"/>
+        </constructor>
+    </resultMap>
+
+    <select id="findUploads" resultMap="uploadMap">
+        SELECT UPLOAD_ID, UPLOADED_AT, LOWER(INPUT_TYPE) AS INPUT_TYPE, RECORD_COUNT, DATA_FROM, DATA_TO
+          FROM SALES_UPLOAD WHERE STORE_ID = #{storeId}
+         ORDER BY UPLOADED_AT DESC, UPLOAD_ID DESC
+    </select>
+
+    <select id="findLatestUploadId" resultType="long">
+        SELECT MAX(UPLOAD_ID) FROM SALES_UPLOAD WHERE STORE_ID = #{storeId}
+    </select>
+
+    <insert id="insertUpload" parameterType="UploadRow">
+        <selectKey keyProperty="uploadId" resultType="long" order="BEFORE">SELECT SEQ_SALES_UPLOAD.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO SALES_UPLOAD (UPLOAD_ID, STORE_ID, INPUT_TYPE, FILE_NAME, RECORD_COUNT, DATA_FROM, DATA_TO, UPLOADED_AT)
+        VALUES (#{uploadId}, #{storeId}, #{inputType}, #{fileName}, #{recordCount}, #{dataFrom}, #{dataTo}, #{uploadedAt})
+    </insert>
+
+    <insert id="insertSale">
+        <selectKey keyProperty="s.salesId" resultType="long" order="BEFORE">SELECT SEQ_SALES.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO SALES (SALES_ID, UPLOAD_ID, PRODUCT_ID, SALE_DATE, QUANTITY, AMOUNT)
+        VALUES (#{s.salesId}, #{uploadId}, #{s.productId}, #{s.saleDate}, #{s.quantity}, #{s.amount})
+    </insert>
+
+    <delete id="deleteSalesByStore">
+        DELETE FROM SALES WHERE UPLOAD_ID IN (SELECT UPLOAD_ID FROM SALES_UPLOAD WHERE STORE_ID = #{storeId})
+    </delete>
+
+    <delete id="deleteUploadsByStore">DELETE FROM SALES_UPLOAD WHERE STORE_ID = #{storeId}</delete>
+</mapper>

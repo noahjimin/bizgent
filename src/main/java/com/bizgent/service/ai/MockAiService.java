@@ -143,19 +143,18 @@ public class MockAiService implements AiService {
         LocalDate from = sales.stream().map(Sale::getSaleDate).min(Comparator.naturalOrder()).orElse(null);
         LocalDate to = sales.stream().map(Sale::getSaleDate).max(Comparator.naturalOrder()).orElse(null);
         List<Suggestion> slowMenus = slowMenus(store, sales);
-        List<Suggestion> stockPromotions = stockPromotions(store, sales, from, to);
 
         if (moreNeeded > 0) {
             String more = "캠페인을 " + moreNeeded + "개 더 진행하면 잘된 캠페인과 아쉬운 캠페인을 비교해 드려요.";
             if (candidates.isEmpty()) {
                 return new Insights("early", "아직 분석할 캠페인이 없어요",
                         "캠페인을 게시하고 게시 후 7일 매출이 쌓이면 분석해 드려요. " + more, List.of(), from, to,
-                        List.of(), List.of(), slowMenus, stockPromotions, null, null, List.of(), List.of(), null);
+                        List.of(), List.of(), slowMenus, null, null, List.of(), List.of(), null);
             }
             CampaignRow t = candidates.get(0);
             return new Insights("early", t.campaign().getTitle() + " 캠페인을 분석했어요",
                     "게시 전후 7일 매출과 게시물 반응을 살펴봤어요. " + more, List.of(brief(t, "대상")), from, to,
-                    earlyStrengths(t), earlyImprovements(t), slowMenus, stockPromotions, null, null, List.of(),
+                    earlyStrengths(t), earlyImprovements(t), slowMenus, null, null, List.of(),
                     List.of(), null);
         }
 
@@ -206,15 +205,11 @@ public class MockAiService implements AiService {
                     + "다음 캠페인에서 바꿔 보세요.", w[4], false, goal, null));
         }
 
-        Reactions gr = Reactions.of(g.campaign());
-        Reactions br = Reactions.of(b.campaign());
-        List<MetricBar> metrics = List.of(
-                bar("대상 메뉴 매출 증가율", signed(g.change()), signed(b.change()), Math.max(0, nz(g.change())),
-                        Math.max(0, nz(b.change())), false),
-                bar("게시 후 7일 매출", won(g.after()), won(b.after()), g.after(), b.after(), false),
-                bar("좋아요", number(gr.likes()), number(br.likes()), gr.likes(), br.likes(), true),
-                bar("저장", number(gr.saves()), number(br.saves()), gr.saves(), br.saves(), true),
-                bar("도달", number(gr.reach()), number(br.reach()), gr.reach(), br.reach(), true));
+        CampaignComparison good = comparison(g, Reactions.of(g.campaign()),
+                "게시 후 7일 대상 메뉴 매출이 게시 전보다 " + signed(g.change()) + " 변했어요.");
+        CampaignComparison bad = comparison(b, Reactions.of(b.campaign()),
+                "게시 후 7일 대상 메뉴 매출 변화가 " + signed(b.change()) + "에 그쳤어요.");
+        List<MetricBar> metrics = AiService.metricBars(good, bad);
         List<Difference> differences = List.of(
                 new Difference("첫 문장 혜택 표시", gc.benefitLabel(), bc.benefitLabel()),
                 new Difference("이미지 비율", gc.ratio(), bc.ratio()),
@@ -225,8 +220,7 @@ public class MockAiService implements AiService {
         return new Insights("enough", store.getStoreName() + "의 잘된 캠페인과 아쉬운 캠페인을 비교했어요",
                 "최근 게시한 캠페인 " + candidates.size() + "개 중 대상 메뉴 매출 증가율이 가장 높은 캠페인과 가장 낮은 캠페인을 비교했어요.",
                 List.of(brief(g, "Good"), brief(b, "Bad")), from, to, strengths, improvements, slowMenus,
-                stockPromotions, comparison(g, gr, "게시 후 7일 대상 메뉴 매출이 게시 전보다 " + signed(g.change()) + " 변했어요."),
-                comparison(b, br, "게시 후 7일 대상 메뉴 매출 변화가 " + signed(b.change()) + "에 그쳤어요."), metrics,
+                good, bad, metrics,
                 differences, conclusion);
     }
 
@@ -307,21 +301,6 @@ public class MockAiService implements AiService {
                 slow.getProductId()));
     }
 
-    private static List<Suggestion> stockPromotions(Store store, List<Sale> sales, LocalDate from, LocalDate to) {
-        Product stock = store.getProducts().stream()
-                .filter(p -> p.getStockQty() != null && p.getStockQty() > 0)
-                .max(Comparator.comparingInt(Product::getStockQty)).orElse(null);
-        if (stock == null) {
-            return List.of();
-        }
-        long days = from == null ? 1 : ChronoUnit.DAYS.between(from, to) + 1;
-        long daily = Math.round((double) qty(sales, stock) / days);
-        return List.of(new Suggestion("stock-1", stock.getProductName() + " 재고 소진 타임세일을 추천해요",
-                "오후 4시 이후 한정 할인이나 1+1 쿠폰으로 남은 재고를 빠르게 소진해 보세요.",
-                "재고 " + stock.getStockQty() + "개 · 하루 평균 " + daily + "개 판매", false, "재고 소진 프로모션",
-                stock.getProductId()));
-    }
-
     private static CampaignBrief brief(CampaignRow r, String role) {
         return new CampaignBrief(r.campaign().getCampaignId(), r.campaign().getTitle(), r.campaign().getPublishedAt(),
                 r.channels(), r.campaign().getThumbnailUrl(), role);
@@ -331,12 +310,6 @@ public class MockAiService implements AiService {
         return new CampaignComparison(r.campaign().getCampaignId(), r.campaign().getTitle(), r.channels(),
                 r.menuNames(), r.change(), r.before(), r.after(), x.likes(), x.comments(), x.shares(), x.saves(),
                 x.reach(), reason);
-    }
-
-    private static MetricBar bar(String label, String goodText, String badText, long good, long bad, boolean sample) {
-        long max = Math.max(good, bad);
-        return new MetricBar(label, goodText, badText, max == 0 ? 0 : (int) Math.round(good * 100.0 / max),
-                max == 0 ? 0 : (int) Math.round(bad * 100.0 / max), sample);
     }
 
     /** 게시물 반응 합계 (예시 데이터) */

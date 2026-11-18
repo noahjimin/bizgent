@@ -4,21 +4,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** 채널별 게시 결과 (POST) */
+/** 시안별 게시 결과 (POST) + 최근 게시물 반응 (POST_METRIC) */
 @Getter
 @Setter
 @NoArgsConstructor
 public class Post {
 
+    public static final String SUCCESS = "SUCCESS";
+
     private String channel;
-    /** 시안별로 기록된 결과일 때만 값이 있다 */
+    /** 게시한 시안의 A/B */
     private String draftKey;
-    /** "success" / "failed" */
+    /** SUCCESS / FAILED */
     private String status;
-    private int views;
-    private int clicks;
-    private int conversions;
-    /** 게시물 반응. 인스타그램 연동 전이라 예시 데이터다 */
+    /** 게시물 반응. 인스타그램 연동 전이라 예시 데이터다 (POST_METRIC.COLLECT_METHOD='SAMPLE') */
     private int likes;
     private int comments;
     private int shares;
@@ -31,14 +30,6 @@ public class Post {
         this.status = status;
     }
 
-    public static Post result(String channel, int views, int clicks, int conversions) {
-        Post post = new Post(channel, null, null);
-        post.views = views;
-        post.clicks = clicks;
-        post.conversions = conversions;
-        return post;
-    }
-
     public Post reactions(int likes, int comments, int shares, int saves, int reach) {
         this.likes = likes;
         this.comments = comments;
@@ -49,6 +40,6 @@ public class Post {
     }
 
     public boolean isSuccess() {
-        return "success".equals(status);
+        return SUCCESS.equals(status);
     }
 }

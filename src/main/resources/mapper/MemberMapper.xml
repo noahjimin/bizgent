@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.MemberMapper">
+
+    <sql id="memberColumns">
+        m.MEMBER_ID, m.EMAIL, m.PASSWORD, m.MEMBER_NAME, m.PHONE,
+        DECODE(m.TERMS_AGREED_YN, 'Y', 1, 0) AS TERMS_AGREED, m.TERMS_AGREED_AT, m.MEMBER_STATUS,
+        NVL((SELECT MAX(s.PLAN_CODE) FROM SUBSCRIPTION s
+              WHERE s.MEMBER_ID = m.MEMBER_ID AND s.SUBSCRIPTION_STATUS = 'ACTIVE'), 'FREE') AS PLAN,
+        NVL((SELECT u.USED_COUNT FROM MONTHLY_USAGE u
+              WHERE u.MEMBER_ID = m.MEMBER_ID AND u.USAGE_MONTH = TO_CHAR(SYSDATE, 'YYYYMM')), 0) AS CAMPAIGNS_USED_THIS_MONTH,
+        (SELECT COUNT(DISTINCT i.CREATED_AT) FROM STORE_IMAGE i JOIN STORE st ON st.STORE_ID = i.STORE_ID
+          WHERE st.MEMBER_ID = m.MEMBER_ID AND i.CREATED_AT >= TRUNC(SYSDATE, 'MM')) AS STORE_IMAGES_USED_THIS_MONTH
+    </sql>
+
+    <select id="findById" resultType="Member">
+        SELECT <include refid="memberColumns"/> FROM MEMBERS m WHERE m.MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="findByEmail" resultType="Member">
+        SELECT <include refid="memberColumns"/> FROM MEMBERS m WHERE LOWER(m.EMAIL) = LOWER(#{email})
+    </select>
+
+    <select id="countByEmail" resultType="int">
+        SELECT COUNT(*) FROM MEMBERS WHERE LOWER(EMAIL) = LOWER(#{email})
+    </select>
+
+    <insert id="insert" parameterType="Member">
+        <selectKey keyProperty="memberId" resultType="long" order="BEFORE">SELECT SEQ_MEMBER.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO MEMBERS (MEMBER_ID, EMAIL, PASSWORD, MEMBER_NAME, PHONE, TERMS_AGREED_YN, TERMS_AGREED_AT,
+                             MEMBER_STATUS, JOINED_AT)
+        VALUES (#{memberId}, #{email}, #{password}, #{memberName}, #{phone}, 'Y', #{termsAgreedAt}, 'ACTIVE', SYSDATE)
+    </insert>
+
+    <update id="updateAccount">
+        UPDATE MEMBERS SET MEMBER_NAME = #{memberName}, PHONE = #{phone} WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE MEMBERS SET PASSWORD = #{password} WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="withdraw">
+        UPDATE MEMBERS SET MEMBER_STATUS = 'WITHDRAWN', WITHDRAWN_AT = SYSDATE WHERE MEMBER_ID = #{memberId}
+    </update>
+
+    <update id="addUsage">
+        MERGE INTO MONTHLY_USAGE u
+        USING DUAL ON (u.MEMBER_ID = #{memberId} AND u.USAGE_MONTH = #{month})
+        WHEN MATCHED THEN UPDATE SET u.USED_COUNT = u.USED_COUNT + 1, u.UPDATED_AT = SYSDATE
+        WHEN NOT MATCHED THEN INSERT (MEMBER_ID, USAGE_MONTH, USED_COUNT, UPDATED_AT) VALUES (#{memberId}, #{month}, 1, SYSDATE)
+    </update>
+
+    <update id="setUsage">
+        MERGE INTO MONTHLY_USAGE u
+        USING DUAL ON (u.MEMBER_ID = #{memberId} AND u.USAGE_MONTH = #{month})
+        WHEN MATCHED THEN UPDATE SET u.USED_COUNT = #{count}, u.UPDATED_AT = SYSDATE
+        WHEN NOT MATCHED THEN INSERT (MEMBER_ID, USAGE_MONTH, USED_COUNT, UPDATED_AT) VALUES (#{memberId}, #{month}, #{count}, SYSDATE)
+    </update>
+
+    <insert id="insertSubscription">
+        INSERT INTO SUBSCRIPTION (SUBSCRIPTION_ID, MEMBER_ID, PLAN_CODE, START_DATE, SUBSCRIPTION_STATUS, PAYMENT_STATUS, CREATED_AT)
+        VALUES (SEQ_SUBSCRIPTION.NEXTVAL, #{memberId}, #{planCode}, TRUNC(SYSDATE), 'ACTIVE', 'PAID', SYSDATE)
+    </insert>
+
+    <update id="cancelSubscriptions">
+        UPDATE SUBSCRIPTION SET SUBSCRIPTION_STATUS = 'CANCELED', END_DATE = TRUNC(SYSDATE)
+         WHERE MEMBER_ID = #{memberId} AND SUBSCRIPTION_STATUS = 'ACTIVE'
+    </update>
+
+    <delete id="deleteUsage">DELETE FROM MONTHLY_USAGE WHERE MEMBER_ID = #{memberId}</delete>
+
+    <delete id="deleteSubscriptions">DELETE FROM SUBSCRIPTION WHERE MEMBER_ID = #{memberId}</delete>
+</mapper>

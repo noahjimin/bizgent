@@ -166,7 +166,7 @@
           <p class="font-bold text-[32px] text-[#172033]">0원</p>
           <div class="h-px w-full bg-[#eef1f5]"></div>
           <ul class="flex flex-col gap-[14px]">
-            <li th:each="f : ${ {'월 ' + freePlan.monthlyCampaigns + '회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 ' + freePlan.maxChannels + '개 선택'} }"
+            <li th:each="f : ${ {'월 ' + freePlan.monthlyCampaignLimit + '회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 ' + freePlan.maxChannelCount + '개 선택'} }"
                 class="flex items-center gap-[10px]">
               <span class="flex size-[24px] shrink-0 items-center justify-center rounded-full bg-[#eaf2ff]"><img alt="" th:src="@{/assets/443d1.svg}" class="size-[13px]"></span>
               <span class="font-medium text-[15px] text-[#172033]" th:text="${f}"></span>
@@ -384,11 +384,11 @@
 <!-- 자주 묻는 질문: PROJECT.md 확정 값만 사용. 한도 숫자는 Plan에서 읽는다 -->
 <div id="info-faq-body" class="flex flex-col gap-[10px]">
   <details th:each="q, st : ${ {
-        {'무료로 몇 번 이용할 수 있나요?', '매달 캠페인 ' + freePlan.monthlyCampaigns + '회까지 무료로 이용할 수 있어요. 새 캠페인을 시작할 때 1회씩 차감돼요.'},
-        {'채널은 몇 개까지 선택할 수 있나요?', '무료·구독 플랜 모두 캠페인마다 게시 채널을 최대 ' + freePlan.maxChannels + '개까지 고를 수 있어요. 인스타그램, 블로그, 당근마켓, 카카오톡 채널 등에서 선택해요.'},
+        {'무료로 몇 번 이용할 수 있나요?', '매달 캠페인 ' + freePlan.monthlyCampaignLimit + '회까지 무료로 이용할 수 있어요. 새 캠페인을 시작할 때 1회씩 차감돼요.'},
+        {'채널은 몇 개까지 선택할 수 있나요?', '무료·구독 플랜 모두 캠페인마다 게시 채널을 최대 ' + freePlan.maxChannelCount + '개까지 고를 수 있어요. 인스타그램, 블로그, 당근마켓, 카카오톡 채널 등에서 선택해요.'},
         {'시안은 몇 개 받을 수 있나요?', '무료·구독 모두 A/B 2종 시안을 받아요. 여러 시안을 함께 골라 게시할 수 있고, 문구·해시태그를 직접 고치거나 이미지를 내려받을 수 있어요.'},
         {'매출 데이터는 어떻게 올리나요?', '성과분석 화면에서 엑셀/CSV 파일, 영수증 사진, 직접 입력 중 편한 방법으로 올리면 돼요.'},
-        {'구독하면 무엇이 달라지나요?', '월 9,900원 구독 플랜에서는 월 캠페인 이용 횟수가 ' + proPlan.monthlyCampaigns + '회로 늘어나고, AI 기획 재분석, AI 문구 대안, AI 이미지 수정, 참고 이미지 활용을 쓸 수 있어요.'}
+        {'구독하면 무엇이 달라지나요?', '월 9,900원 구독 플랜에서는 월 캠페인 이용 횟수가 ' + proPlan.monthlyCampaignLimit + '회로 늘어나고, AI 기획 재분석, AI 문구 대안, AI 이미지 수정, 참고 이미지 활용을 쓸 수 있어요.'}
       } }" class="group rounded-[14px] border border-[#e5eaf1] bg-white open:border-[#bfdbfe] open:bg-[#f8fbff]" th:open="${st.first}">
     <summary class="font-bold flex cursor-pointer list-none items-center justify-between gap-[12px] px-[18px] py-[16px] text-[16px] text-[#172033] [&::-webkit-details-marker]:hidden">
       <span th:text="${q[0]}"></span>

@@ -15,6 +15,8 @@ public class StoreForm {
 
     private String storeName = "";
     private String category = "";
+    /** 업종이 '기타'일 때 직접 입력한 업종 */
+    private String categoryEtc = "";
     private String phone = "";
     private String targetCustomer = "";
     private String toneManner = "";
@@ -35,7 +37,6 @@ public class StoreForm {
         /** "6,500원"처럼 입력되므로 숫자만 골라 쓴다 */
         private String price = "";
         private String description = "";
-        private String stockQty = "";
         private String imageUrl = "";
         private MultipartFile imageFile;
     }

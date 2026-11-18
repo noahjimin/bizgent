@@ -74,7 +74,7 @@
         <p class="f-bold text-[32px] text-[#172033]">0원</p>
         <div class="h-px w-full bg-[#eef1f5]"></div>
         <ul class="flex w-full flex-col gap-[16px]">
-          <th:block th:each="f, s : ${ {'월 ' + freePlan.monthlyCampaigns + '회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 ' + freePlan.maxChannels + '개 선택'} }"><li th:replace="~{:: feature(${f}, ${s.index < 3 ? '443d1.svg' : 'ac97e.svg'}, 'bg-[#eaf2ff]', null)}"></li></th:block>
+          <th:block th:each="f, s : ${ {'월 ' + freePlan.monthlyCampaignLimit + '회 캠페인 기획·생성', '시안 비교 A/B 2종', '문구·해시태그 직접 수정', '시안 이미지 다운로드', 'SNS 채널 최대 ' + freePlan.maxChannelCount + '개 선택'} }"><li th:replace="~{:: feature(${f}, ${s.index < 3 ? '443d1.svg' : 'ac97e.svg'}, 'bg-[#eaf2ff]', null)}"></li></th:block>
         </ul>
         <div class="min-h-px w-full flex-1"></div>
         <button type="button" disabled class="f-bold flex h-[48px] w-full items-center justify-center rounded-[12px] border border-[#e5eaf1] bg-[#f8fafc] text-[14px] text-[#667085]"
@@ -90,7 +90,7 @@
         <p class="f-bold text-[32px] text-[#172033]">월 9,900원</p>
         <div class="h-px w-full bg-[#dcebff]"></div>
         <ul class="flex w-full flex-col gap-[13px]">
-          <th:block th:each="f, s : ${ { {'월 ' + proPlan.monthlyCampaigns + '회 캠페인 기획·생성', null}, {'AI 기획 재분석: 원하는 방향을 적으면 AI가 다시 기획해줘요', '새 기능'}, {'AI 문구 대안 제안', null}, {'AI 이미지 수정', null}, {'참고 이미지로 더 정확한 이미지 생성', null} } }"><li th:replace="~{:: feature(${f[0]}, ${s.index < 1 ? '758e8.svg' : '02f42.svg'}, 'bg-[#ddf8f3]', ${f[1]})}"></li></th:block>
+          <th:block th:each="f, s : ${ { {'월 ' + proPlan.monthlyCampaignLimit + '회 캠페인 기획·생성', null}, {'AI 기획 재분석: 원하는 방향을 적으면 AI가 다시 기획해줘요', '새 기능'}, {'AI 문구 대안 제안', null}, {'AI 이미지 수정', null}, {'참고 이미지로 더 정확한 이미지 생성', null} } }"><li th:replace="~{:: feature(${f[0]}, ${s.index < 1 ? '758e8.svg' : '02f42.svg'}, 'bg-[#ddf8f3]', ${f[1]})}"></li></th:block>
         </ul>
         <div class="min-h-px w-full flex-1"></div>
         <form th:if="${me.free}" method="post" th:action="@{/subscription}" data-confirm="월 9,900원 구독 플랜으로 전환할까요? 시연 버전에서는 실제 결제가 이루어지지 않아요." data-confirm-label="구독하기">

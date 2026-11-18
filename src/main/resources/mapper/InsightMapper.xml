@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bizgent.mapper.InsightMapper">
+
+    <sql id="storeInsightIds">SELECT INSIGHT_ID FROM INSIGHT WHERE STORE_ID = #{storeId}</sql>
+
+    <select id="findInsights" resultType="InsightRow">
+        SELECT INSIGHT_ID, STORE_ID, BASE_UPLOAD_ID, INSIGHT_TYPE, SALES_FROM, SALES_TO, CANDIDATE_COUNT, COMPARE_BASIS,
+               HEADLINE, SUMMARY, CONCLUSION, CONCLUSION_GOAL_CODE, CONCLUSION_PRODUCT_ID, CREATED_AT
+          FROM INSIGHT WHERE STORE_ID = #{storeId}
+         ORDER BY CREATED_AT DESC, INSIGHT_ID DESC
+    </select>
+
+    <select id="findItems" resultType="InsightItemRow">
+        SELECT ITEM_ID, INSIGHT_ID, ITEM_CATEGORY, SORT_ORDER, TITLE, CONTENT, EVIDENCE,
+               DECODE(EVIDENCE_SAMPLE_YN, 'Y', 1, 0) AS EVIDENCE_SAMPLE, GOAL_CODE, PRODUCT_ID
+          FROM INSIGHT_ITEM WHERE INSIGHT_ID IN (<include refid="storeInsightIds"/>)
+         ORDER BY INSIGHT_ID, ITEM_CATEGORY, SORT_ORDER
+    </select>
+
+    <select id="findDiffs" resultType="InsightDiffRow">
+        SELECT INSIGHT_ID, DIFF_SEQ, ITEM_NAME, GOOD_VALUE, BAD_VALUE
+          FROM INSIGHT_DIFF WHERE INSIGHT_ID IN (<include refid="storeInsightIds"/>)
+         ORDER BY INSIGHT_ID, DIFF_SEQ
+    </select>
+
+    <select id="findCampaigns" resultType="InsightCampaignRow">
+        SELECT INSIGHT_ID, CAMPAIGN_ID, COMPARE_ROLE, SALES_CHANGE_RATE, BEFORE_AMOUNT, AFTER_AMOUNT, LIKE_SUM,
+               COMMENT_SUM, SHARE_SUM, SAVE_SUM, REACH_SUM, REASON
+          FROM INSIGHT_CAMPAIGN WHERE INSIGHT_ID IN (<include refid="storeInsightIds"/>)
+         ORDER BY INSIGHT_ID, DECODE(COMPARE_ROLE, 'TARGET', 1, 'GOOD', 2, 3)
+    </select>
+
+    <select id="findLatestId" resultType="long">
+        SELECT MAX(INSIGHT_ID) KEEP (DENSE_RANK LAST ORDER BY CREATED_AT) FROM INSIGHT WHERE STORE_ID = #{storeId}
+    </select>
+
+    <insert id="insertInsight" parameterType="InsightRow">
+        <selectKey keyProperty="insightId" resultType="long" order="BEFORE">SELECT SEQ_INSIGHT.NEXTVAL FROM DUAL</selectKey>
+        INSERT INTO INSIGHT (INSIGHT_ID, STORE_ID, BASE_UPLOAD_ID, INSIGHT_TYPE, SALES_FROM, SALES_TO, CANDIDATE_COUNT,
+                             COMPARE_BASIS, HEADLINE, SUMMARY, CONCLUSION, CONCLUSION_GOAL_CODE, CONCLUSION_PRODUCT_ID, CREATED_AT)
+        VALUES (#{insightId}, #{storeId}, #{baseUploadId}, #{insightType}, #{salesFrom}, #{salesTo}, #{candidateCount},
+                #{compareBasis}, #{headline}, #{summary}, #{conclusion}, #{conclusionGoalCode}, #{conclusionProductId},
+                #{createdAt})
+    </insert>
+
+    <insert id="insertItem" parameterType="InsightItemRow">
+        INSERT INTO INSIGHT_ITEM (ITEM_ID, INSIGHT_ID, ITEM_CATEGORY, SORT_ORDER, TITLE, CONTENT, EVIDENCE,
+                                  EVIDENCE_SAMPLE_YN, GOAL_CODE, PRODUCT_ID)
+        VALUES (SEQ_INSIGHT_ITEM.NEXTVAL, #{insightId}, #{itemCategory}, #{sortOrder}, #{title}, #{content}, #{evidence},
+                ${evidenceSample ? "'Y'" : "'N'"}, #{goalCode}, #{productId})
+    </insert>
+
+    <insert id="insertDiff" parameterType="InsightDiffRow">
+        INSERT INTO INSIGHT_DIFF (INSIGHT_ID, DIFF_SEQ, ITEM_NAME, GOOD_VALUE, BAD_VALUE)
+        VALUES (#{insightId}, #{diffSeq}, #{itemName}, #{goodValue}, #{badValue})
+    </insert>
+
+    <insert id="insertCampaign" parameterType="InsightCampaignRow">
+        INSERT INTO INSIGHT_CAMPAIGN (INSIGHT_ID, CAMPAIGN_ID, COMPARE_ROLE, SALES_CHANGE_RATE, BEFORE_AMOUNT, AFTER_AMOUNT,
+                                      LIKE_SUM, COMMENT_SUM, SHARE_SUM, SAVE_SUM, REACH_SUM, REASON)
+        VALUES (#{insightId}, #{campaignId}, #{compareRole}, #{salesChangeRate}, #{beforeAmount}, #{afterAmount},
+                #{likeSum}, #{commentSum}, #{shareSum}, #{saveSum}, #{reachSum}, #{reason})
+    </insert>
+
+    <delete id="deleteByStore">DELETE FROM INSIGHT WHERE STORE_ID = #{storeId}</delete>
+</mapper>
